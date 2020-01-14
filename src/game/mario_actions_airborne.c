@@ -83,9 +83,9 @@ s32 check_fall_damage(struct MarioState *m, u32 hardFallAction) {
                 play_sound(SOUND_MARIO_ATTACKED, m->marioObj->header.gfx.cameraToObject);
                 // return drop_and_set_mario_action(m, hardFallAction, 4);
             } else if (fallHeight > damageHeight && !mario_floor_is_slippery(m)) {
-                // m->hurtCounter += (m->flags & MARIO_CAP_ON_HEAD) ? 8 : 12;
-                // m->squishTimer = 30;
-                set_camera_shake(SHAKE_FALL_DAMAGE);
+                m->hurtCounter += (m->flags & MARIO_CAP_ON_HEAD) ? 8 : 12;
+                m->squishTimer = 30;
+                set_camera_shake_from_hit(SHAKE_FALL_DAMAGE);
                 play_sound(SOUND_MARIO_ATTACKED, m->marioObj->header.gfx.cameraToObject);
             }
         }
@@ -833,9 +833,8 @@ s32 act_air_throw(struct MarioState *m) {
 
     switch (perform_air_step(m, 0)) {
         case AIR_STEP_LANDED:
-            if (!check_fall_damage_or_get_stuck(m, ACT_HARD_BACKWARD_GROUND_KB)) {
-                m->action = ACT_AIR_THROW_LAND;
-            }
+            set_mario_action(m, ACT_HOLD_JUMP_LAND, 0);
+            set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
             break;
 
         case AIR_STEP_HIT_WALL:
@@ -852,13 +851,13 @@ s32 act_air_throw(struct MarioState *m) {
 
 s32 act_water_jump(struct MarioState *m) {
     set_mario_action(m, ACT_DOLPHIN_DIVE, 0);
-    func_80285BD8(m->area->camera, m->area->camera->defPreset, 1);
+    set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
     return act_dolphin_dive(m);
 }
 
 s32 act_hold_water_jump(struct MarioState *m) {
     set_mario_action(m, ACT_HOLD_JUMP, 0);
-    func_80285BD8(m->area->camera, m->area->camera->defPreset, 1);
+    set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
     return act_hold_jump(m);
 }
 
@@ -942,7 +941,7 @@ s32 act_ground_pound(struct MarioState *m) {
                     set_mario_action(m, ACT_GROUND_POUND_LAND, 0);
                 }
             }
-            set_camera_shake(SHAKE_GROUND_POUND);
+            set_camera_shake_from_hit(SHAKE_GROUND_POUND);
         } else if (stepResult == AIR_STEP_HIT_WALL) {
             mario_set_forward_vel(m, -16.0f);
             if (m->vel[1] > 0.0f) {
@@ -1658,8 +1657,8 @@ s32 act_jump_kick(struct MarioState *m) {
 }
 
 s32 act_shot_from_cannon(struct MarioState *m) {
-    if (m->area->camera->currPreset != CAMERA_PRESET_BEHIND_MARIO) {
-        m->statusForCamera->unk1C[1] = 2;
+    if (m->area->camera->mode != CAMERA_MODE_BEHIND_MARIO) {
+        m->statusForCamera->cameraEvent = CAM_EVENT_SHOT_FROM_CANNON;
     }
 
     mario_set_forward_vel(m, m->forwardVel);
@@ -1676,7 +1675,7 @@ s32 act_shot_from_cannon(struct MarioState *m) {
         case AIR_STEP_LANDED:
             set_mario_action(m, ACT_DIVE_SLIDE, 0);
             m->faceAngle[0] = 0;
-            func_80285BD8(m->area->camera, m->area->camera->defPreset, 1);
+            set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
             break;
 
         case AIR_STEP_HIT_WALL:
@@ -1689,7 +1688,7 @@ s32 act_shot_from_cannon(struct MarioState *m) {
 
             m->particleFlags |= PARTICLE_1;
             set_mario_action(m, ACT_BACKWARD_AIR_KB, 0);
-            func_80285BD8(m->area->camera, m->area->camera->defPreset, 1);
+            set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
             break;
 
         case AIR_STEP_HIT_LAVA_WALL:
@@ -1715,21 +1714,21 @@ s32 act_flying(struct MarioState *m) {
     s16 startPitch = m->faceAngle[0];
 
     if (m->input & INPUT_Z_PRESSED) {
-        if (m->area->camera->currPreset == CAMERA_PRESET_BEHIND_MARIO) {
-            func_80285BD8(m->area->camera, m->area->camera->defPreset, 1);
+        if (m->area->camera->mode == CAMERA_MODE_BEHIND_MARIO) {
+            set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
         }
         return set_mario_action(m, ACT_GROUND_POUND, 1);
     }
 
     if (!(m->flags & MARIO_WING_CAP)) {
-        if (m->area->camera->currPreset == CAMERA_PRESET_BEHIND_MARIO) {
-            func_80285BD8(m->area->camera, m->area->camera->defPreset, 1);
+        if (m->area->camera->mode == CAMERA_MODE_BEHIND_MARIO) {
+            set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
         }
         return set_mario_action(m, ACT_FREEFALL, 0);
     }
 
-    if (m->area->camera->currPreset != CAMERA_PRESET_BEHIND_MARIO) {
-        func_80285BD8(m->area->camera, 3, 1);
+    if (m->area->camera->mode != CAMERA_MODE_BEHIND_MARIO) {
+        set_camera_mode(m->area->camera, CAMERA_MODE_BEHIND_MARIO, 1);
     }
 
     if (m->actionState == 0) {
@@ -1769,7 +1768,7 @@ s32 act_flying(struct MarioState *m) {
             set_anim_to_frame(m, 7);
 
             m->faceAngle[0] = 0;
-            func_80285BD8(m->area->camera, m->area->camera->defPreset, 1);
+            set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
             break;
 
         case AIR_STEP_HIT_WALL:
@@ -1787,7 +1786,7 @@ s32 act_flying(struct MarioState *m) {
 
                 m->particleFlags |= PARTICLE_1;
                 set_mario_action(m, ACT_BACKWARD_AIR_KB, 0);
-                func_80285BD8(m->area->camera, m->area->camera->defPreset, 1);
+                set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
             } else {
                 if (m->actionTimer++ == 0) {
                     play_sound(SOUND_ACTION_HIT, m->marioObj->header.gfx.cameraToObject);
@@ -1861,8 +1860,8 @@ s32 act_riding_hoot(struct MarioState *m) {
 s32 act_flying_triple_jump(struct MarioState *m) {
 #ifndef VERSION_JP
     if (m->input & (INPUT_B_PRESSED | INPUT_Z_PRESSED)) {
-        if (m->area->camera->currPreset == CAMERA_PRESET_BEHIND_MARIO) {
-            func_80285BD8(m->area->camera, m->area->camera->defPreset, 1);
+        if (m->area->camera->mode == CAMERA_MODE_BEHIND_MARIO) {
+            set_camera_mode(m->area->camera, m->area->camera->defMode, 1);
         }
         if (m->input & INPUT_B_PRESSED) {
             return set_mario_action(m, ACT_DIVE, 0);
@@ -1899,8 +1898,8 @@ s32 act_flying_triple_jump(struct MarioState *m) {
     }
 
     if (m->vel[1] < 4.0f) {
-        if (m->area->camera->currPreset != CAMERA_PRESET_BEHIND_MARIO) {
-            func_80285BD8(m->area->camera, 3, 1);
+        if (m->area->camera->mode != CAMERA_MODE_BEHIND_MARIO) {
+            set_camera_mode(m->area->camera, CAMERA_MODE_BEHIND_MARIO, 1);
         }
 
         if (m->forwardVel < 32.0f) {
@@ -1910,8 +1909,8 @@ s32 act_flying_triple_jump(struct MarioState *m) {
         set_mario_action(m, ACT_FLYING, 1);
     }
 
-    if (m->actionTimer++ == 10 && m->area->camera->currPreset != CAMERA_PRESET_BEHIND_MARIO) {
-        func_80285BD8(m->area->camera, 3, 1);
+    if (m->actionTimer++ == 10 && m->area->camera->mode != CAMERA_MODE_BEHIND_MARIO) {
+        set_camera_mode(m->area->camera, CAMERA_MODE_BEHIND_MARIO, 1);
     }
 
     update_air_without_turn(m);
