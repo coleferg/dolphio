@@ -28,7 +28,7 @@ void bhv_collect_star_init(void) {
 }
 
 void bhv_collect_star_loop(void) {
-    o->oFaceAngleYaw += 0x800;
+    o->oFaceAngleYaw += 0x400;
 
     if (o->oInteractStatus & INT_STATUS_INTERACTED) {
         mark_obj_for_deletion(o);

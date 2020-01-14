@@ -22,3 +22,7 @@ ALIGNED8 static const u8 bob_seg7_texture_07001800[] = {
 ALIGNED8 static const u8 bob_seg7_texture_07002000[] = {
 #include "levels/bob/4.rgba16.inc.c"
 };
+
+ALIGNED8 static const u8 untitled_rgba16[] = {
+#include "levels/bob/5.custom.rgba16.inc.c"
+};

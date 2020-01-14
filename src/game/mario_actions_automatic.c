@@ -341,7 +341,7 @@ s32 perform_hanging_step(struct MarioState *m, Vec3f nextPos) {
 s32 update_hang_moving(struct MarioState *m) {
     s32 stepResult;
     Vec3f nextPos;
-    f32 maxSpeed = 4.0f;
+    f32 maxSpeed = 10.0f;
 
     m->forwardVel += 1.0f;
     if (m->forwardVel > maxSpeed) {

@@ -97,6 +97,7 @@ extern u8 bitdw_seg7_collision_0700FC7C[];
 extern u8 bitdw_seg7_collision_0700FB5C[];
 extern u8 bitdw_seg7_collision_0700FA3C[];
 extern u8 bitdw_seg7_collision_0700F91C[];
+extern u8 world_collision[];
 extern u8 rr_seg7_collision_0702A6B4[];
 extern u8 rr_seg7_collision_0702A32C[];
 extern u8 rr_seg7_collision_07029FA4[];

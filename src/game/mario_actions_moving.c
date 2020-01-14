@@ -439,7 +439,7 @@ void update_walking_speed(struct MarioState *m) {
     if (m->floor != NULL && m->floor->type == SURFACE_SLOW) {
         maxTargetSpeed = 24.0f;
     } else {
-        maxTargetSpeed = 32.0f;
+        maxTargetSpeed = 70.0f;
     }
 
     targetSpeed = m->intendedMag < maxTargetSpeed ? m->intendedMag : maxTargetSpeed;
@@ -456,9 +456,9 @@ void update_walking_speed(struct MarioState *m) {
         m->forwardVel -= 1.0f;
     }
 
-    if (m->forwardVel > 48.0f) {
-        m->forwardVel = 48.0f;
-    }
+    // if (m->forwardVel > 48.0f) {
+    //     m->forwardVel = 48.0f;
+    // }
 
     m->faceAngle[1] =
         m->intendedYaw - approach_s32((s16)(m->intendedYaw - m->faceAngle[1]), 0, 0x800, 0x800);
@@ -944,7 +944,7 @@ s32 act_hold_heavy_walking(struct MarioState *m) {
         return set_mario_action(m, ACT_HOLD_HEAVY_IDLE, 0);
     }
 
-    m->intendedMag *= 0.1f;
+    m->intendedMag *= 0.5f;
 
     update_walking_speed(m);
 

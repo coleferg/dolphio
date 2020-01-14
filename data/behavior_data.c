@@ -4903,6 +4903,18 @@ const BehaviorScript bhvStar[] = {
     END_LOOP(),
 };
 
+// 3E1C
+const BehaviorScript bhvStarNoExit[] = {
+    BEGIN(OBJ_LIST_LEVEL),
+    OBJ_OR_INT(oFlags, (OBJ_FLAG_PERSISTENT_RESPAWN | OBJ_FLAG_UPDATE_GFX_POS_AND_ANGLE)),
+    OBJ_SET_INT(oInteractionSubtype, INT_SUBTYPE_NO_EXIT),
+    CALLNATIVE(bhv_init_room),
+    CALLNATIVE(bhv_collect_star_init),
+    BEGIN_LOOP(),
+        CALLNATIVE(bhv_collect_star_loop),
+    END_LOOP(),
+};
+
 // 3E44
 const BehaviorScript bhvStarSpawnCoordinates[] = {
     BEGIN(OBJ_LIST_LEVEL),

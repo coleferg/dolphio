@@ -1,24 +1,8 @@
 // Parameters: dialog enum ID, (unused), lines per box, left offset, width
 
 DEFINE_DIALOG(DIALOG_000, 1, 6, 30, 200, _("\
-Wow! You're smack in the\n\
-middle of the battlefield.\n\
-You'll find the Power\n\
-Stars that Bowser stole\n\
-inside the painting\n\
-worlds.\n\
-First, talk to the\n\
-Bob-omb Buddy. (Press [B]\n\
-to talk.) He'll certainly\n\
-help you out, and so will\n\
-his comrades in other\n\
-areas.\n\
-To read signs, stop, face\n\
-them and press [B]. Press [A]\n\
-or [B] to scroll ahead. You\n\
-can talk to some other\n\
-characters by facing them\n\
-and pressing [B]."))
+You're fucked!\n\
+Piss off."))
 
 DEFINE_DIALOG(DIALOG_001, 1, 4, 95, 200, _("\
 Watch out! If you wander\n\
@@ -259,12 +243,12 @@ Shhh! Please walk\n\
 quietly in the hallway!"))
 
 DEFINE_DIALOG(DIALOG_020, 1, 6, 95, 150, _("\
-Dear Mario:\n\
+Yo Mario:\n\
 Please come to the\n\
-castle. I've baked\n\
-a cake for you.\n\
+castle. I'm baked\n\
+as fuck bruh lol.\n\
 Yours truly--\n\
-Princess Toadstool"))
+Princess Choadstool"))
 
 DEFINE_DIALOG(DIALOG_021, 1, 5, 95, 200, _("\
 Welcome.\n\
@@ -2051,16 +2035,8 @@ so come back later.\n\
 //--Koopa the Quick"))
 
 DEFINE_DIALOG(DIALOG_167, 1, 4, 30, 200, _("\
-Princess Toadstool's\n\
-castle is just ahead.\n\
-\n\
-\n\
-Press [A] to jump, [Z] to\n\
-crouch, and [B] to punch,\n\
-read a sign, or grab\n\
-something.\n\
-Press [B] again to throw\n\
-something you're holding."))
+Did you fart?\n\
+Cus someone definitely did."))
 
 DEFINE_DIALOG(DIALOG_168, 1, 5, 30, 200, _("\
 Hey! Knock it off! That's\n\

@@ -268,8 +268,13 @@ void play_mario_jump_sound(struct MarioState *m) {
  * Adjusts the volume/pitch of sounds from Mario's speed.
  */
 void adjust_sound_for_speed(struct MarioState *m) {
-    s32 absForwardVel = (m->forwardVel > 0.0f) ? m->forwardVel : -m->forwardVel;
-    func_80320A4C(1, (absForwardVel > 100) ? 100 : absForwardVel);
+    float gravMultiple = (m->isSlowMo) ? 0.1f : 1.0f;
+    s32 absForwardVel = (m->forwardVel > 0.0f) ? m->forwardVel * gravMultiple : -m->forwardVel * gravMultiple;
+    if (m->isSlowMo) {
+        func_80320A4C(1, absForwardVel);
+    } else {
+        func_80320A4C(1, (absForwardVel > 100) ? 100 : absForwardVel);
+    }
 }
 
 /**
@@ -545,8 +550,6 @@ struct Surface *resolve_and_return_wall_collisions(Vec3f pos, f32 offset, f32 ra
  * Finds the ceiling from a vec3f horizontally and a height (with 80 vertical buffer).
  */
 f32 vec3f_find_ceil(Vec3f pos, f32 height, struct Surface **ceil) {
-    UNUSED f32 unused;
-
     return find_ceil(pos[0], height + 80.0f, pos[2], ceil);
 }
 
@@ -761,9 +764,39 @@ void set_steep_jump_action(struct MarioState *m) {
  * Set's Marios vertical speed from his forward speed.
  */
 static void set_mario_y_vel_based_on_fspeed(struct MarioState *m, f32 initialVelY, f32 multiplier) {
-    // get_additive_y_vel_for_jumps is always 0 and a stubbed function.
-    // It was likely trampoline related based on code location.
-    m->vel[1] = initialVelY + get_additive_y_vel_for_jumps() + m->forwardVel * multiplier;
+    m->vel[1] = initialVelY + m->forwardVel * multiplier;
+
+    if (m->squishTimer != 0 || m->quicksandDepth > 1.0f) {
+        m->vel[1] *= 0.5f;
+    }
+}
+
+/**
+ * Set's Marios vertical speed from his forward speed.
+ */
+static void set_mario_vel_based_on_fspeed_grav(struct MarioState *m, f32 initialVelY, f32 multiplier) {
+    // uses gravPower to add speed and height
+    if (!m->appliedGravChange) {
+        if (m->gravPower[0] == 0.0f) {
+            m->forwardVel *= 0.7f;
+            m->vel[1] *= 0.7f;
+        } else {
+            if ((m->forwardVel *= m->gravPower[1]) > 70.0f) {
+                m->forwardVel = 70.0f;
+            } else if (m->forwardVel < -70.0f)
+            {
+                m->forwardVel = -70.0f;
+            }
+            
+            m->vel[1] = (initialVelY * m->gravPower[2]) + m->forwardVel * multiplier + (m->gravPower[0] / initialVelY);
+        }
+        m->appliedGravChange = TRUE;
+    } else {
+        if ((m->forwardVel *= 1.25f) > 55.0f) {
+            m->forwardVel = 55.0f;
+        }
+        m->vel[1] = initialVelY + m->forwardVel * multiplier;
+    }
 
     if (m->squishTimer != 0 || m->quicksandDepth > 1.0f) {
         m->vel[1] *= 0.5f;
@@ -784,7 +817,7 @@ static u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actio
 
     switch (action) {
         case ACT_DOUBLE_JUMP:
-            set_mario_y_vel_based_on_fspeed(m, 52.0f, 0.25f);
+            set_mario_vel_based_on_fspeed_grav(m, 52.0f, 0.25f);
             m->forwardVel *= 0.8f;
             break;
 
@@ -795,7 +828,7 @@ static u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actio
             break;
 
         case ACT_TRIPLE_JUMP:
-            set_mario_y_vel_based_on_fspeed(m, 69.0f, 0.0f);
+            set_mario_vel_based_on_fspeed_grav(m, 69.0f, 0.0f);
             m->forwardVel *= 0.8f;
             break;
 
@@ -806,7 +839,7 @@ static u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actio
         case ACT_WATER_JUMP:
         case ACT_HOLD_WATER_JUMP:
             if (actionArg == 0) {
-                set_mario_y_vel_based_on_fspeed(m, 42.0f, 0.0f);
+                set_mario_vel_based_on_fspeed_grav(m, 52.0f, 1.0f);
             }
             break;
 
@@ -861,15 +894,23 @@ static u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actio
             mario_set_forward_vel(m, fowardVel);
             break;
 
+        case ACT_DOLPHIN_DIVE:
+            set_mario_vel_based_on_fspeed_grav(m, 50.0f, 0.05f);
+
+            break;
+
         case ACT_LONG_JUMP:
             m->marioObj->header.gfx.unk38.animID = -1;
             set_mario_y_vel_based_on_fspeed(m, 30.0f, 0.0f);
-            m->marioObj->oMarioLongJumpIsSlow = m->forwardVel > 16.0f ? FALSE : TRUE;
+            m->marioObj->oMarioLongJumpIsSlow = m->forwardVel > 46.0f ? FALSE : TRUE;
 
-            //! (BLJ's) This properly handles long jumps from getting forward speed with
-            //  too much velocity, but misses backwards longs allowing high negative speeds.
-            if ((m->forwardVel *= 1.5f) > 48.0f) {
-                m->forwardVel = 48.0f;
+            // This is a double long jump!
+            if (!m->marioObj->oMarioLongJumpIsSlow) {
+                m->forwardVel = 65.0f;
+                set_mario_y_vel_based_on_fspeed(m, 30.0f, 0.15f);
+            }
+            else if ((m->forwardVel *= 1.5f) > 48.0f) {
+                m->forwardVel = 50.0f;
             }
             break;
 
@@ -1049,7 +1090,7 @@ s32 set_jump_from_landing(struct MarioState *m) {
                     // requirement for a triple jump.
                     if (m->flags & MARIO_WING_CAP) {
                         set_mario_action(m, ACT_FLYING_TRIPLE_JUMP, 0);
-                    } else if (m->forwardVel > 20.0f) {
+                    } else if (m->forwardVel > 15.0f) {
                         set_mario_action(m, ACT_TRIPLE_JUMP, 0);
                     } else {
                         set_mario_action(m, ACT_JUMP, 0);
@@ -1175,17 +1216,14 @@ s32 transition_submerged_to_walking(struct MarioState *m) {
  * non-submerged action. This also applies the water surface camera preset.
  */
 s32 set_water_plunge_action(struct MarioState *m) {
-    m->forwardVel = m->forwardVel / 4.0f;
-    m->vel[1] = m->vel[1] / 2.0f;
+    m->vel[1] = m->vel[1] * 0.8f;
 
     m->pos[1] = m->waterLevel - 100;
 
-    m->faceAngle[2] = 0;
-
-    vec3s_set(m->angleVel, 0, 0, 0);
+    m->faceAngle[2] = (int)(m->faceAngle[2] * 0.6f);
 
     if ((m->action & ACT_FLAG_DIVING) == 0) {
-        m->faceAngle[0] = 0;
+        m->faceAngle[0] = (int)(m->faceAngle[0] * 0.7f);
     }
 
     if (m->area->camera->currPreset != CAMERA_PRESET_WATER_SURFACE) {
@@ -1233,20 +1271,25 @@ void squish_mario_model(struct MarioState *m) {
  * Debug function that prints floor normal, velocity, and action information.
  */
 void debug_print_speed_action_normal(struct MarioState *m) {
-    f32 steepness;
-    f32 floor_nY;
+    // f32 steepness;
+    // f32 floor_nY;
 
-    if (gShowDebugText) {
-        steepness = sqrtf(
-            ((m->floor->normal.x * m->floor->normal.x) + (m->floor->normal.z * m->floor->normal.z)));
-        floor_nY = m->floor->normal.y;
+    if (TRUE) {
+        print_text_fmt_int(210, 76, "%d", m->pos[0]);
+        print_text_fmt_int(210, 60, "%d", m->pos[1]);
+        print_text_fmt_int(210, 44, "%d", m->pos[2]);
+        // steepness = sqrtf(
+        //     ((m->floor->normal.x * m->floor->normal.x) + (m->floor->normal.z * m->floor->normal.z)));
+        // floor_nY = m->floor->normal.y;
 
-        print_text_fmt_int(210, 88, "ANG %d", (atan2s(floor_nY, steepness) * 180.0f) / 32768.0f);
+        // print_text_fmt_int(210, 88, "ANG %d", (atan2s(floor_nY, steepness) * 180.0f) / 32768.0f);
+        // print_text_fmt_int(210, 104, "G0 %d", m->gravPower[0]);
+        // print_text_fmt_int(210, 88, "G1 %d", m->gravPower[1]);
 
-        print_text_fmt_int(210, 72, "SPD %d", m->forwardVel);
+        // print_text_fmt_int(210, 72, "SPD %d", m->forwardVel);
 
         // STA short for "status," the official action name via SMS map.
-        print_text_fmt_int(210, 56, "STA %x", (m->action & ACT_ID_MASK));
+        // print_text_fmt_int(210, 56, "STA %x", (m->action & ACT_ID_MASK));
     }
 }
 
@@ -1254,6 +1297,19 @@ void debug_print_speed_action_normal(struct MarioState *m) {
  * Update the button inputs for Mario.
  */
 void update_mario_button_inputs(struct MarioState *m) {
+    // if (m->controller->buttonPressed & L_TRIG) {
+    //     m->appliedGravChange = FALSE;
+    //     if (m->isSlowMo) {
+    //         m->isSlowMo = FALSE;
+    //         m->gravPower[0] = 1.0f;
+    //         m->gravPower[1] = 1.0f;
+    //     } else {
+    //         m->isSlowMo = TRUE;
+    //         m->gravPower[0] = 0.1f;
+    //         m->gravPower[1] = 0.1f;
+    //     }
+    // }
+
     if (m->controller->buttonPressed & A_BUTTON) {
         m->input |= INPUT_A_PRESSED;
     }
@@ -1287,6 +1343,10 @@ void update_mario_button_inputs(struct MarioState *m) {
         m->framesSinceB = 0;
     } else if (m->framesSinceB < 0xff) {
         m->framesSinceB += 1;
+    }
+
+    if (m->action != ACT_DEBUG_FREE_MOVE && m->controller->buttonPressed & L_JPAD) {
+        set_mario_action(m, ACT_DEBUG_FREE_MOVE, 0);
     }
 }
 
@@ -1506,6 +1566,11 @@ void update_mario_health(struct MarioState *m) {
 void update_mario_info_for_cam(struct MarioState *m) {
     m->marioBodyState->action = m->action;
     m->statusForCamera->action = m->action;
+    if (m->canAirJump) {
+        m->particleFlags |= PARTICLE_SPARKLES;
+    } else {
+        m->particleFlags &= PARTICLE_SPARKLES;
+    };
 
     vec3s_copy(m->statusForCamera->faceAngle, m->faceAngle);
 
@@ -1521,7 +1586,7 @@ void mario_reset_bodystate(struct MarioState *m) {
     struct MarioBodyState *bodyState = m->marioBodyState;
 
     bodyState->capState = MARIO_HAS_DEFAULT_CAP_OFF;
-    bodyState->eyeState = MARIO_EYES_BLINK;
+    bodyState->eyeState = MARIO_EYES_LOOK_LEFT;
     bodyState->handState = MARIO_HAND_FISTS;
     bodyState->modelState = 0;
     bodyState->unk07 = 0;
@@ -1771,6 +1836,12 @@ void init_mario(void) {
     gMarioState->actionTimer = 0;
     gMarioState->framesSinceA = 0xFF;
     gMarioState->framesSinceB = 0xFF;
+    gMarioState->isSlowMo = FALSE;
+    gMarioState->appliedGravChange = TRUE;
+    gMarioState->gravPower[0] = 1.0f;
+    gMarioState->gravPower[1] = 1.0f;
+    gMarioState->gravPower[2] = 1.0f;
+    gMarioState->canAirJump = FALSE;
 
     gMarioState->invincTimer = 0;
 
@@ -1858,9 +1929,14 @@ void init_mario_from_save_file(void) {
     gMarioState->numCoins = 0;
     gMarioState->numStars =
         save_file_get_total_star_count(gCurrSaveFileNum - 1, COURSE_MIN - 1, COURSE_MAX - 1);
-    gMarioState->numKeys = 0;
+    gMarioState->isSlowMo = FALSE;
+    gMarioState->canAirJump = FALSE;
+    gMarioState->appliedGravChange = TRUE;
+    gMarioState->gravPower[0] = 1.0f;
+    gMarioState->gravPower[1] = 1.0f;
+    gMarioState->gravPower[2] = 1.0f;
 
-    gMarioState->numLives = 4;
+    gMarioState->numLives = -1;
     gMarioState->health = 0x880;
 
     gMarioState->unkB8 = gMarioState->numStars;

@@ -76,9 +76,9 @@ static s32 sSparkleGenPhi = 0;
 // blink twice then have half-shut eyes (see end_peach_cutscene_kiss_from_peach)
 static u8 sMarioBlinkOverride[20] = {
     MARIO_EYES_HALF_CLOSED, MARIO_EYES_HALF_CLOSED, MARIO_EYES_CLOSED, MARIO_EYES_CLOSED,
-    MARIO_EYES_HALF_CLOSED, MARIO_EYES_HALF_CLOSED, MARIO_EYES_OPEN,   MARIO_EYES_OPEN,
+    MARIO_EYES_HALF_CLOSED, MARIO_EYES_HALF_CLOSED, MARIO_EYES_LOOK_LEFT,   MARIO_EYES_OPEN,
     MARIO_EYES_HALF_CLOSED, MARIO_EYES_HALF_CLOSED, MARIO_EYES_CLOSED, MARIO_EYES_CLOSED,
-    MARIO_EYES_HALF_CLOSED, MARIO_EYES_HALF_CLOSED, MARIO_EYES_OPEN,   MARIO_EYES_OPEN,
+    MARIO_EYES_HALF_CLOSED, MARIO_EYES_HALF_CLOSED, MARIO_EYES_OPEN,   MARIO_EYES_LOOK_RIGHT,
     MARIO_EYES_HALF_CLOSED, MARIO_EYES_HALF_CLOSED, MARIO_EYES_CLOSED, MARIO_EYES_CLOSED,
 };
 
@@ -514,7 +514,7 @@ s32 act_reading_sign(struct MarioState *m) {
             stop_mario(1);
             enable_time_stop();
             // reading sign
-            set_mario_animation(m, MARIO_ANIM_FIRST_PERSON);
+            set_mario_animation(m, MARIO_ANIM_COUGHING);
             m->actionState = 1;
             // intentional fall through
         // turn toward sign
@@ -651,8 +651,8 @@ void general_star_dance_handler(struct MarioState *m, s32 isInWater) {
 
 s32 act_star_dance(struct MarioState *m) {
     m->faceAngle[1] = m->area->camera->trueYaw;
-    set_mario_animation(m, m->actionState == 2 ? MARIO_ANIM_RETURN_FROM_STAR_DANCE
-                                               : MARIO_ANIM_STAR_DANCE);
+    set_mario_animation(m, m->actionState == 2 ? MARIO_ANIM_CREDITS_WAVING
+                                               : MARIO_ANIM_CREDITS_WAVING);
     general_star_dance_handler(m, 0);
     if (m->actionState != 2 && m->actionTimer >= 40) {
         m->marioBodyState->handState = MARIO_HAND_PEACE_SIGN;
@@ -1594,7 +1594,10 @@ s32 act_putting_on_cap(struct MarioState *m) {
 
 void stuck_in_ground_handler(struct MarioState *m, s32 animation, s32 unstuckFrame, s32 target2,
                              s32 target3, s32 endAction) {
-    s32 animFrame = set_mario_animation(m, animation);
+    s32 animFrame = set_mario_anim_with_accel(m, animation, 0x00088000);
+
+    // animFrame = unstuckFrame - 3;
+    // set_anim_to_frame(m, animFrame);
 
     if (m->input & INPUT_A_PRESSED) {
         m->actionTimer++;
@@ -1653,6 +1656,25 @@ static void intro_cutscene_hide_hud_and_mario(struct MarioState *m) {
 }
 
 static void intro_cutscene_peach_lakitu_scene(struct MarioState *m) {
+    if (m->actionState == 0 && m->actionTimer == 1) {
+        m->statusForCamera->unk1C[1] = 12;
+        sEndPeachObj = spawn_object_abs_with_rot(gCurrentObject, 0, MODEL_TOAD, bhvEndToad, 60, 906,
+                                                -1180, 0, 0, 0);
+
+        sEndRightToadObj = spawn_object_abs_with_rot(gCurrentObject, 0, MODEL_TOAD, bhvEndToad, 180,
+                                                    906, -1170, 0, 0, 0);
+
+        sEndLeftToadObj = spawn_object_abs_with_rot(gCurrentObject, 0, MODEL_TOAD, bhvEndToad, -180,
+                                                    906, -1170, 0, 0, 0);
+
+        sEndPeachObj->oOpacity = 255;
+        sEndRightToadObj->oOpacity = 255;
+        sEndLeftToadObj->oOpacity = 255;
+
+        sEndPeachAnimation = 7;
+        sEndToadAnims[0] = 6;
+        sEndToadAnims[1] = 7;
+    }
     if ((s16) m->statusForCamera->unk1C[1] != 9) {
         if (m->actionTimer++ == 37) {
             sIntroWarpPipeObj =
@@ -1680,22 +1702,25 @@ static void intro_cutscene_jump_out_of_pipe(struct MarioState *m) {
     if (m->actionTimer == 25) {
         gHudDisplay.flags = HUD_DISPLAY_DEFAULT;
     }
+    if (m->actionTimer == 85) {
+        play_sound(SOUND_GENERAL_BOWSER_BOMB_EXPLOSION, m->marioObj->header.gfx.cameraToObject);
+    }
 
-    if (m->actionTimer++ >= 118) {
+    if (m->actionTimer++ >= 91) {
         m->marioObj->header.gfx.node.flags |= GRAPH_RENDER_ACTIVE;
 
-        play_sound_if_no_flag(m, SOUND_MARIO_YAHOO, MARIO_MARIO_SOUND_PLAYED);
+        play_sound_if_no_flag(m, SOUND_MARIO_DOH, MARIO_MARIO_SOUND_PLAYED);
 #ifndef VERSION_JP
         play_sound_if_no_flag(m, SOUND_ACTION_HIT_3, MARIO_ACTION_SOUND_PLAYED);
 #endif
 
-        set_mario_animation(m, MARIO_ANIM_SINGLE_JUMP);
-        mario_set_forward_vel(m, 10.0f);
+        set_mario_animation(m, MARIO_ANIM_FALL_OVER_BACKWARDS);
+        mario_set_forward_vel(m, 10.3f);
         if (perform_air_step(m, 0) == AIR_STEP_LANDED) {
             sound_banks_enable(2, 0x0330);
             play_mario_landing_sound(m, SOUND_ACTION_TERRAIN_LANDING);
 #ifndef VERSION_JP
-            play_sound(SOUND_MARIO_HAHA, m->marioObj->header.gfx.cameraToObject);
+            play_sound(SOUND_MARIO_OOOF, m->marioObj->header.gfx.cameraToObject);
 #endif
             advance_cutscene_step(m);
         }
@@ -1703,7 +1728,7 @@ static void intro_cutscene_jump_out_of_pipe(struct MarioState *m) {
 }
 
 static void intro_cutscene_land_outside_pipe(struct MarioState *m) {
-    set_mario_animation(m, MARIO_ANIM_LAND_FROM_SINGLE_JUMP);
+    set_mario_animation(m, MARIO_ANIM_FALL_OVER_BACKWARDS);
 
     if (is_anim_at_end(m)) {
         advance_cutscene_step(m);

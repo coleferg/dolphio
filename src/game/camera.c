@@ -155,6 +155,7 @@ s32 return_platform_camera_yaw(struct LevelCamera *, Vec3f, Vec3f);
 s32 return_slide_or_0f_camera_yaw(struct LevelCamera *, Vec3f, Vec3f);
 s32 return_mario_yaw(struct LevelCamera *, Vec3f, Vec3f);
 s32 return_spiral_stairs_camera_yaw(struct LevelCamera *, Vec3f, Vec3f);
+s32 modified_boss_fight_camera_yaw(struct LevelCamera *, Vec3f, Vec3f);
 
 s32 (*TableCameraTransitions[])(struct LevelCamera *, Vec3f,
                                 Vec3f) = { NULL,
@@ -761,30 +762,35 @@ void func_80280E3C(UNUSED struct LevelCamera *c) {
 }
 
 void update_open_camera(struct LevelCamera *c) {
-    Vec3f pos;
-    UNUSED u8 unused1[8];
-    s16 sp22 = sYawFocToMario;
-    UNUSED u8 unused2[4];
-
-    if (gCameraMovementFlags & CAM_MOVE_INTO_C_UP) {
-        func_80280E3C(c);
-    }
-
-    func_80280E0C(c);
-    func_80280550(c);
-
-    if (c->currPreset == CAMERA_PRESET_OPEN_CAMERA) {
-        func_80280BD8(400.f, 0x0900);
-    }
-    c->storedYaw = return_open_camera_yaw(c, c->focus, pos);
-    c->pos[0] = pos[0];
-    c->pos[2] = pos[2];
-    D_8033B3EC = sYawFocToMario - sp22;
-    if (sMarioStatusForCamera->action == ACT_RIDING_HOOT) {
-        pos[1] += 500.f;
-    }
-    set_camera_height(c, pos[1]);
+    set_fov_function(2);
+    c->xFocus = sMarioStatusForCamera->pos[0];
+    c->zFocus = sMarioStatusForCamera->pos[2];
+    c->storedYaw = modified_boss_fight_camera_yaw(c,c->focus,c->pos);
     func_8027FF44(c);
+    // Vec3f pos;
+    // UNUSED u8 unused1[8];
+    // s16 sp22 = sYawFocToMario;
+    // UNUSED u8 unused2[4];
+
+    // if (gCameraMovementFlags & CAM_MOVE_INTO_C_UP) {
+    //     func_80280E3C(c);
+    // }
+
+    // func_80280E0C(c);
+    // func_80280550(c);
+
+    // if (c->currPreset == CAMERA_PRESET_OPEN_CAMERA) {
+    //     func_80280BD8(400.f, 0x0900);
+    // }
+    // c->storedYaw = return_open_camera_yaw(c, c->focus, pos);
+    // c->pos[0] = pos[0];
+    // c->pos[2] = pos[2];
+    // D_8033B3EC = sYawFocToMario - sp22;
+    // if (sMarioStatusForCamera->action == ACT_RIDING_HOOT) {
+    //     pos[1] += 500.f;
+    // }
+    // set_camera_height(c, pos[1]);
+    // func_8027FF44(c);
 }
 
 void update_platform_level_camera(struct LevelCamera *c) {
@@ -796,11 +802,11 @@ void update_platform_level_camera(struct LevelCamera *c) {
 
     if (gPlayer1Controller->buttonPressed & R_CBUTTONS) {
         gPlatformLevelYawOffset += 0x2000;
-        play_sound_cbutton_side();
+        // play_sound_cbutton_side();
     }
     if (gPlayer1Controller->buttonPressed & L_CBUTTONS) {
         gPlatformLevelYawOffset -= 0x2000;
-        play_sound_cbutton_side();
+        // play_sound_cbutton_side();
     }
 
     func_80280BD8(400.f, 2304);
@@ -1035,7 +1041,7 @@ s32 return_fixed_camera_yaw(struct LevelCamera *c, Vec3f focus, UNUSED Vec3f pos
     vec3f_copy(basePos, sFixedPresetBasePosition);
     vec3f_add(basePos, sFixedPresetBasePositionOffset);
 
-    if (sGeometryForMario.currFloorType != SURFACE_DEATH_PLANE
+        if (sGeometryForMario.currFloorType != SURFACE_DEATH_PLANE
         && sGeometryForMario.currFloorHeight != -11000.f) {
         goalHeight = sGeometryForMario.currFloorHeight + basePos[1] + heightOffset;
     } else {
@@ -1074,6 +1080,84 @@ s32 return_fixed_camera_yaw(struct LevelCamera *c, Vec3f focus, UNUSED Vec3f pos
     }
 
     return faceAngle[1];
+}
+
+s32 modified_boss_fight_camera_yaw(struct LevelCamera *c, Vec3f focus, Vec3f pos) {
+    struct Object *o;
+    UNUSED u8 filler2[12];
+    f32 focusDistance;
+    UNUSED u8 filler3[4];
+    UNUSED u8 filler4[4];
+    UNUSED s16 sp62;
+    s16 yaw;
+    s16 heldState;
+    UNUSED u8 filler[20];
+    Vec3f secondFocus;
+    Vec3f sp2C = { 0.f, -150.f, -125.f };
+
+    handle_c_button_movement(c);
+
+    if (sMarioStatusForCamera->unk1C[1] == 7) {
+        set_camera_shake_2(SHAKE_2_UNKNOWN_3);
+        sMarioStatusForCamera->unk1C[1] = 0;
+    }
+    if (sMarioStatusForCamera->unk1C[1] == 8) {
+        set_camera_shake_2(SHAKE_2_UNKNOWN_2);
+        sMarioStatusForCamera->unk1C[1] = 0;
+    }
+
+    yaw = sFirstPersonCameraYaw + 0x2000;
+    if ((o = gSecondCameraFocus) != NULL) {
+        object_pos_to_vec3f(secondFocus, o);
+        heldState = o->oHeldState;
+    } else {
+        secondFocus[0] = c->xFocus;
+        secondFocus[1] = sMarioStatusForCamera->pos[1];
+        secondFocus[2] = c->zFocus;
+        heldState = 0;
+    }
+
+    focusDistance = calc_abs_dist(sMarioStatusForCamera->pos, secondFocus) * 1.6f;
+    if (focusDistance < 1000.f) {
+        focusDistance = 1000.f;
+    }
+    if (focusDistance > 5000.f) {
+        focusDistance = 5000.f;
+    }
+
+    if (heldState == 1) {
+        set_pos_from_face_angle_and_vec3f(secondFocus, sMarioStatusForCamera->pos, sp2C,
+                                          sMarioStatusForCamera->faceAngle);
+    }
+
+    focus[0] = (sMarioStatusForCamera->pos[0] + secondFocus[0]) / 2.f;
+    focus[1] = (sMarioStatusForCamera->pos[1] + secondFocus[1]) / 2.f + 125.f;
+    focus[2] = (sMarioStatusForCamera->pos[2] + secondFocus[2]) / 2.f;
+
+    vec3f_set_dist_and_angle(focus, pos, focusDistance, 0x1000, yaw);
+    // lower the camera a small amount to help see when hanging from the ceiling; otherwise, raise it a bit off the ground
+    pos[1] = sMarioStatusForCamera->pos[1] + (sMarioStatusForCamera->action & ACT_FLAG_HANGING ? -100 : 100);
+
+    if (sCSideButtonYaw < 0)
+        sFirstPersonCameraYaw += 0x500;
+    else if (sCSideButtonYaw > 0)
+        sFirstPersonCameraYaw -= 0x500;
+    sCSideButtonYaw = 0;
+
+    focus[1] = (sMarioStatusForCamera->pos[1] + secondFocus[1]) / 2.f + 100.f;
+    if (heldState == 1) {
+        focus[1] += 300.f
+                    * sins((gMarioStates[0].angleVel[1] > 0.f) ? gMarioStates[0].angleVel[1]
+                                                               : -gMarioStates[0].angleVel[1]);
+    }
+
+    if (focusDistance < 400.f) {
+        focusDistance = 400.f;
+    }
+    func_80280BD8(focusDistance, 6144);
+    vec3f_set_dist_and_angle(pos, pos, D_8033B3EE, D_8033B3F0 + 0x1000, yaw);
+
+    return yaw;
 }
 
 s32 return_boss_fight_camera_yaw(struct LevelCamera *c, Vec3f focus, Vec3f pos) {
@@ -1300,9 +1384,9 @@ s32 return_behind_mario_camera_yaw(struct LevelCamera *c, Vec3f focus, Vec3f pos
     }
 
     if (gCButtonsPressed & 2) {
-        if (gPlayer1Controller->buttonPressed & L_CBUTTONS) {
-            play_sound_cbutton_side();
-        }
+        // if (gPlayer1Controller->buttonPressed & L_CBUTTONS) {
+        //     play_sound_cbutton_side();
+        // }
         if (sp48 < sp24) {
             camera_approach_f32_symmetric_bool(&sp48, sp24, 5.f);
         }
@@ -1311,9 +1395,9 @@ s32 return_behind_mario_camera_yaw(struct LevelCamera *c, Vec3f focus, Vec3f pos
         sp36 = 2;
     }
     if (gCButtonsPressed & 1) {
-        if (gPlayer1Controller->buttonPressed & R_CBUTTONS) {
-            play_sound_cbutton_side();
-        }
+        // if (gPlayer1Controller->buttonPressed & R_CBUTTONS) {
+        //     play_sound_cbutton_side();
+        // }
         if (sp48 < sp24) {
             camera_approach_f32_symmetric_bool(&sp48, sp24, 5.f);
         }
@@ -1322,9 +1406,9 @@ s32 return_behind_mario_camera_yaw(struct LevelCamera *c, Vec3f focus, Vec3f pos
         sp36 = 2;
     }
     if (gCButtonsPressed & 4) {
-        if (gPlayer1Controller->buttonPressed & (U_CBUTTONS | D_CBUTTONS)) {
-            play_sound_cbutton_side();
-        }
+        // if (gPlayer1Controller->buttonPressed & (U_CBUTTONS | D_CBUTTONS)) {
+        //     play_sound_cbutton_side();
+        // }
         if (sp48 < sp24) {
             camera_approach_f32_symmetric_bool(&sp48, sp24, 5.f);
         }
@@ -1333,9 +1417,9 @@ s32 return_behind_mario_camera_yaw(struct LevelCamera *c, Vec3f focus, Vec3f pos
         sp34 = 2048;
     }
     if (gCButtonsPressed & 8) {
-        if (gPlayer1Controller->buttonPressed & (U_CBUTTONS | D_CBUTTONS)) {
-            play_sound_cbutton_side();
-        }
+        // if (gPlayer1Controller->buttonPressed & (U_CBUTTONS | D_CBUTTONS)) {
+        //     play_sound_cbutton_side();
+        // }
         if (sp48 < sp24) {
             camera_approach_f32_symmetric_bool(&sp48, sp24, 5.f);
         }
@@ -2482,7 +2566,7 @@ void reset_camera(struct LevelCamera *c) {
     gCameraStatus.unk60[2] = 0.f;
     gCameraStatus.lastFrameAction = 0;
     set_fov_function(2);
-    D_8033B230.fieldOfView = 45.f;
+    D_8033B230.fieldOfView = 75.f;
     D_8033B230.unk8 = 0.f;
     D_8033B230.unkC = 0;
     D_8033B230.unk10 = 0.f;
@@ -3883,7 +3967,7 @@ void play_sound_cbutton_down(void) {
 }
 
 void play_sound_cbutton_side(void) {
-    play_sound(SOUND_MENU_CAMERA_TURN, gDefaultSoundArgs);
+    play_sound(SOUND_MENU_CLICK_CHANGE_VIEW, gDefaultSoundArgs);
 }
 
 void play_sound_button_change_blocked(void) {

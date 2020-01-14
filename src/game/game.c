@@ -17,6 +17,8 @@
 #include "main_entry.h"
 #include <prevent_bss_reordering.h>
 #include "game.h"
+#include "../../enhancements/fps.inc.c"
+#include "../../enhancements/crash.inc.c"
 
 // FIXME: I'm not sure all of these variables belong in this file, but I don't
 // know of a good way to split them
@@ -327,6 +329,7 @@ void thread5_game_loop(UNUSED void *arg) {
         read_controller_inputs();
         addr = level_script_execute(addr);
         display_and_vsync();
+        render_fps();
 
         // when debug info is enabled, print the "BUF %d" information.
         if (gShowDebugText) {

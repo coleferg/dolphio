@@ -1,11 +1,11 @@
 // 0x07010E40 - 0x07010E60
 static Movtex castle_grounds_movtex_moat_water_data[] = {
     MOV_TEX_INIT_LOAD(    1),
-    MOV_TEX_ROT_SPEED(   20),
+    MOV_TEX_ROT_SPEED(   30),
     MOV_TEX_ROT_SCALE(   15),
     MOV_TEX_4_BOX_TRIS(-7129, -7222),
-    MOV_TEX_4_BOX_TRIS(-7129,   -58),
-    MOV_TEX_4_BOX_TRIS( 8253,   -58),
+    MOV_TEX_4_BOX_TRIS(-7129,   8137),
+    MOV_TEX_4_BOX_TRIS( 8253,   8137),
     MOV_TEX_4_BOX_TRIS( 8253, -7222),
     MOV_TEX_ROT(     ROTATE_COUNTER_CLOCKWISE),
     MOV_TEX_ALPHA(    0x96),

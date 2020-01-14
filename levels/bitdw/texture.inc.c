@@ -17,3 +17,11 @@ ALIGNED8 static const u8 bitdw_seg7_texture_07001000[] = {
 ALIGNED8 static const u8 bitdw_seg7_texture_07001800[] = {
 #include "levels/bitdw/3.rgba16.inc.c"
 };
+
+ALIGNED8 static const u8 custom_rgba16[] = {
+#include "levels/bitdw/1.custom.rgba16.inc.c"
+};
+
+ALIGNED8 static const u8 custom2_rgba16[] = {
+#include "levels/bitdw/2.custom.rgba16.inc.c"
+};

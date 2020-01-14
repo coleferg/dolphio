@@ -316,7 +316,7 @@ struct MarioState
     /*0xA4*/ u32 collidedObjInteractTypes;
     /*0xA8*/ s16 numCoins;
     /*0xAA*/ s16 numStars;
-    /*0xAC*/ s8 numKeys; // Unused key mechanic
+    /*0xAC*/ s8 isSlowMo; // Unused key mechanic
     /*0xAD*/ s8 numLives;
     /*0xAE*/ s16 health;
     /*0xB0*/ s16 unkB0;
@@ -329,6 +329,9 @@ struct MarioState
     /*0xBC*/ f32 peakHeight;
     /*0xC0*/ f32 quicksandDepth;
     /*0xC4*/ f32 unkC4;
+    /*0xC8*/ s8 appliedGravChange;
+    /*0xCA*/ Vec3f gravPower;
+    /*0xCE*/ s8 canAirJump;
 };
 
 #endif

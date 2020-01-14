@@ -300,6 +300,7 @@ u16 m64_read_compressed_u16(struct M64ScriptState *state) {
     return ret;
 }
 
+#define NON_MATCHING
 #ifdef NON_MATCHING
 void seq_channel_layer_process_script(struct SequenceChannelLayer *layer) {
     struct SequencePlayer *seqPlayer;   // sp5C, t4

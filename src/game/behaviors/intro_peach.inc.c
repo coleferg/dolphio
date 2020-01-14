@@ -22,12 +22,12 @@ void bhv_intro_peach_loop(void) {
     switch (gCurrentObject->oAction) {
         case 0:
             gCurrentObject->oAction += 1;
-            gCurrentObject->oFaceAnglePitch = 0x400;
-            gCurrentObject->oFaceAngleYaw = 0x7500;
-            gCurrentObject->oFaceAngleRoll = -0x3700;
-            gCurrentObject->oIntroPeachDistToCamera = 186.f;
-            gCurrentObject->oIntroPeachPitchFromFocus = -9984.f;
-            gCurrentObject->oIntroPeachYawFromFocus = -768.f;
+            gCurrentObject->oFaceAnglePitch = 0x380;
+            gCurrentObject->oFaceAngleYaw = 0x6850;
+            gCurrentObject->oFaceAngleRoll = -0x2800;
+            gCurrentObject->oIntroPeachDistToCamera = 150.f;
+            gCurrentObject->oIntroPeachPitchFromFocus = -12084.f;
+            gCurrentObject->oIntroPeachYawFromFocus = -2008.f;
             gCurrentObject->oOpacity = 255;
             gCurrentObject->header.gfx.unk38.animFrame = 100;
             break;

@@ -908,7 +908,12 @@ void update_hud_values(void) {
 
         gHudDisplay.stars = gMarioState->numStars;
         gHudDisplay.lives = gMarioState->numLives;
-        gHudDisplay.keys = gMarioState->numKeys;
+
+        if (gMarioState->canAirJump) {
+            gHudDisplay.flags |= HUD_DISPLAY_FLAG_EXTRA_JUMP;
+        } else {
+            gHudDisplay.flags &= ~HUD_DISPLAY_FLAG_EXTRA_JUMP;
+        }
 
         if (numHealthWedges > gHudDisplay.wedges) {
             play_sound(SOUND_MENU_POWER_METER, gDefaultSoundArgs);
@@ -976,7 +981,7 @@ s32 play_mode_normal(void) {
             set_play_mode(PLAY_MODE_CHANGE_AREA);
         } else if (pressed_paused()) {
             func_80248C28(1);
-            gCameraMovementFlags |= CAM_MOVE_PAUSE_SCREEN;
+            // gCameraMovementFlags |= CAM_MOVE_PAUSE_SCREEN;
             set_play_mode(PLAY_MODE_PAUSED);
         }
     }
@@ -1169,20 +1174,23 @@ s32 init_level(void) {
                 set_mario_action(gMarioState, ACT_IDLE, 0);
             } else if (gDebugLevelSelect == 0) {
                 if (gMarioState->action != ACT_UNINITIALIZED) {
-                    if (save_file_exists(gCurrSaveFileNum - 1)) {
-                        set_mario_action(gMarioState, ACT_IDLE, 0);
-                    } else {
-                        set_mario_action(gMarioState, ACT_INTRO_CUTSCENE, 0);
-                        val4 = 1;
-                    }
+                    set_mario_action(gMarioState, ACT_IDLE, 0);
                 }
+                // if (gMarioState->action != ACT_UNINITIALIZED) {
+                //     if (save_file_exists(gCurrSaveFileNum - 1)) {
+                //         set_mario_action(gMarioState, ACT_IDLE, 0);
+                //     } else {
+                //         set_mario_action(gMarioState, ACT_INTRO_CUTSCENE, 0);
+                //         val4 = 1;
+                //     }
+                // }
             }
         }
 
         if (val4 != 0) {
             play_transition(WARP_TRANSITION_FADE_FROM_COLOR, 0x5A, 0xFF, 0xFF, 0xFF);
         } else {
-            play_transition(WARP_TRANSITION_FADE_FROM_STAR, 0x10, 0xFF, 0xFF, 0xFF);
+            play_transition(WARP_TRANSITION_FADE_FROM_STAR, 0x08, 0xFF, 0xFF, 0xFF);
         }
 
         if (gCurrDemoInput == NULL) {
@@ -1236,7 +1244,7 @@ s32 lvl_init_from_save_file(UNUSED s16 arg0, s32 levelNum) {
 #endif
     sWarpDest.type = WARP_TYPE_NOT_WARPING;
     sDelayedWarpOp = WARP_OP_NONE;
-    gShouldNotPlayCastleMusic = !save_file_exists(gCurrSaveFileNum - 1);
+    gShouldNotPlayCastleMusic = FALSE;
 
     gCurrLevelNum = levelNum;
     gCurrCourseNum = COURSE_NONE;
