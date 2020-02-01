@@ -32,8 +32,8 @@ else
 ifeq ($(VERSION),us)
   VERSION_CFLAGS := -DVERSION_US
   VERSION_ASFLAGS := --defsym VERSION_US=1
-  GRUCODE_CFLAGS := -DF3D_NEW
-  GRUCODE_ASFLAGS := --defsym DF3D_NEW=1
+  # GRUCODE_CFLAGS := -DF3D_NEW
+  # GRUCODE_ASFLAGS := --defsym DF3D_NEW=1
   TARGET := sm64.us
 else
 ifeq ($(VERSION),eu)
@@ -147,7 +147,7 @@ GODDARD_SRC_DIRS := src/goddard src/goddard/dynlists
 MIPSISET := -mips2 -32
 
 # ifeq ($(VERSION),eu)
-  OPT_FLAGS := -g3 -O2
+  OPT_FLAGS := -O2
 # else
   # OPT_FLAGS := -g
 # endif
