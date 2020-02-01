@@ -8,6 +8,6 @@ shared-path: []
 # loaded files
 skybox-bin: bidw
 texture-bin: sky
-effects: false
-actor-bins: [group11, group17]
+effects: true
+actor-bins: [group13, group15]
 common-bin: [common0]

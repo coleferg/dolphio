@@ -31,6 +31,7 @@
 #include "sound_init.h"
 #include "engine/surface_collision.h"
 #include "level_table.h"
+#include "../enhancements/debug_box.h"
 
 u32 unused80339F10;
 s8 filler80339F1C[20];
@@ -833,6 +834,11 @@ static u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actio
             m->forwardVel *= 0.8f;
             break;
 
+        case ACT_SPECIAL_TRIPLE_JUMP:
+            set_mario_vel_based_on_fspeed_grav(m, 69.0f, 0.0f);
+            m->forwardVel *= 0.8f;
+            break;
+
         case ACT_FLYING_TRIPLE_JUMP:
             set_mario_y_vel_based_on_fspeed(m, 82.0f, 0.0f);
             break;
@@ -1445,6 +1451,7 @@ void update_mario_inputs(struct MarioState *m) {
     update_mario_geometry_inputs(m);
 
     debug_print_speed_action_normal(m);
+
 
     if (gCameraMovementFlags & CAM_MOVE_C_UP_MODE) {
         if (m->action & ACT_FLAG_ALLOW_FIRST_PERSON) {

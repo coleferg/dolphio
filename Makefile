@@ -25,15 +25,15 @@ TARGET_N64 ?= 1
 ifeq ($(VERSION),jp)
   VERSION_CFLAGS := -DVERSION_JP
   VERSION_ASFLAGS := --defsym VERSION_JP=1
-  GRUCODE_CFLAGS := -DF3D_OLD
+  GRUCODE_CFLAGS := -DF3D_NEW
   GRUCODE_ASFLAGS := --defsym F3D_OLD=1
   TARGET := sm64.jp
 else
 ifeq ($(VERSION),us)
   VERSION_CFLAGS := -DVERSION_US
   VERSION_ASFLAGS := --defsym VERSION_US=1
-  GRUCODE_CFLAGS := -DF3D_OLD
-  GRUCODE_ASFLAGS := --defsym F3D_OLD=1
+  GRUCODE_CFLAGS := -DF3D_NEW
+  GRUCODE_ASFLAGS := --defsym DF3D_NEW=1
   TARGET := sm64.us
 else
 ifeq ($(VERSION),eu)
@@ -146,11 +146,11 @@ GODDARD_SRC_DIRS := src/goddard src/goddard/dynlists
 
 MIPSISET := -mips2 -32
 
-ifeq ($(VERSION),eu)
-  OPT_FLAGS := -O2
-else
-  OPT_FLAGS := -g
-endif
+# ifeq ($(VERSION),eu)
+  OPT_FLAGS := -g3 -O2
+# else
+  # OPT_FLAGS := -g
+# endif
 
 # File dependencies and variables for specific files
 include Makefile.split

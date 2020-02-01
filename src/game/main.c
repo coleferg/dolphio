@@ -12,6 +12,7 @@
 #include "buffers/buffers.h"
 #include "segments.h"
 #include "main.h"
+#include "../enhancements/mem_error_screen.inc.c"
 
 // Message IDs
 #define MESG_SP_COMPLETE 100
@@ -124,6 +125,11 @@ void setup_mesg_queues(void) {
 void AllocPool(void) {
     void *start = (void *) SEG_POOL_START;
     void *end = (void *) SEG_POOL_END;
+
+    if(does_pool_end_lie_out_of_bounds(end))
+    {
+        end = (void *)SEG_POOL_END_4MB;
+    }
 
     main_pool_init(start, end);
     gEffectsMemoryPool = mem_pool_init(0x4000, MEMORY_POOL_LEFT);
@@ -314,7 +320,15 @@ void thread3_main(UNUSED void *arg) {
     create_thread(&gSoundThread, 4, thread4_sound, NULL, gThread4Stack + 0x2000, 20);
     osStartThread(&gSoundThread);
 
-    create_thread(&gGameLoopThread, 5, thread5_game_loop, NULL, gThread5Stack + 0x2000, 10);
+    if(!gNotEnoughMemory)
+    {
+        create_thread(&gGameLoopThread, 5, thread5_game_loop, NULL, gThread5Stack + 0x2000, 10);
+    }
+    else
+    {
+        create_thread(&gGameLoopThread, 5, thread5_mem_error_message_loop, NULL, gThread5Stack + 0x2000, 10);
+    }
+
     osStartThread(&gGameLoopThread);
 
     while (1) {

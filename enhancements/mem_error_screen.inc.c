@@ -104,7 +104,7 @@
 #endif
 
 #include <types.h>
-#include <text_strings.h>
+// #include <text_strings.h>
 #include "../src/game/display.h"
 #include "../src/game/print.h"
 #include "../src/game/ingame_menu.h"
@@ -135,14 +135,14 @@ u8 does_pool_end_lie_out_of_bounds(void *end) {
 }
 
 // If you're using an N64 console, then you will need to buy an\nexpansion pak to play this ROM hack.
-u8 text_console_8mb[] = { TEXT_CONSOLE_8MB };
+// u8 text_console_8mb[] = { TEXT_CONSOLE_8MB };
 
 // If you are using PJ64 1.6, go to: Options ► Settings ► Rom Settings Tab ► Memory Size then select 8
 // MB from the drop-down box.
-u8 text_pj64[] = { TEXT_PJ64 };
+// u8 text_pj64[] = { TEXT_PJ64 };
 
 // If you are using PJ64 2.X, go to: Options ► Settings ► Config: ► Memory Size, select 8 MB
-u8 text_pj64_2[] = { TEXT_PJ64_2 };
+// u8 text_pj64_2[] = { TEXT_PJ64_2 };
 
 Gfx *geo18_display_error_message(u32 run, UNUSED struct GraphNode *sp44, UNUSED u32 sp48) {
     if (run) {
@@ -158,9 +158,9 @@ Gfx *geo18_display_error_message(u32 run, UNUSED struct GraphNode *sp44, UNUSED 
             // Set text color to white
             gDPSetEnvColor(gDisplayListHead++, 255, 255, 255, 255);
 
-            print_generic_string(8, 170, text_console_8mb);
-            print_generic_string(8, 120, text_pj64);
-            print_generic_string(8, 54, text_pj64_2);
+            // print_generic_string(8, 170, text_console_8mb);
+            // print_generic_string(8, 120, text_pj64);
+            // print_generic_string(8, 54, text_pj64_2);
 
             // Cleanup
             gSPDisplayList(gDisplayListHead++,

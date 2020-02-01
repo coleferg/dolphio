@@ -1,14 +1,7 @@
 // 0x0700F438 - 0x0700F688
 const MacroObject bitdw_seg7_macro_objs[] = {
     MACRO_OBJECT(/*preset*/ macro_yellow_coin,                    /*yaw*/   0, /*pos*/ 294,  1305,   82),
-    MACRO_OBJECT(/*preset*/ macro_yellow_coin,                    /*yaw*/   0, /*pos*/ 294,  1305,  -172),
-    MACRO_OBJECT(/*preset*/ macro_yellow_coin,                    /*yaw*/   0, /*pos*/ 294,  1305,  -262),
-    MACRO_OBJECT(/*preset*/ macro_yellow_coin,                    /*yaw*/   0, /*pos*/ 294,  1305,  -352),
-    MACRO_OBJECT(/*preset*/ macro_yellow_coin,                    /*yaw*/   0, /*pos*/ 294,  1305,  -442),
-    MACRO_OBJECT(/*preset*/ macro_yellow_coin,                    /*yaw*/   0, /*pos*/ 294,  1305,  -532),
-    MACRO_OBJECT(/*preset*/ macro_yellow_coin,                    /*yaw*/   0, /*pos*/ 294,  1305,  -622),
-    MACRO_OBJECT(/*preset*/ macro_yellow_coin,                    /*yaw*/   0, /*pos*/ 294,  1305,  -712),
-    MACRO_OBJECT(/*preset*/ macro_yellow_coin,                    /*yaw*/   0, /*pos*/ 294,  1305,  -802),
+    // MACRO_OBJECT(/*preset*/ macro_yellow_coin,                    /*yaw*/   0, /*pos*/ -1716,  1688, -2318),
     // MACRO_OBJECT(/*preset*/ macro_box_metal_cap,               /*yaw*/   0, /*pos*/ -6420, -2900,  3880),
     // MACRO_OBJECT(/*preset*/ macro_coin_ring_horizontal_flying, /*yaw*/   0, /*pos*/ -1660, -3000,  3900),
     // MACRO_OBJECT(/*preset*/ macro_coin_line_horizontal,        /*yaw*/   0, /*pos*/ -2400,  -800,  1900),

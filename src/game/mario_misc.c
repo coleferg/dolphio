@@ -25,9 +25,9 @@
 #include "object_list_processor.h"
 #include "dialog_ids.h"
 
-#define TOAD_STAR_1_REQUIREMENT 12
-#define TOAD_STAR_2_REQUIREMENT 25
-#define TOAD_STAR_3_REQUIREMENT 35
+#define TOAD_STAR_1_REQUIREMENT 0
+#define TOAD_STAR_2_REQUIREMENT 0
+#define TOAD_STAR_3_REQUIREMENT 0
 
 #define TOAD_STAR_1_DIALOG DIALOG_082
 #define TOAD_STAR_2_DIALOG DIALOG_076

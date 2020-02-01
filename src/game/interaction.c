@@ -709,9 +709,6 @@ void reset_mario_pitch(struct MarioState *m) {
 u32 interact_coin(struct MarioState *m, UNUSED u32 interactType, struct Object *o) {
     m->numCoins += o->oDamageOrCoinValue;
     m->healCounter += 4 * o->oDamageOrCoinValue;
-    if (m->pos[1] > m->floorHeight) {
-        m->canAirJump = TRUE;
-    };
 
     o->oInteractStatus = INT_STATUS_INTERACTED;
 
@@ -724,8 +721,22 @@ u32 interact_coin(struct MarioState *m, UNUSED u32 interactType, struct Object *
 }
 
 u32 interact_water_ring(struct MarioState *m, UNUSED u32 interactType, struct Object *o) {
-    m->healCounter += 4 * o->oDamageOrCoinValue;
+    struct Object *ringSpawner;
     o->oInteractStatus = INT_STATUS_INTERACTED;
+
+    ringSpawner = o->parentObj;
+    if (ringSpawner) {
+        ringSpawner->oWaterRingSpawnerRingsCollected++;
+        play_sound(SOUND_MENU_STAR_SOUND, gDefaultSoundArgs);
+    }
+
+    o->oIntangibleTimer = 20;
+    o->oAction = WATER_RING_ACT_COLLECTED;
+
+    m->canAirJump = TRUE;
+    // if (m->pos[1] > m->floorHeight) {
+    //     m->canAirJump = TRUE;
+    // };
     return FALSE;
 }
 

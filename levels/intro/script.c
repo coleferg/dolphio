@@ -18,6 +18,21 @@
 #include "make_const_nonconst.h"
 #include "levels/intro/header.h"
 
+const LevelScript level_intro_entry_error_screen[] = {
+    INIT_LEVEL(),
+    FIXED_LOAD(_goddardSegmentStart, _goddardSegmentRomStart, _goddardSegmentRomEnd),
+    LOAD_MIO0(0x07, _intro_segment_7SegmentRomStart, _intro_segment_7SegmentRomEnd),
+    ALLOC_LEVEL_POOL(),
+
+    AREA(1, intro_geo_error_screen),
+    END_AREA(),
+
+    FREE_LEVEL_POOL(),
+    LOAD_AREA(1),
+    SLEEP(32767),
+    EXIT_AND_EXECUTE(0x14, _introSegmentRomStart, _introSegmentRomEnd, level_intro_entry_error_screen),
+};
+
 const LevelScript level_intro_entry_1[] = {
     INIT_LEVEL(),
     FIXED_LOAD(/*loadAddr*/ _goddardSegmentStart, /*romStart*/ _goddardSegmentRomStart, /*romEnd*/ _goddardSegmentRomEnd),

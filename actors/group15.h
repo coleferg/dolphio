@@ -86,4 +86,8 @@ extern const Gfx toad_seg6_dl_06008A90[];
 extern const Gfx toad_seg6_dl_06008BD8[];
 extern const struct Animation *const toad_seg6_anims_0600FB58[];
 
+// water_ring
+extern const GeoLayout water_ring_geo[];
+extern const Gfx water_ring_seg6_dl_06013AC0[];
+extern const struct Animation *const water_ring_seg6_anims_06013F7C[];
 #endif

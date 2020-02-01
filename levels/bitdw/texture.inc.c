@@ -23,5 +23,9 @@ ALIGNED8 static const u8 custom_rgba16[] = {
 };
 
 ALIGNED8 static const u8 custom2_rgba16[] = {
-#include "levels/bitdw/2.custom.rgba16.inc.c"
+#include "levels/bitdw/2a.custom.rgba16.inc.c"
+};
+
+ALIGNED8 static const u8 custom3_rgba16[] = {
+#include "levels/bitdw/3.custom.rgba16.inc.c"
 };

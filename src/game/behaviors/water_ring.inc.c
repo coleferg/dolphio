@@ -30,15 +30,15 @@ void WaterRingInit(void) {
     // Adding this code will alter the ring's graphical orientation to align with the faulty
     // collision orientation:
     //
-    // o->oFaceAngleYaw = 0;
-    // o->oFaceAngleRoll *= -1;
+    o->oFaceAngleYaw = 0;
+    o->oFaceAngleRoll *= -1;
 }
 
 void bhv_jet_stream_water_ring_init(void) {
     WaterRingInit();
-    o->oOpacity = 70;
+    o->oOpacity = 200;
     SetObjAnimation(0);
-    o->oFaceAnglePitch = 0x8000;
+    // o->oFaceAnglePitch = 0x8000;
 }
 
 // sp28 = arg0
@@ -49,36 +49,22 @@ void CheckWaterRingCollection(f32 avgScale, struct Object *ringManager) {
     struct Object *ringSpawner;
 
     if (!is_point_close_to_object(o, gMarioObject->header.gfx.pos[0],
-                              gMarioObject->header.gfx.pos[1] + 80.0f, gMarioObject->header.gfx.pos[2],
-                              (avgScale + 0.2) * 120.0)) {
+                              gMarioObject->header.gfx.pos[1] + 120.0f, gMarioObject->header.gfx.pos[2],
+                              avgScale * 150.0)) {
         o->oWaterRingMarioDistInFront = marioDistInFront;
         return;
     }
 
-    if (o->oWaterRingMarioDistInFront * marioDistInFront < 0) {
-        ringSpawner = o->parentObj;
-        if (ringSpawner) {
-            if ((o->oWaterRingIndex == ringManager->oWaterRingMgrLastRingCollected + 1)
-                || (ringSpawner->oWaterRingSpawnerRingsCollected == 0)) {
-                ringSpawner->oWaterRingSpawnerRingsCollected++;
-                if (ringSpawner->oWaterRingSpawnerRingsCollected < 6) {
-                    spawn_orange_number(ringSpawner->oWaterRingSpawnerRingsCollected, 0, -40, 0);
-#ifdef VERSION_JP
-                    play_sound(SOUND_MENU_STAR_SOUND, gDefaultSoundArgs);
-#else
-                    play_sound(SOUND_MENU_COLLECT_SECRET
-                                   + (((u8) ringSpawner->oWaterRingSpawnerRingsCollected - 1) << 16),
-                               gDefaultSoundArgs);
-#endif
-                }
+    // if (o->oWaterRingMarioDistInFront * marioDistInFront < 0) {
+    //     ringSpawner = o->parentObj;
+    //     if (ringSpawner) {
+    //         ringSpawner->oWaterRingSpawnerRingsCollected++;
+    //         play_sound(SOUND_MENU_STAR_SOUND, gDefaultSoundArgs);
+    //     }
 
-                ringManager->oWaterRingMgrLastRingCollected = o->oWaterRingIndex;
-            } else
-                ringSpawner->oWaterRingSpawnerRingsCollected = 0;
-        }
-
-        o->oAction = WATER_RING_ACT_COLLECTED;
-    }
+    //     o->oIntangibleTimer = 20;
+    //     o->oAction = WATER_RING_ACT_COLLECTED;
+    // }
 
     o->oWaterRingMarioDistInFront = marioDistInFront;
 }
@@ -95,7 +81,7 @@ void SetWaterRingScale(f32 avgScale) {
 void WaterRingCollectedLoop(void) {
     f32 avgScale = (f32) o->oTimer * 0.2 + o->oWaterRingAvgScale;
 
-    if (o->oTimer >= 21)
+    if (o->oTimer >= 20)
         o->activeFlags = 0;
 
     o->oOpacity -= 10;
@@ -106,31 +92,30 @@ void WaterRingCollectedLoop(void) {
 }
 
 void JetStreamWaterRingNotCollectedLoop(void) {
-    f32 avgScale = (f32) o->oTimer / 225.0 * 3.0 + 0.5;
+    // f32 avgScale = (f32) o->oTimer / 225.0 * 3.0 + 0.5;
+    f32 avgScale = (f32) min(30.0, o->oTimer) / 50.0 * 3.0 + 0.5;
 
     //! In this case ringSpawner and ringManager are the same object,
     //  because the Jet Stream Ring Spawner is its own parent object.
     struct Object *ringSpawner = o->parentObj;
     struct Object *ringManager = ringSpawner->parentObj;
 
-    if (o->oTimer >= 226) {
-        o->oOpacity -= 2;
-        if (o->oOpacity < 3)
-            o->activeFlags = 0;
-    }
+    // if (o->oTimer >= 226) {
+    //     o->oOpacity -= 2;
+    //     if (o->oOpacity < 3)
+    //         o->activeFlags = 0;
+    // }
 
     CheckWaterRingCollection(avgScale, ringManager);
     SetWaterRingScale(avgScale);
 
-    o->oPosY += 10.0f;
-    o->oFaceAngleYaw += 0x100;
-    set_object_visibility(o, 5000);
+    // o->oPosY += 1.0f;
+    o->oFaceAngleYaw += 0x040;
+    set_object_visibility(o, 10000);
 
-    if (ringSpawner->oWaterRingSpawnerRingsCollected == 4
-        && o->oWaterRingIndex == ringManager->oWaterRingMgrLastRingCollected + 1)
-        o->oOpacity = sins(o->oTimer * 0x1000) * 200.0f + 50.0f;
-
+    o->oOpacity = sins(o->oTimer * 0x0800) * 20.0f + 180.0f;
     o->oWaterRingAvgScale = avgScale;
+
 }
 
 void bhv_jet_stream_water_ring_loop(void) {
@@ -160,16 +145,20 @@ void JetStreamRingSpawnerActiveLoop(void) {
     //! Because the index counter overflows at 10000, it's possible to wait
     //  for about 4 hours and 38 minutes if you miss a ring, and the index will
     //  come around again.
-    if (o->oTimer == 300)
-        o->oTimer = 0;
-    if ((o->oTimer == 0) || (o->oTimer == 50) || (o->oTimer == 150) || (o->oTimer == 200)
-        || (o->oTimer == 250)) {
+    if (o->oTimer == 50 && o->oAction != JS_RING_SPAWNER_ACT_INACTIVE) {
         waterRing = spawn_object(o, MODEL_WATER_RING, bhvJetStreamWaterRing);
-        waterRing->oWaterRingIndex = currentObj->oWaterRingMgrNextRingIndex;
-        currentObj->oWaterRingMgrNextRingIndex++;
-        if (currentObj->oWaterRingMgrNextRingIndex >= 10001)
-            currentObj->oWaterRingMgrNextRingIndex = 0;
+        // waterRing->oWaterRingIndex = currentObj->oWaterRingMgrNextRingIndex;
+        // currentObj->oWaterRingMgrNextRingIndex++;
+        // if (currentObj->oWaterRingMgrNextRingIndex >= 10001)
+        //     currentObj->oWaterRingMgrNextRingIndex = 0;
     }
+}
+
+void JetStreamRingSpawnerInactiveLoop(void) {
+    if (o->oTimer == 1000)
+        o->oTimer = 0;
+        o->oWaterRingSpawnerRingsCollected = 0;
+        o->oAction = JS_RING_SPAWNER_ACT_ACTIVE;
 }
 
 void bhv_jet_stream_ring_spawner_loop(void) {
@@ -177,16 +166,14 @@ void bhv_jet_stream_ring_spawner_loop(void) {
         case JS_RING_SPAWNER_ACT_ACTIVE:
             JetStreamRingSpawnerActiveLoop();
 
-            if (o->oWaterRingSpawnerRingsCollected == 5) {
-                func_802A3004();
-
-                create_star(3400.0f, -3200.0f, -500.0f);
-
+            if (o->oWaterRingSpawnerRingsCollected == 1) {
+                o->oTimer = 0;
                 o->oAction = JS_RING_SPAWNER_ACT_INACTIVE;
             }
             break;
 
         case JS_RING_SPAWNER_ACT_INACTIVE:
+            JetStreamRingSpawnerInactiveLoop();
             break;
     }
 }
