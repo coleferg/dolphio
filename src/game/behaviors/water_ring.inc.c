@@ -49,8 +49,8 @@ void CheckWaterRingCollection(f32 avgScale, struct Object *ringManager) {
     struct Object *ringSpawner;
 
     if (!is_point_close_to_object(o, gMarioObject->header.gfx.pos[0],
-                              gMarioObject->header.gfx.pos[1] + 120.0f, gMarioObject->header.gfx.pos[2],
-                              avgScale * 150.0)) {
+                                  gMarioObject->header.gfx.pos[1] + 120.0f,
+                                  gMarioObject->header.gfx.pos[2], avgScale * 150.0)) {
         o->oWaterRingMarioDistInFront = marioDistInFront;
         return;
     }
@@ -115,7 +115,6 @@ void JetStreamWaterRingNotCollectedLoop(void) {
 
     o->oOpacity = sins(o->oTimer * 0x0800) * 20.0f + 180.0f;
     o->oWaterRingAvgScale = avgScale;
-
 }
 
 void bhv_jet_stream_water_ring_loop(void) {
@@ -157,8 +156,8 @@ void JetStreamRingSpawnerActiveLoop(void) {
 void JetStreamRingSpawnerInactiveLoop(void) {
     if (o->oTimer == 1000)
         o->oTimer = 0;
-        o->oWaterRingSpawnerRingsCollected = 0;
-        o->oAction = JS_RING_SPAWNER_ACT_ACTIVE;
+    o->oWaterRingSpawnerRingsCollected = 0;
+    o->oAction = JS_RING_SPAWNER_ACT_ACTIVE;
 }
 
 void bhv_jet_stream_ring_spawner_loop(void) {

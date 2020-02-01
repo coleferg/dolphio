@@ -66,8 +66,10 @@ s16 set_mario_animation(struct MarioState *m, s32 targetAnimID) {
     struct Animation *targetAnim = m->animation->targetAnim;
 
     if (func_80278AD4(m->animation, targetAnimID)) {
-        targetAnim->values = (void *) VIRTUAL_TO_PHYSICAL((u8 *) targetAnim + (uintptr_t) targetAnim->values);
-        targetAnim->index = (void *) VIRTUAL_TO_PHYSICAL((u8 *) targetAnim + (uintptr_t) targetAnim->index);
+        targetAnim->values =
+            (void *) VIRTUAL_TO_PHYSICAL((u8 *) targetAnim + (uintptr_t) targetAnim->values);
+        targetAnim->index =
+            (void *) VIRTUAL_TO_PHYSICAL((u8 *) targetAnim + (uintptr_t) targetAnim->index);
     }
 
     if (o->header.gfx.unk38.animID != targetAnimID) {
@@ -99,8 +101,10 @@ s16 set_mario_anim_with_accel(struct MarioState *m, s32 targetAnimID, s32 accel)
     struct Animation *targetAnim = m->animation->targetAnim;
 
     if (func_80278AD4(m->animation, targetAnimID)) {
-        targetAnim->values = (void *) VIRTUAL_TO_PHYSICAL((u8 *) targetAnim + (uintptr_t) targetAnim->values);
-        targetAnim->index = (void *) VIRTUAL_TO_PHYSICAL((u8 *) targetAnim + (uintptr_t) targetAnim->index);
+        targetAnim->values =
+            (void *) VIRTUAL_TO_PHYSICAL((u8 *) targetAnim + (uintptr_t) targetAnim->values);
+        targetAnim->index =
+            (void *) VIRTUAL_TO_PHYSICAL((u8 *) targetAnim + (uintptr_t) targetAnim->index);
     }
 
     if (o->header.gfx.unk38.animID != targetAnimID) {
@@ -270,7 +274,8 @@ void play_mario_jump_sound(struct MarioState *m) {
  */
 void adjust_sound_for_speed(struct MarioState *m) {
     float gravMultiple = (m->isSlowMo) ? 0.1f : 1.0f;
-    s32 absForwardVel = (m->forwardVel > 0.0f) ? m->forwardVel * gravMultiple : -m->forwardVel * gravMultiple;
+    s32 absForwardVel =
+        (m->forwardVel > 0.0f) ? m->forwardVel * gravMultiple : -m->forwardVel * gravMultiple;
     if (m->isSlowMo) {
         func_80320A4C(1, absForwardVel);
     } else {
@@ -785,12 +790,12 @@ static void set_mario_vel_based_on_fspeed_grav(struct MarioState *m, f32 initial
         } else {
             if ((m->forwardVel *= m->gravPower[1]) > 70.0f) {
                 m->forwardVel = 70.0f;
-            } else if (m->forwardVel < -70.0f)
-            {
+            } else if (m->forwardVel < -70.0f) {
                 m->forwardVel = -70.0f;
             }
-            
-            m->vel[1] = (initialVelY * m->gravPower[2]) + m->forwardVel * multiplier + (m->gravPower[0] / initialVelY);
+
+            m->vel[1] = (initialVelY * m->gravPower[2]) + m->forwardVel * multiplier
+                        + (m->gravPower[0] / initialVelY);
         }
         m->appliedGravChange = TRUE;
     } else {
@@ -915,8 +920,7 @@ static u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actio
             if (!m->marioObj->oMarioLongJumpIsSlow) {
                 m->forwardVel = 65.0f;
                 set_mario_y_vel_based_on_fspeed(m, 30.0f, 0.15f);
-            }
-            else if ((m->forwardVel *= 1.5f) > 48.0f) {
+            } else if ((m->forwardVel *= 1.5f) > 48.0f) {
                 m->forwardVel = 50.0f;
             }
             break;
@@ -1227,10 +1231,10 @@ s32 set_water_plunge_action(struct MarioState *m) {
 
     m->pos[1] = m->waterLevel - 100;
 
-    m->faceAngle[2] = (int)(m->faceAngle[2] * 0.6f);
+    m->faceAngle[2] = (int) (m->faceAngle[2] * 0.6f);
 
     if ((m->action & ACT_FLAG_DIVING) == 0) {
-        m->faceAngle[0] = (int)(m->faceAngle[0] * 0.7f);
+        m->faceAngle[0] = (int) (m->faceAngle[0] * 0.7f);
     }
 
     if (m->area->camera->mode != CAMERA_MODE_WATER_SURFACE) {
@@ -1451,7 +1455,6 @@ void update_mario_inputs(struct MarioState *m) {
     update_mario_geometry_inputs(m);
 
     debug_print_speed_action_normal(m);
-
 
     if (gCameraMovementFlags & CAM_MOVE_C_UP_MODE) {
         if (m->action & ACT_FLAG_ALLOW_FIRST_PERSON) {

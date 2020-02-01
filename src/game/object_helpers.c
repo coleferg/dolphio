@@ -465,8 +465,8 @@ void set_object_angle(struct Object *a0, s16 pitch, s16 yaw, s16 roll) {
  * Spawns an object at an absolute location with a specified angle.
  */
 struct Object *spawn_object_abs_with_rot(struct Object *parent, s16 uselessArg, u32 model,
-                                         const BehaviorScript *behavior,
-                                         s16 x, s16 y, s16 z, s16 rx, s16 ry, s16 rz) {
+                                         const BehaviorScript *behavior, s16 x, s16 y, s16 z, s16 rx,
+                                         s16 ry, s16 rz) {
     // 'uselessArg' is unused in the function spawn_object_at_origin()
     struct Object *newObj = spawn_object_at_origin(parent, uselessArg, model, behavior);
     set_object_pos(newObj, x, y, z);
@@ -481,8 +481,8 @@ struct Object *spawn_object_abs_with_rot(struct Object *parent, s16 uselessArg, 
  * a copy-paste typo by one of the programmers.
  */
 struct Object *spawn_object_rel_with_rot(struct Object *parent, u32 model,
-                                         const BehaviorScript *behavior, s16 xOff,
-                                         s16 yOff, s16 zOff, s16 rx, s16 ry, UNUSED s16 rz) {
+                                         const BehaviorScript *behavior, s16 xOff, s16 yOff, s16 zOff,
+                                         s16 rx, s16 ry, UNUSED s16 rz) {
     struct Object *newObj = spawn_object_at_origin(parent, 0, model, behavior);
     newObj->oFlags |= OBJ_FLAG_TRANSFORM_RELATIVE_TO_PARENT;
     set_object_parent_relative_pos(newObj, xOff, yOff, zOff);
@@ -577,7 +577,8 @@ struct Object *try_to_spawn_object(s16 offsetY, f32 scale, struct Object *parent
     }
 }
 
-struct Object *spawn_object_with_scale(struct Object *parent, s32 model, const BehaviorScript *behavior, f32 scale) {
+struct Object *spawn_object_with_scale(struct Object *parent, s32 model, const BehaviorScript *behavior,
+                                       f32 scale) {
     struct Object *obj;
 
     obj = spawn_object_at_origin(parent, 0, model, behavior);
@@ -1615,8 +1616,7 @@ void obj_set_hurtbox_radius_and_height(f32 radius, f32 height) {
 }
 
 static void spawn_object_loot_coins(struct Object *obj, s32 numCoins, f32 sp30,
-                                    const BehaviorScript *coinBehavior,
-                                    s16 posJitter, s16 model) {
+                                    const BehaviorScript *coinBehavior, s16 posJitter, s16 model) {
     s32 i;
     f32 spawnHeight;
     struct Surface *floor;
@@ -2727,7 +2727,8 @@ s32 obj_update_dialog_with_cutscene(s32 actionArg, s32 dialogFlags, s32 cutscene
                     o->oDialogState++;
                 }
             } else {
-                if ((o->oDialogResponse = cutscene_object_with_dialog(cutsceneTable, o, dialogID)) != 0) {
+                if ((o->oDialogResponse = cutscene_object_with_dialog(cutsceneTable, o, dialogID))
+                    != 0) {
                     o->oDialogState++;
                 }
             }
