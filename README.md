@@ -1,4 +1,24 @@
-# Super Mario 64
+# Super Dolphio 64
+This is a modification of the basegame where Mario is a dolphin. 
+Abilities include:
+- Dolphin jumping on water
+- Dolphin diving out of water
+- Custom water rings that give you an additional jump
+- Faster swim speed
+- Z + B instant dive mechanic
+- Other misc abilities based off of the flow of this movement
+- Custom levels that utilize these new abilities
+- Custom characters based off of this theme
+
+Currently, the only level is a hub world for teaching you the new mechanics. The plan is to have this hub world connect to a river level where you can use your new abilities.
+
+### Massive thanks to the sm64 decomp team for all their work making this possible, and massive thanks to the people in the Discord, I couldn't have gotten this far without everyone's help!
+
+####
+Original readme below.
+________________________________________
+
+
 
 This repo contains a full decompilation of Super Mario 64 (J) and (U).
 The source and data have been decompiled but complete naming and documentation
