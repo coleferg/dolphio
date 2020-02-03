@@ -809,6 +809,10 @@ s32 check_dolphin_wall_kick(struct MarioState *m) {
 }
 
 s32 act_dolphin_dive(struct MarioState *m) {
+    s16 intendedDYaw;
+    f32 intendedMag;
+    s16 visualYaw;
+
     if (m->actionArg == 0) {
         play_mario_sound(m, SOUND_ACTION_THROW, SOUND_MARIO_HOOHOO);
     }
@@ -827,8 +831,12 @@ s32 act_dolphin_dive(struct MarioState *m) {
     switch (common_air_action_step(m, ACT_DOUBLE_JUMP_LAND, MARIO_ANIM_DIVE,
                                    AIR_STEP_CHECK_LEDGE_GRAB | AIR_STEP_CHECK_HANG)) {
         case AIR_STEP_NONE:
+            intendedDYaw = m->intendedYaw - m->faceAngle[1];
+            intendedMag = m->intendedMag / 32.0f;
             m->faceAngle[0] = atan2s(m->forwardVel, m->vel[1]);
             m->marioObj->header.gfx.angle[0] = -m->faceAngle[0];
+            visualYaw = (s16)((-4096.0f * 8.0f) * intendedMag * sins(intendedDYaw));
+            m->marioObj->header.gfx.angle[2] = approach_s16_asymptotic(m->marioObj->header.gfx.angle[2], visualYaw, 0x8);
             break;
         case AIR_STEP_HIT_WALL:
             if (m->vel[1] > 0.0f) {
@@ -2068,13 +2076,80 @@ s32 act_special_triple_jump(struct MarioState *m) {
     return FALSE;
 }
 
+s32 set_dolphin_action(struct MarioState *m) {
+    if (m->framesSinceA < 5 && m->appliedGravChange
+        && !(m->input & INPUT_B_PRESSED || m->controller->buttonDown & L_TRIG)) {
+        play_sound(SOUND_ACTION_BOUNCE_OFF_OBJECT, m->marioObj->header.gfx.cameraToObject);
+
+        switch (m->framesSinceA) {
+            case 4:
+                m->gravPower[0] = (m->peakHeight - m->waterLevel) * 1.5f; // height
+                m->gravPower[1] = 3.5f;                                   // speed
+                break;
+            case 3:
+                m->gravPower[0] = (m->peakHeight - m->waterLevel) * 1.85f;
+                m->gravPower[1] = 2.55f;
+                break;
+            case 2:
+                m->gravPower[0] = (m->peakHeight - m->waterLevel) * 2.5f;
+                m->gravPower[1] = 2.00f;
+                break;
+            case 1:
+                m->gravPower[0] = (m->peakHeight - m->waterLevel) * 2.55f;
+                m->gravPower[1] = 1.45f;
+                break;
+            default: // 0
+                m->gravPower[0] = (m->peakHeight - m->waterLevel) * 2.85f;
+                m->gravPower[1] = 1.15f;
+        }
+
+        if (m->gravPower[0] < 0) {
+            m->gravPower[0] = 0 - m->gravPower[0];
+        } else if (m->gravPower[0] > 5500.0f) {
+            m->gravPower[0] = 5500.0f;
+        }
+
+        m->gravPower[2] = 1.0f;
+        m->faceAngle[0] = 0;
+        m->appliedGravChange = FALSE;
+        m->canAirJump = FALSE;
+        set_mario_action(m, ACT_DOLPHIN_DIVE, 0);
+        return TRUE;
+    } else if (m->controller->buttonDown & A_BUTTON && m->appliedGravChange
+                && !(m->input & INPUT_B_PRESSED || m->controller->buttonDown & L_TRIG)) {
+        m->gravPower[0] = (m->peakHeight - m->waterLevel) * 1.5f;
+        m->gravPower[1] = 1.10f;
+        m->gravPower[2] = 0.7f;
+
+        if (m->gravPower[0] < 0) {
+            m->gravPower[0] = 0 - m->gravPower[0];
+        } else if (m->gravPower[0] > 5500.0f) {
+            m->gravPower[0] = 5500.0f;
+        }
+
+        m->faceAngle[0] = 0;
+        m->appliedGravChange = FALSE;
+        m->canAirJump = FALSE;
+        set_mario_action(m, ACT_DOLPHIN_DIVE, 0);
+        return TRUE;
+    };
+    return FALSE;
+}
+
 s32 check_common_airborne_cancels(struct MarioState *m) {
-    if (m->canAirJump && m->framesSinceA == 0) {
+    if (m->pos[1] < m->waterLevel - 100 && set_dolphin_action(m)) return FALSE;
+
+    if (m->pos[1] < m->waterLevel - 100) {
+        m->canAirJump = FALSE;
+        return set_water_plunge_action(m);
+    }
+
+    if (m->pos[1] > m->waterLevel + 100 && m->canAirJump && m->input & INPUT_A_PRESSED) {
         m->appliedGravChange = FALSE;
         m->canAirJump = FALSE;
 
         if (m->action == ACT_DOLPHIN_DIVE) {
-            m->gravPower[0] = 200.0f;
+            m->gravPower[0] = 1250.0f;
             m->gravPower[1] = 1.0f;
             m->gravPower[2] = 1.0f;
             set_mario_action(m, ACT_DOLPHIN_DIVE, 0);
@@ -2092,64 +2167,6 @@ s32 check_common_airborne_cancels(struct MarioState *m) {
         mario_set_forward_vel(m, m->forwardVel *= 0.33f);
         set_mario_action(m, ACT_FORWARD_ROLLOUT, 0);
         return FALSE;
-    }
-
-    if (m->pos[1] < m->waterLevel - 100) {
-        if (m->framesSinceA < 5 && m->appliedGravChange
-            && !(m->input & INPUT_B_PRESSED || m->controller->buttonDown & L_TRIG)) {
-            play_sound(SOUND_ACTION_BOUNCE_OFF_OBJECT, m->marioObj->header.gfx.cameraToObject);
-
-            switch (m->framesSinceA) {
-                case 4:
-                    m->gravPower[0] = (m->peakHeight - m->waterLevel) * 1.5f; // height
-                    m->gravPower[1] = 3.5f;                                   // speed
-                    break;
-                case 3:
-                    m->gravPower[0] = (m->peakHeight - m->waterLevel) * 1.85f;
-                    m->gravPower[1] = 2.55f;
-                    break;
-                case 2:
-                    m->gravPower[0] = (m->peakHeight - m->waterLevel) * 2.5f;
-                    m->gravPower[1] = 2.00f;
-                    break;
-                case 1:
-                    m->gravPower[0] = (m->peakHeight - m->waterLevel) * 2.55f;
-                    m->gravPower[1] = 1.45f;
-                    break;
-                default: // 0
-                    m->gravPower[0] = (m->peakHeight - m->waterLevel) * 2.85f;
-                    m->gravPower[1] = 1.15f;
-            }
-
-            if (m->gravPower[0] < 0) {
-                m->gravPower[0] = 0 - m->gravPower[0];
-            } else if (m->gravPower[0] > 5500.0f) {
-                m->gravPower[0] = 5500.0f;
-            }
-
-            m->gravPower[2] = 1.0f;
-            m->faceAngle[0] = 0;
-            m->appliedGravChange = FALSE;
-            set_mario_action(m, ACT_DOLPHIN_DIVE, 0);
-            return FALSE;
-        } else if (m->controller->buttonDown & A_BUTTON && m->appliedGravChange
-                   && !(m->input & INPUT_B_PRESSED || m->controller->buttonDown & L_TRIG)) {
-            m->gravPower[0] = (m->peakHeight - m->waterLevel) * 1.5f;
-            m->gravPower[1] = 1.10f;
-            m->gravPower[2] = 0.7f;
-
-            if (m->gravPower[0] < 0) {
-                m->gravPower[0] = 0 - m->gravPower[0];
-            } else if (m->gravPower[0] > 5500.0f) {
-                m->gravPower[0] = 5500.0f;
-            }
-
-            m->faceAngle[0] = 0;
-            m->appliedGravChange = FALSE;
-            set_mario_action(m, ACT_DOLPHIN_DIVE, 0);
-            return FALSE;
-        };
-        return set_water_plunge_action(m);
     }
 
     if (m->input & INPUT_SQUISHED) {

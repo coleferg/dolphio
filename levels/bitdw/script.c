@@ -44,7 +44,7 @@ static const LevelScript script_func_local_3[] = {
     // OBJECT(/*model*/ MODEL_NONE, /*pos*/  294, 1305, 582,  /*angle*/ 0, 0, 0,  /*behParam*/ 0x00000000, /*beh*/ bhvBowserCourseRedCoinStar),
     // OBJECT(/*model*/ MODEL_STAR, /*pos*/  294, 1305, -3000, /*angle*/ 0, 0, 0,  /*behParam*/ 0x00000000, /*beh*/ bhvStarNoExit),
     // OBJECT(/*model*/ MODEL_STAR, /*pos*/  294, 1305, -4000, /*angle*/ 0, 0, 0,  /*behParam*/ 0x00000000, /*beh*/ bhvStarNoExit),
-    OBJECT(/*model*/ MODEL_NONE, /*pos*/ 1427, 2210, -5784,  /*angle*/ 0, 0, 0, /*behParam*/ 0x03000000, /*beh*/ bhvJetStreamRingSpawner),
+    OBJECT(/*model*/ MODEL_NONE, /*pos*/ 1135, 1079, -5824,  /*angle*/ 0, 0, 0, /*behParam*/ 0x03000000, /*beh*/ bhvJetStreamRingSpawner),
     OBJECT(/*model*/ MODEL_NONE, /*pos*/ 1954, 4553, -3963,  /*angle*/ 0, 0, 0, /*behParam*/ 0x03000000, /*beh*/ bhvJetStreamRingSpawner),
     OBJECT(/*model*/ MODEL_NONE, /*pos*/ 1954, 4553, -2779,  /*angle*/ 0, 0, 0, /*behParam*/ 0x03000000, /*beh*/ bhvJetStreamRingSpawner),
     OBJECT(/*model*/ MODEL_NONE, /*pos*/ 496,  4750, -1643,  /*angle*/ 0, 0, 0, /*behParam*/ 0x03000000, /*beh*/ bhvJetStreamRingSpawner),

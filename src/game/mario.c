@@ -1229,7 +1229,7 @@ s32 transition_submerged_to_walking(struct MarioState *m) {
 s32 set_water_plunge_action(struct MarioState *m) {
     m->vel[1] = m->vel[1] * 0.8f;
 
-    m->pos[1] = m->waterLevel - 100;
+    // m->pos[1] = m->waterLevel - 100;
 
     m->faceAngle[2] = (int) (m->faceAngle[2] * 0.6f);
 
@@ -1237,9 +1237,9 @@ s32 set_water_plunge_action(struct MarioState *m) {
         m->faceAngle[0] = (int) (m->faceAngle[0] * 0.7f);
     }
 
-    if (m->area->camera->mode != CAMERA_MODE_WATER_SURFACE) {
-        set_camera_mode(m->area->camera, CAMERA_MODE_WATER_SURFACE, 1);
-    }
+    // if (m->area->camera->mode != CAMERA_MODE_WATER_SURFACE) {
+    //     set_camera_mode(m->area->camera, CAMERA_MODE_WATER_SURFACE, 1);
+    // }
 
     return set_mario_action(m, ACT_WATER_PLUNGE, 0);
 }
@@ -1499,16 +1499,16 @@ void set_submerged_cam_preset_and_spawn_bubbles(struct MarioState *m) {
 
         if ((m->action & ACT_FLAG_METAL_WATER)) {
             if (camPreset != CAMERA_MODE_CLOSE) {
-                set_camera_mode(m->area->camera, CAMERA_MODE_CLOSE, 1);
+                // set_camera_mode(m->area->camera, CAMERA_MODE_CLOSE, 1);
             }
         } else {
-            if ((heightBelowWater > 800.0f) && (camPreset != CAMERA_MODE_BEHIND_MARIO)) {
-                set_camera_mode(m->area->camera, CAMERA_MODE_BEHIND_MARIO, 1);
-            }
+            // if ((heightBelowWater > 800.0f) && (camPreset != CAMERA_MODE_BEHIND_MARIO)) {
+            //     set_camera_mode(m->area->camera, CAMERA_MODE_BEHIND_MARIO, 1);
+            // }
 
-            if ((heightBelowWater < 400.0f) && (camPreset != CAMERA_MODE_WATER_SURFACE)) {
-                set_camera_mode(m->area->camera, CAMERA_MODE_WATER_SURFACE, 1);
-            }
+            // if ((heightBelowWater < 400.0f) && (camPreset != CAMERA_MODE_WATER_SURFACE)) {
+            //     set_camera_mode(m->area->camera, CAMERA_MODE_WATER_SURFACE, 1);
+            // }
 
             if ((m->action & ACT_FLAG_INTANGIBLE) == 0) {
                 if ((m->pos[1] < (f32)(m->waterLevel - 160)) || (m->faceAngle[0] < -0x800)) {
