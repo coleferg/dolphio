@@ -2076,6 +2076,11 @@ s32 act_special_triple_jump(struct MarioState *m) {
     return FALSE;
 }
 
+enum {
+    g_height = 0,
+    g_speed
+};
+
 s32 set_dolphin_action(struct MarioState *m) {
     if (m->framesSinceA < 5 && m->appliedGravChange
         && !(m->input & INPUT_B_PRESSED || m->controller->buttonDown & L_TRIG)) {
@@ -2083,52 +2088,54 @@ s32 set_dolphin_action(struct MarioState *m) {
 
         switch (m->framesSinceA) {
             case 4:
-                m->gravPower[0] = (m->peakHeight - m->waterLevel) * 1.5f; // height
-                m->gravPower[1] = 3.5f;                                   // speed
+                m->gravPower[g_height] = (m->peakHeight - m->waterLevel) * 1.5f; // height
+                m->gravPower[g_speed] = 3.5f;                                   // speed
                 break;
             case 3:
-                m->gravPower[0] = (m->peakHeight - m->waterLevel) * 1.85f;
-                m->gravPower[1] = 2.55f;
+                m->gravPower[g_height] = (m->peakHeight - m->waterLevel) * 1.85f;
+                m->gravPower[g_speed] = 2.55f;
                 break;
             case 2:
-                m->gravPower[0] = (m->peakHeight - m->waterLevel) * 2.5f;
-                m->gravPower[1] = 2.00f;
+                m->gravPower[g_height] = (m->peakHeight - m->waterLevel) * 2.5f;
+                m->gravPower[g_speed] = 2.00f;
                 break;
             case 1:
-                m->gravPower[0] = (m->peakHeight - m->waterLevel) * 2.55f;
-                m->gravPower[1] = 1.45f;
+                m->gravPower[g_height] = (m->peakHeight - m->waterLevel) * 2.55f;
+                m->gravPower[g_speed] = 1.45f;
                 break;
             default: // 0
-                m->gravPower[0] = (m->peakHeight - m->waterLevel) * 2.85f;
-                m->gravPower[1] = 1.15f;
+                m->gravPower[g_height] = (m->peakHeight - m->waterLevel) * 2.85f;
+                m->gravPower[g_speed] = 1.15f;
         }
 
-        if (m->gravPower[0] < 0) {
-            m->gravPower[0] = 0 - m->gravPower[0];
-        } else if (m->gravPower[0] > 5500.0f) {
-            m->gravPower[0] = 5500.0f;
+        if (m->gravPower[g_height] < 0) {
+            m->gravPower[g_height] = 0 - m->gravPower[g_height];
+        } else if (m->gravPower[g_height] > 5500.0f) {
+            m->gravPower[g_height] = 5500.0f;
         }
 
         m->gravPower[2] = 1.0f;
         m->faceAngle[0] = 0;
         m->appliedGravChange = FALSE;
+        if (m->canAirJump) m->gravPower[g_height] = max(m->gravPower[g_height], 2000);
         m->canAirJump = FALSE;
         set_mario_action(m, ACT_DOLPHIN_DIVE, 0);
         return TRUE;
     } else if (m->controller->buttonDown & A_BUTTON && m->appliedGravChange
                 && !(m->input & INPUT_B_PRESSED || m->controller->buttonDown & L_TRIG)) {
-        m->gravPower[0] = (m->peakHeight - m->waterLevel) * 1.5f;
-        m->gravPower[1] = 1.10f;
+        m->gravPower[g_height] = (m->peakHeight - m->waterLevel) * 1.5f;
+        m->gravPower[g_speed] = 1.10f;
         m->gravPower[2] = 0.7f;
 
-        if (m->gravPower[0] < 0) {
-            m->gravPower[0] = 0 - m->gravPower[0];
-        } else if (m->gravPower[0] > 5500.0f) {
-            m->gravPower[0] = 5500.0f;
+        if (m->gravPower[g_height] < 0) {
+            m->gravPower[g_height] = 0 - m->gravPower[g_height];
+        } else if (m->gravPower[g_height] > 5500.0f) {
+            m->gravPower[g_height] = 5500.0f;
         }
 
         m->faceAngle[0] = 0;
         m->appliedGravChange = FALSE;
+        if (m->canAirJump) m->gravPower[g_height] = max(m->gravPower[g_height], 2000);
         m->canAirJump = FALSE;
         set_mario_action(m, ACT_DOLPHIN_DIVE, 0);
         return TRUE;
