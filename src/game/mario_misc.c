@@ -93,6 +93,8 @@ static void bhvToadMessage_faded(void) {
 }
 
 static void bhvToadMessage_opaque(void) {
+    if (gCurrentObject->oDistanceToMario < 1000.0f)
+        obj_rotate_yaw_toward(angle_to_object(gCurrentObject, gMarioObject), 0x400);
     if (gCurrentObject->oDistanceToMario > 700.0f) {
         gCurrentObject->oToadMessageState = TOAD_MESSAGE_FADING;
     } else {
@@ -110,8 +112,8 @@ static void bhvToadMessage_opaque(void) {
 static void bhvToadMessage_talking(void) {
     if (obj_update_dialog_with_cutscene(3, 1, CUTSCENE_DIALOG, gCurrentObject->oToadMessageDialogId)
         != 0) {
-        gCurrentObject->oToadMessageRecentlyTalked = 1;
-        gCurrentObject->oToadMessageState = TOAD_MESSAGE_FADING;
+        gCurrentObject->oToadMessageRecentlyTalked = 0;
+        gCurrentObject->oToadMessageState = TOAD_MESSAGE_OPAQUE;
         switch (gCurrentObject->oToadMessageDialogId) {
             case TOAD_STAR_1_DIALOG:
                 gCurrentObject->oToadMessageDialogId = TOAD_STAR_1_DIALOG_AFTER;
@@ -145,21 +147,13 @@ void bhvToadMessage_loop(void) {
     if (gCurrentObject->header.gfx.node.flags & 1) {
         gCurrentObject->oInteractionSubtype = 0;
         switch (gCurrentObject->oToadMessageState) {
-            case TOAD_MESSAGE_FADED:
-                bhvToadMessage_faded();
-                break;
-            case TOAD_MESSAGE_OPAQUE:
-                bhvToadMessage_opaque();
-                break;
-            case TOAD_MESSAGE_OPACIFYING:
-                bhvToadMessage_opacifying();
-                break;
-            case TOAD_MESSAGE_FADING:
-                bhvToadMessage_fading();
-                break;
             case TOAD_MESSAGE_TALKING:
                 bhvToadMessage_talking();
                 break;
+            default:
+                bhvToadMessage_opaque();
+                break;
+
         }
     }
 }
@@ -194,7 +188,7 @@ void bhvToadMessage_init(void) {
         gCurrentObject->oToadMessageDialogId = dialogId;
         gCurrentObject->oToadMessageRecentlyTalked = 0;
         gCurrentObject->oToadMessageState = TOAD_MESSAGE_FADED;
-        gCurrentObject->oOpacity = 81;
+        gCurrentObject->oOpacity = 255;
     } else {
         mark_object_for_deletion(gCurrentObject);
     }

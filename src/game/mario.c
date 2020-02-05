@@ -1286,9 +1286,12 @@ void debug_print_speed_action_normal(struct MarioState *m) {
     // f32 floor_nY;
 
     if (TRUE) {
-        print_text_fmt_int(210, 76, "%d", m->pos[0]);
-        print_text_fmt_int(210, 60, "%d", m->pos[1]);
-        print_text_fmt_int(210, 44, "%d", m->pos[2]);
+        s16 marioDirection = m->marioObj->header.gfx.angle[1] / 182;
+        if (marioDirection < 0) marioDirection += 360;
+        print_text_fmt_int(10, 76, "%d", m->pos[0]);
+        print_text_fmt_int(10, 60, "%d", m->pos[1]);
+        print_text_fmt_int(10, 44, "%d", m->pos[2]);
+        print_text_fmt_int(10, 10, "%d", marioDirection);
         // steepness = sqrtf(
         //     ((m->floor->normal.x * m->floor->normal.x) + (m->floor->normal.z * m->floor->normal.z)));
         // floor_nY = m->floor->normal.y;

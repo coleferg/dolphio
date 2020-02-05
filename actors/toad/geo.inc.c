@@ -122,17 +122,17 @@ const GeoLayout toad_geo_00027C[] = {
 
 // 0x0D0003E4
 const GeoLayout toad_geo[] = {
-   GEO_CULLING_RADIUS(1000),
+   GEO_SCALE(0x00, 22384),
    GEO_OPEN_NODE(),
       GEO_SHADOW(SHADOW_CIRCLE_9_VERTS, 0x96, 100),
       GEO_OPEN_NODE(),
-         GEO_SCALE(0x00, 16384),
+         GEO_TRANSLATE_ROTATE(1, 0, 0, 0, 0, -23, 0),
          GEO_OPEN_NODE(),
             GEO_ASM(10, Geo18_8029D924),
             GEO_SWITCH_CASE(2, geo_switch_anim_state),
             GEO_OPEN_NODE(),
                GEO_BRANCH(1, toad_geo_000114),
-               GEO_BRANCH(1, toad_geo_00027C),
+               GEO_BRANCH(1, toad_geo_000114),
             GEO_CLOSE_NODE(),
          GEO_CLOSE_NODE(),
       GEO_CLOSE_NODE(),
