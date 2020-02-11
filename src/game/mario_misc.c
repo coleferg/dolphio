@@ -92,9 +92,52 @@ static void bhvToadMessage_faded(void) {
     }
 }
 
+static void bhvToadMovement(void) {
+    s16 isHopping = obj_check_anim_frame_in_range(9, 8);
+
+    if (isHopping) {
+        f32 targetVel;
+        s16 targetAngle = angle_to_object(gCurrentObject, gMarioObject);
+        s16 rotSpeed = 0x600;
+        f32 fVelInc = 0.1;
+        s16 isAvoiding = (
+            gCurrentObject->oToadMessageDialogId == TOAD_STAR_1_DIALOG ||
+            gCurrentObject->oToadMessageDialogId == TOAD_STAR_2_DIALOG ||
+            gCurrentObject->oToadMessageDialogId == TOAD_STAR_3_DIALOG
+        );
+        s16 isCloseToMario = gCurrentObject->oDistanceToMario < 1000.0f;
+        f32 distFromHome = obj_lateral_dist_to_home();
+
+        if (isCloseToMario) {
+            targetVel = isAvoiding ? 3.5f : 3.0f;
+            if (gCurrentObject->oDistanceToMario < 150.0f) targetVel = 0.0f;
+            fVelInc = 0.2f;
+            targetAngle = isAvoiding 
+                ? angle_to_object(gMarioObject, gCurrentObject)
+                : angle_to_object(gCurrentObject, gMarioObject);
+        } else if (distFromHome > 50.0f) {
+            targetVel = 2.6f;
+            targetAngle = obj_angle_to_home();
+        } else if (distFromHome > 10.0f) {
+            targetVel = 1.5f;
+            targetAngle = obj_angle_to_home();
+        } else {
+            targetVel = 0.0f;
+            targetAngle = angle_to_object(gCurrentObject, gMarioObject);
+            rotSpeed = 0x400;
+        }
+
+        obj_rotate_yaw_toward(targetAngle, rotSpeed);
+        if (targetVel > 0.0f) {
+            gCurrentObject->oForwardVel = approach_f32(gCurrentObject->oForwardVel, targetVel, fVelInc, fVelInc);
+            obj_update_floor_and_walls();
+            obj_move_standard(-30);
+        }
+    }
+}
+
 static void bhvToadMessage_opaque(void) {
-    if (gCurrentObject->oDistanceToMario < 1000.0f)
-        obj_rotate_yaw_toward(angle_to_object(gCurrentObject, gMarioObject), 0x400);
+    bhvToadMovement();
     if (gCurrentObject->oDistanceToMario > 700.0f) {
         gCurrentObject->oToadMessageState = TOAD_MESSAGE_FADING;
     } else {

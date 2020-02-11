@@ -2175,7 +2175,7 @@ static void end_peach_cutscene_dialog_1(struct MarioState *m) {
             set_cutscene_message(160, 227, 0, 30);
 #ifndef VERSION_JP
             func_8031FFB4(0, 60, 40);
-            play_sound(SOUND_PEACH_MARIO, sEndPeachObj->header.gfx.cameraToObject);
+            play_sound(SOUND_OBJ_TOADLE_DEFEAT, sEndPeachObj->header.gfx.cameraToObject);
 #endif
             break;
 
@@ -2187,7 +2187,7 @@ static void end_peach_cutscene_dialog_1(struct MarioState *m) {
         case 290:
             set_cutscene_message(160, 227, 1, 60);
 #ifndef VERSION_JP
-            play_sound(SOUND_PEACH_POWER_OF_THE_STARS, sEndPeachObj->header.gfx.cameraToObject);
+            play_sound(SOUND_OBJ_TOADLE_DISAPPOINT, sEndPeachObj->header.gfx.cameraToObject);
 #endif
             break;
 
@@ -2208,7 +2208,7 @@ static void end_peach_cutscene_dialog_2(struct MarioState *m) {
         case 29:
             set_cutscene_message(160, 227, 2, 30);
 #ifndef VERSION_JP
-            play_sound(SOUND_PEACH_THANKS_TO_YOU, sEndPeachObj->header.gfx.cameraToObject);
+            play_sound(SOUND_OBJ_TOADLE_EXCITE, sEndPeachObj->header.gfx.cameraToObject);
 #endif
             break;
 
@@ -2219,14 +2219,14 @@ static void end_peach_cutscene_dialog_2(struct MarioState *m) {
         case 75:
             set_cutscene_message(160, 227, 3, 30);
 #ifndef VERSION_JP
-            play_sound(SOUND_PEACH_THANK_YOU_MARIO, sEndPeachObj->header.gfx.cameraToObject);
+            play_sound(SOUND_OBJ_TOADLE_FOLLOW, sEndPeachObj->header.gfx.cameraToObject);
 #endif
             break;
 
         case 130:
             set_cutscene_message(160, 227, 4, 40);
 #ifndef VERSION_JP
-            play_sound(SOUND_PEACH_SOMETHING_SPECIAL, sEndPeachObj->header.gfx.cameraToObject);
+            play_sound(SOUND_OBJ_TOADLE_HOP, sEndPeachObj->header.gfx.cameraToObject);
 #endif
             break;
 
@@ -2345,7 +2345,7 @@ static void end_peach_cutscene_dialog_3(struct MarioState *m) {
             D_8032CBE8 = 1;
             set_cutscene_message(160, 227, 5, 30);
 #ifndef VERSION_JP
-            play_sound(SOUND_PEACH_BAKE_A_CAKE, sEndPeachObj->header.gfx.cameraToObject);
+            play_sound(SOUND_OBJ_TOADLE_HURT, sEndPeachObj->header.gfx.cameraToObject);
 #endif
             break;
 
@@ -2356,7 +2356,7 @@ static void end_peach_cutscene_dialog_3(struct MarioState *m) {
         case 130:
             set_cutscene_message(160, 227, 7, 50);
 #ifndef VERSION_JP
-            play_sound(SOUND_PEACH_FOR_MARIO, sEndPeachObj->header.gfx.cameraToObject);
+            play_sound(SOUND_OBJ_TOADLE_SCARED, sEndPeachObj->header.gfx.cameraToObject);
 #endif
             break;
     }
@@ -2380,7 +2380,7 @@ static void end_peach_cutscene_run_to_castle(struct MarioState *m) {
     if (m->actionTimer == 95) {
         set_cutscene_message(160, 227, 0, 40);
 #ifndef VERSION_JP
-        play_sound(SOUND_PEACH_MARIO2, sEndPeachObj->header.gfx.cameraToObject);
+        play_sound(SOUND_OBJ_TOADLE_SPEAK, sEndPeachObj->header.gfx.cameraToObject);
 #endif
     }
     if (m->actionTimer == 389) {

@@ -84,55 +84,55 @@
             "ifdef": ["VERSION_US", "VERSION_EU"],
             "release_rate": 208,
             "envelope": "envelope0",
-            "sound": "0E"
+            "sound": "17-toadle-attack-custom"
         },
         "inst15": {
             "ifdef": ["VERSION_US", "VERSION_EU"],
             "release_rate": 208,
             "envelope": "envelope0",
-            "sound": "0F"
+            "sound": "18-toadle-defeat-custom"
         },
         "inst16": {
             "ifdef": ["VERSION_US", "VERSION_EU"],
             "release_rate": 208,
             "envelope": "envelope0",
-            "sound": "10"
+            "sound": "19-toadle-disappoint-custom"
         },
         "inst17": {
             "ifdef": ["VERSION_US", "VERSION_EU"],
             "release_rate": 208,
             "envelope": "envelope0",
-            "sound": "11"
+            "sound": "1A-toadle-excite-custom"
         },
         "inst18": {
             "ifdef": ["VERSION_US", "VERSION_EU"],
             "release_rate": 208,
             "envelope": "envelope0",
-            "sound": "12"
+            "sound": "1B-toadle-follow-custom"
         },
         "inst19": {
             "ifdef": ["VERSION_US", "VERSION_EU"],
             "release_rate": 208,
             "envelope": "envelope0",
-            "sound": "13"
+            "sound": "1C-toadle-hop-custom"
         },
         "inst20": {
             "ifdef": ["VERSION_US", "VERSION_EU"],
             "release_rate": 208,
             "envelope": "envelope0",
-            "sound": "14"
+            "sound": "1D-toadle-hurt-custom"
         },
         "inst21": {
             "ifdef": ["VERSION_US", "VERSION_EU"],
             "release_rate": 208,
             "envelope": "envelope0",
-            "sound": "15"
+            "sound": "1E-toadle-scared-custom"
         },
         "inst22": {
             "ifdef": ["VERSION_US", "VERSION_EU"],
             "release_rate": 208,
             "envelope": "envelope0",
-            "sound": "16"
+            "sound": "1F-toadle-speak-custom"
         }
     },
     "instrument_list": [

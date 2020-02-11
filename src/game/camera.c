@@ -9436,7 +9436,7 @@ CmdRet peach_letter_text(UNUSED struct Camera *c) {
 
 #ifndef VERSION_JP
 CmdRet play_sound_peach_reading_letter(UNUSED struct Camera *c) {
-    play_sound(SOUND_PEACH_DEAR_MARIO, gDefaultSoundArgs);
+    play_sound(SOUND_OBJ_TOADLE_ATTACK, gDefaultSoundArgs);
 }
 #endif
 

@@ -1816,7 +1816,7 @@ const GeoLayout mario_geo[] = {
          GEO_SWITCH_CASE(0, geo_switch_mario_stand_run),
          GEO_OPEN_NODE(),
             GEO_BRANCH(1, mario_geo_load_body),
-            GEO_BRANCH(1, mario_geo_render_body),
+            GEO_BRANCH(1, mario_geo_load_body),
          GEO_CLOSE_NODE(),
          GEO_ASM(1, geo_mirror_mario_backface_culling),
       GEO_CLOSE_NODE(),

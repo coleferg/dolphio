@@ -183,7 +183,7 @@
 #define SOUND_MARIO_PUNCH_WAH                   SOUND_ARG_LOAD(2, 4, 0x24, 0x80, 8)
 
 /* Mario Sound Effects (US/EU only) */
-#define SOUND_PEACH_DEAR_MARIO                  SOUND_ARG_LOAD(2, 4, 0x28, 0xFF, 8)
+#define SOUND_OBJ_TOADLE_ATTACK                  SOUND_ARG_LOAD(2, 4, 0x28, 0xFF, 8)
 
 // A random number 0-4 is added to the sound ID before playing, producing one of
 // Yahoo! (60% chance), Waha! (20%), or Yippee! (20%).
@@ -199,14 +199,14 @@
 #define SOUND_MARIO_IMA_TIRED                   SOUND_ARG_LOAD(2, 4, 0x37, 0x80, 8)
 
 /* Princess Peach Sound Effects (US/EU only) */
-#define SOUND_PEACH_MARIO                       SOUND_ARG_LOAD(2, 4, 0x38, 0xFF, 8)
-#define SOUND_PEACH_POWER_OF_THE_STARS          SOUND_ARG_LOAD(2, 4, 0x39, 0xFF, 8)
-#define SOUND_PEACH_THANKS_TO_YOU               SOUND_ARG_LOAD(2, 4, 0x3A, 0xFF, 8)
-#define SOUND_PEACH_THANK_YOU_MARIO             SOUND_ARG_LOAD(2, 4, 0x3B, 0xFF, 8)
-#define SOUND_PEACH_SOMETHING_SPECIAL           SOUND_ARG_LOAD(2, 4, 0x3C, 0xFF, 8)
-#define SOUND_PEACH_BAKE_A_CAKE                 SOUND_ARG_LOAD(2, 4, 0x3D, 0xFF, 8)
-#define SOUND_PEACH_FOR_MARIO                   SOUND_ARG_LOAD(2, 4, 0x3E, 0xFF, 8)
-#define SOUND_PEACH_MARIO2                      SOUND_ARG_LOAD(2, 4, 0x3F, 0xFF, 8)
+#define SOUND_OBJ_TOADLE_DEFEAT                             SOUND_ARG_LOAD(2, 4, 0x38, 0xD0, 8)
+#define SOUND_OBJ_TOADLE_DISAPPOINT                         SOUND_ARG_LOAD(2, 4, 0x39, 0xD0, 8)
+#define SOUND_OBJ_TOADLE_EXCITE                             SOUND_ARG_LOAD(2, 4, 0x3A, 0xD0, 8)
+#define SOUND_OBJ_TOADLE_FOLLOW                             SOUND_ARG_LOAD(2, 4, 0x3B, 0xD0, 8)
+#define SOUND_OBJ_TOADLE_HOP                                SOUND_ARG_LOAD(2, 4, 0x3C, 0x70, 8)
+#define SOUND_OBJ_TOADLE_HURT                               SOUND_ARG_LOAD(2, 4, 0x3D, 0xD0, 8)
+#define SOUND_OBJ_TOADLE_SCARED                             SOUND_ARG_LOAD(2, 4, 0x3E, 0xD0, 8)
+#define SOUND_OBJ_TOADLE_SPEAK                              SOUND_ARG_LOAD(2, 4, 0x3F, 0xFF, 8)
 
 /* General Sound Effects */
 #define SOUND_GENERAL_ACTIVATE_CAP_SWITCH                   SOUND_ARG_LOAD(3, 0, 0x00, 0x80, 8)

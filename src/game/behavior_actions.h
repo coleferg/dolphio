@@ -547,6 +547,11 @@ void bhv_intro_scene_loop(void);
 void BehDustSmokeLoop(void);
 void BehYoshiLoop(void);
 void bhvLllVolcanoFallingTrap_loop(void);
+void bhvToadEvil_init(void);
+void bhvToadEvil_loop(void);
+void bhvToadBasic_init(void);
+void bhvToadBasic_loop(void);
+
 
 extern Gfx *Geo18_802B1BB0(s32 run, UNUSED struct GraphNode *node, Mat4 mtx);
 
