@@ -2475,7 +2475,7 @@ layer_jump .layer_C4E
   .sound_peach_dear_mario:
   chan_setbank 10
   chan_setinstr 15
-  chan_setlayer 0, .layer_E6F
+  chan_setlayer 2, .layer_E6F
   chan_end
 
   .layer_E6F:
@@ -2644,12 +2644,12 @@ layer_jump .layer_C4E
   .sound_peach_something_special:
   chan_setbank 10
   chan_setinstr 20
-  chan_setlayer 0, .layer_F56
   chan_setlayer 1, .layer_F56
+  chan_setlayer 2, .layer_F56
   chan_end
 
   .layer_F56:
-  layer_note1 39, 0xdc, 127
+  layer_note1 39, 0xdc, 95
   layer_end
 
   .sound_peach_bake_a_cake:

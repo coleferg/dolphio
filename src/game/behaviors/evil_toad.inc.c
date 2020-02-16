@@ -31,7 +31,7 @@ static struct ObjectHitbox sToadEvilHitbox = {
     /* interactType:      */ INTERACT_BOUNCE_TOP,
     /* downOffset:        */ 0,
     /* damageOrCoinValue: */ 3,
-    /* health:            */ 2,
+    /* health:            */ 3,
     /* numLootCoins:      */ 5,
     /* radius:            */ 72,
     /* height:            */ 50,
@@ -57,7 +57,8 @@ s32 checkIsToadAvoiding(void) {
 }
 
 static void playSoundByToadType(s16 isAvoiding, s16 isEvil, u32 evilSound, u32 avoidSound, u32 normalSound) {
-    if (isAvoiding) PlaySound2(avoidSound);
+    if (o->oTimer < 7) {}
+    else if (isAvoiding) PlaySound2(avoidSound);
     else if (isEvil) PlaySound2(evilSound);
     else PlaySound2(normalSound);
 }

@@ -1,4 +1,5 @@
 #include <ultra64.h>
+#include <math.h>
 
 #include "sm64.h"
 #include "area.h"
@@ -12,6 +13,7 @@
 #include "save_file.h"
 #include "audio/external.h"
 #include "engine/graph_node.h"
+#include "make_const_nonconst.h"
 
 void play_flip_sounds(struct MarioState *m, s16 frame1, s16 frame2, s16 frame3) {
     s32 animFrame = m->marioObj->header.gfx.unk38.animFrame;
@@ -532,10 +534,6 @@ s32 act_freefall(struct MarioState *m) {
     if (m->input & INPUT_Z_PRESSED) {
         mario_set_forward_vel(m, m->forwardVel *= 0.33f);
         return set_mario_action(m, ACT_FORWARD_ROLLOUT, 0);
-    }
-
-    if (m->input & INPUT_A_PRESSED) {
-        return set_mario_action(m, ACT_DOUBLE_JUMP, 0);
     }
 
     switch (m->actionArg) {
@@ -2076,6 +2074,39 @@ s32 act_special_triple_jump(struct MarioState *m) {
     return FALSE;
 }
 
+const f32 height_limit = 5500.0f;
+const f32 height_falloff_threshold = 2000.0f;
+const f32 min_ring_boost = 2250.0f;
+// const f32 jump_falloff_pow = 2.33f;
+// const f32 add_and_mult = 2500.0f;
+// const f32 sub_jump = 8495.0f;
+// log(2.33x+2500)2500 - 8495
+
+f32 get_g_height_with_curve(f32 height) {
+    f32 height_out = height;
+    f32 additive_height = 0.0f;
+    if (height_out > height_limit) height_out = height_limit;
+
+    additive_height = height_out - height_falloff_threshold;
+    height_out = height_falloff_threshold;
+
+    // additive_height = (log10f((jump_falloff_pow * additive_height) + add_and_mult) * 2500) - sub_jump;
+    additive_height = additive_height - (additive_height * (additive_height / 7000.0f));
+
+    return height_out + additive_height;
+}
+
+f32 get_g_height_from_multiplier(struct MarioState *m, f32 multiplier) {
+    f32 new_height = (m->peakHeight - m->waterLevel) * multiplier;
+
+    if (new_height < 0) new_height = -new_height;
+    else if (new_height > height_falloff_threshold)
+        new_height = get_g_height_with_curve(new_height);
+
+    if (m->canAirJump) new_height = max(new_height, min_ring_boost);
+    return new_height;
+}
+
 enum {
     g_height = 0,
     g_speed
@@ -2088,55 +2119,43 @@ s32 set_dolphin_action(struct MarioState *m) {
 
         switch (m->framesSinceA) {
             case 4:
-                m->gravPower[g_height] = (m->peakHeight - m->waterLevel) * 1.5f; // height
+                m->gravPower[g_height] = get_g_height_from_multiplier(m, 1.5f); // height
                 m->gravPower[g_speed] = 3.5f;                                   // speed
                 break;
             case 3:
-                m->gravPower[g_height] = (m->peakHeight - m->waterLevel) * 1.85f;
+                m->gravPower[g_height] = get_g_height_from_multiplier(m, 1.85f);
                 m->gravPower[g_speed] = 2.55f;
                 break;
             case 2:
-                m->gravPower[g_height] = (m->peakHeight - m->waterLevel) * 2.5f;
+                m->gravPower[g_height] = get_g_height_from_multiplier(m, 2.5f);
                 m->gravPower[g_speed] = 2.00f;
                 break;
             case 1:
-                m->gravPower[g_height] = (m->peakHeight - m->waterLevel) * 2.55f;
+                m->gravPower[g_height] = get_g_height_from_multiplier(m, 2.55f);
                 m->gravPower[g_speed] = 1.45f;
                 break;
             default: // 0
-                m->gravPower[g_height] = (m->peakHeight - m->waterLevel) * 2.85f;
+                m->gravPower[g_height] = get_g_height_from_multiplier(m, 2.85f);
                 m->gravPower[g_speed] = 1.15f;
-        }
-
-        if (m->gravPower[g_height] < 0) {
-            m->gravPower[g_height] = 0 - m->gravPower[g_height];
-        } else if (m->gravPower[g_height] > 5500.0f) {
-            m->gravPower[g_height] = 5500.0f;
         }
 
         m->gravPower[2] = 1.0f;
         m->faceAngle[0] = 0;
         m->appliedGravChange = FALSE;
-        if (m->canAirJump) m->gravPower[g_height] = max(m->gravPower[g_height], 2000);
         m->canAirJump = FALSE;
+
         set_mario_action(m, ACT_DOLPHIN_DIVE, 0);
         return TRUE;
     } else if (m->controller->buttonDown & A_BUTTON && m->appliedGravChange
                 && !(m->input & INPUT_B_PRESSED || m->controller->buttonDown & L_TRIG)) {
-        m->gravPower[g_height] = (m->peakHeight - m->waterLevel) * 1.5f;
-        m->gravPower[g_speed] = 1.10f;
+        m->gravPower[g_height] = get_g_height_from_multiplier(m, 1.5f);
+        m->gravPower[g_speed]  = 1.10f;
+
         m->gravPower[2] = 0.7f;
-
-        if (m->gravPower[g_height] < 0) {
-            m->gravPower[g_height] = 0 - m->gravPower[g_height];
-        } else if (m->gravPower[g_height] > 5500.0f) {
-            m->gravPower[g_height] = 5500.0f;
-        }
-
         m->faceAngle[0] = 0;
         m->appliedGravChange = FALSE;
-        if (m->canAirJump) m->gravPower[g_height] = max(m->gravPower[g_height], 2000);
         m->canAirJump = FALSE;
+
         set_mario_action(m, ACT_DOLPHIN_DIVE, 0);
         return TRUE;
     };

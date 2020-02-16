@@ -5241,8 +5241,8 @@ void set_focus_rel_mario(struct Camera *c, f32 leftRight, f32 yOff, f32 forwBack
 
     calc_y_to_curr_floor(&focFloorYOff, 1.f, 200.f, &focFloorYOff, 0.9f, 200.f);
     yaw = sMarioCamState->faceAngle[1] + yawOff;
-    c->focus[2] = sMarioCamState->pos[2] + forwBack * coss(yaw) - leftRight * sins(yaw);
-    c->focus[0] = sMarioCamState->pos[0] + forwBack * sins(yaw) + leftRight * coss(yaw);
+    c->focus[2] = sMarioCamState->pos[2] + forwBack * coss(yaw) - 0 * sins(yaw);
+    c->focus[0] = sMarioCamState->pos[0] + forwBack * sins(yaw) + 0 * coss(yaw);
     c->focus[1] = sMarioCamState->pos[1] + yOff + focFloorYOff;
 }
 

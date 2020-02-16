@@ -38,6 +38,7 @@ OSIoMesg gDmaIoMesg;
 OSMesg D_80339BEC;
 OSMesgQueue gDmaMesgQueue;
 OSMesgQueue gSIEventMesgQueue;
+OSViMode VI;
 
 struct VblankHandler *gVblankHandler1 = NULL;
 struct VblankHandler *gVblankHandler2 = NULL;
@@ -407,6 +408,16 @@ void turn_off_audio(void) {
     }
 }
 
+void dynres_change_vi(OSViMode *mode, int width, int height)
+{
+    mode->comRegs.width = width;
+    mode->comRegs.xScale = (width*512)/320;
+    mode->fldRegs[0].origin = width*2;
+    mode->fldRegs[1].origin = width*2;
+    mode->fldRegs[0].yScale = ((height*1024)/240);
+    mode->fldRegs[1].yScale = ((height*1024)/240);
+}
+
 /**
  * Initialize hardware, start main thread, then idle.
  */
@@ -418,9 +429,9 @@ void thread1_idle(UNUSED void *arg) {
     osCreateViManager(OS_PRIORITY_VIMGR);
 #ifdef VERSION_US
     if (sp24 == TV_TYPE_NTSC) {
-        osViSetMode(&osViModeTable[OS_VI_NTSC_LAN1]);
+        osViSetMode(&VI);
     } else {
-        osViSetMode(&osViModeTable[OS_VI_PAL_LAN1]);
+        osViSetMode(&VI);
     }
 #else
     osViSetMode(&osViModeTable[OS_VI_NTSC_LAN1]);
@@ -428,6 +439,7 @@ void thread1_idle(UNUSED void *arg) {
     osViBlack(TRUE);
     osViSetSpecialFeatures(OS_VI_DITHER_FILTER_ON);
     osViSetSpecialFeatures(OS_VI_GAMMA_OFF);
+    osViSetSpecialFeatures(OS_VI_DIVOT_ON);
     osCreatePiManager(OS_PRIORITY_PIMGR, &gPIMesgQueue, gPIMesgBuf, ARRAY_COUNT(gPIMesgBuf));
     create_thread(&gMainThread, 3, thread3_main, NULL, gThread3Stack + 0x2000, 100);
     if (D_8032C650 == 0) {
@@ -443,6 +455,8 @@ void thread1_idle(UNUSED void *arg) {
 
 void Main(void) {
     UNUSED u8 pad[64]; // needed to pad the stack
+    VI = osViModeTable[OS_VI_NTSC_LAN1];
+    dynres_change_vi(&VI, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     osInitialize();
     Dummy802461CC();

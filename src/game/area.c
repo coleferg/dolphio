@@ -65,8 +65,8 @@ u8 D_8032CEEC[] = {
 };
 
 Vp D_8032CF00 = { {
-    { 640, 480, 511, 0 },
-    { 640, 480, 511, 0 },
+    { SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2, 511, 0 },
+    { SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2, 511, 0 },
 } };
 
 #ifdef VERSION_EU

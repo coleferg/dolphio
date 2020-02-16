@@ -42,8 +42,8 @@ static s16 sPowerMeterStoredHealth;
 
 static struct PowerMeterHUD sPowerMeterHUD = {
     POWER_METER_HIDDEN,
-    140,
-    166,
+    45,
+    0,
     1.0,
 };
 
@@ -152,24 +152,24 @@ void animate_power_meter_emphasized(void) {
  * Moves power meter y pos speed until it's at 200 to be visible.
  */
 static void animate_power_meter_deemphasizing(void) {
-    s16 speed = 5;
+    s16 speed = 4;
 
-    if (sPowerMeterHUD.y >= 181) {
+    if (sPowerMeterHUD.y >= 10) {
         speed = 3;
     }
 
-    if (sPowerMeterHUD.y >= 191) {
+    if (sPowerMeterHUD.y >= 20) {
         speed = 2;
     }
 
-    if (sPowerMeterHUD.y >= 196) {
+    if (sPowerMeterHUD.y >= 26) {
         speed = 1;
     }
 
     sPowerMeterHUD.y += speed;
 
-    if (sPowerMeterHUD.y >= 201) {
-        sPowerMeterHUD.y = 200;
+    if (sPowerMeterHUD.y >= 31) {
+        sPowerMeterHUD.y = 30;
         sPowerMeterHUD.animation = POWER_METER_VISIBLE;
     }
 }
@@ -179,8 +179,9 @@ static void animate_power_meter_deemphasizing(void) {
  * Moves power meter y pos quickly until it's at 301 to be hidden.
  */
 static void animate_power_meter_hiding(void) {
-    sPowerMeterHUD.y += 20;
-    if (sPowerMeterHUD.y >= 301) {
+    sPowerMeterHUD.y -= 10;
+    if (sPowerMeterHUD.y <= 0) {
+        sPowerMeterHUD.y = 0;
         sPowerMeterHUD.animation = POWER_METER_HIDDEN;
         sPowerMeterVisibleTimer = 0;
     }
@@ -193,7 +194,7 @@ void handle_power_meter_actions(s16 numHealthWedges) {
     // Show power meter if health is not full, less than 8
     if (numHealthWedges < 8 && sPowerMeterStoredHealth == 8 && sPowerMeterHUD.animation == POWER_METER_HIDDEN) {
         sPowerMeterHUD.animation = POWER_METER_EMPHASIZED;
-        sPowerMeterHUD.y = 166;
+        sPowerMeterHUD.y = 30;
     }
 
     // Show power meter if health is full, has 8
@@ -214,7 +215,7 @@ void handle_power_meter_actions(s16 numHealthWedges) {
         if (sPowerMeterHUD.animation == POWER_METER_HIDDEN
             || sPowerMeterHUD.animation == POWER_METER_EMPHASIZED) {
             sPowerMeterHUD.animation = POWER_METER_DEEMPHASIZING;
-            sPowerMeterHUD.y = 166;
+            sPowerMeterHUD.y = 0;
         }
         sPowerMeterVisibleTimer = 0;
     }
@@ -374,7 +375,7 @@ void render_hud_camera_status(void) {
     s32 y;
 
     cameraLUT = segmented_to_virtual(&main_hud_camera_lut);
-    x = 266;
+    x = 381;
     y = 205;
 
     if (sCameraHUD.status == CAM_STATUS_NONE) {

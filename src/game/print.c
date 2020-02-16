@@ -190,6 +190,57 @@ void print_text_fmt_int(s32 x, s32 y, const char *str, s32 n) {
         return;
     }
 
+    sTextLabels[sTextLabelsCount]->x = x > (SCREEN_WIDTH / 3) ? x + 125 : x - 10;
+    sTextLabels[sTextLabelsCount]->y = y;
+
+    c = str[srcIndex];
+
+    while (c != 0) {
+        if (c == '%') {
+            srcIndex++;
+
+            parse_width_field(str, &srcIndex, &width, &zeroPad);
+
+            if (str[srcIndex] != 'd' && str[srcIndex] != 'x') {
+                break;
+            }
+            if (str[srcIndex] == 'd') {
+                base = 10;
+            }
+            if (str[srcIndex] == 'x') {
+                base = 16;
+            }
+
+            srcIndex++;
+
+            format_integer(n, base, sTextLabels[sTextLabelsCount]->buffer + len, &len, width, zeroPad);
+        } else // straight copy
+        {
+            sTextLabels[sTextLabelsCount]->buffer[len] = c;
+            len++;
+            srcIndex++;
+        }
+        c = str[srcIndex];
+    }
+
+    sTextLabels[sTextLabelsCount]->length = len;
+    sTextLabelsCount++;
+}
+
+void print_text_fmt_int_no_relocate(s32 x, s32 y, const char *str, s32 n) {
+    char c = 0;
+    s8 zeroPad = FALSE;
+    u8 width = 0;
+    s32 base = 0;
+    s32 len = 0;
+    s32 srcIndex = 0;
+
+    // Don't continue if there is no memory to do so.
+    if ((sTextLabels[sTextLabelsCount] = mem_pool_alloc(gEffectsMemoryPool,
+                                                        sizeof(struct TextLabel))) == NULL) {
+        return;
+    }
+
     sTextLabels[sTextLabelsCount]->x = x;
     sTextLabels[sTextLabelsCount]->y = y;
 
@@ -241,7 +292,7 @@ void print_text(s32 x, s32 y, const char *str) {
         return;
     }
 
-    sTextLabels[sTextLabelsCount]->x = x;
+    sTextLabels[sTextLabelsCount]->x = x > (SCREEN_WIDTH / 3) ? x + 125 : x - 10;
     sTextLabels[sTextLabelsCount]->y = y;
 
     c = str[srcIndex];

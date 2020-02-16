@@ -27,6 +27,7 @@
 #include "object_fields.h"
 #include "object_helpers.h"
 #include "print.h"
+#include "ingame_menu.h"
 #include "save_file.h"
 #include "sound_init.h"
 #include "engine/surface_collision.h"
@@ -1288,10 +1289,11 @@ void debug_print_speed_action_normal(struct MarioState *m) {
     if (TRUE) {
         s16 marioDirection = m->marioObj->header.gfx.angle[1] / 182;
         if (marioDirection < 0) marioDirection += 360;
-        print_text_fmt_int(10, 76, "%d", m->pos[0]);
-        print_text_fmt_int(10, 60, "%d", m->pos[1]);
-        print_text_fmt_int(10, 44, "%d", m->pos[2]);
-        print_text_fmt_int(10, 10, "%d", marioDirection);
+
+        print_text_fmt_int_no_relocate(80,  SCREEN_HEIGHT - 31, "%d", m->pos[0]);
+        print_text_fmt_int_no_relocate(150, SCREEN_HEIGHT - 31, "%d", m->pos[1]);
+        print_text_fmt_int_no_relocate(220, SCREEN_HEIGHT - 31, "%d", m->pos[2]);
+        print_text_fmt_int_no_relocate(10, SCREEN_HEIGHT - 50, "%d", marioDirection);
         // steepness = sqrtf(
         //     ((m->floor->normal.x * m->floor->normal.x) + (m->floor->normal.z * m->floor->normal.z)));
         // floor_nY = m->floor->normal.y;

@@ -1036,26 +1036,14 @@ with the depth they bring\n\
 as they enter."))
 
 DEFINE_DIALOG(DIALOG_082, 1, 4, 30, 200, _("\
-Hold on to your hat! If\n\
-you lose it, you'll be\n\
-injured easily.\n\
-\n\
-If you do lose your Cap,\n\
-you'll have to find it in\n\
-the course where you\n\
-lost it.\n\
-Oh, boy, it's not looking\n\
-good for Peach. She's\n\
-still trapped somewhere\n\
-inside the walls.\n\
-Please, Mario, you have\n\
-to help her! Did you know\n\
-that there are enemy\n\
-worlds inside the walls?\n\
-Yup. It's true. Bowser's\n\
-troops are there, too.\n\
-Oh, here, take this. I've\n\
-been keeping it for you."))
+AH!\n\
+Please don't hurt me\n\
+I promise I'm not like\n\
+the others!\n\
+I'm not mad about what\n\
+you did,\n\
+I just wanted to keep this\n\
+safe..."))
 
 DEFINE_DIALOG(DIALOG_083, 1, 6, 30, 200, _("\
 There's something strange\n\
@@ -1542,40 +1530,45 @@ know better. You're\n\
 disqualified! Next time,\n\
 play fair!"))
 
-DEFINE_DIALOG(DIALOG_133, 1, 6, 30, 200, _("\
-Am I glad to see you! The\n\
-Princess...and I...and,\n\
-well, everybody...we're all\n\
-trapped inside the castle\n\
-walls.\n\
+DEFINE_DIALOG(DIALOG_133, 1, 5, 30, 200, _("\
+Eeee! I love you!\n\
+Huh? The water rings?\n\
+Wow, I can't believe you\n\
+forgot about water \n\
+rings, tehe!\n\
+First off:\n\
+Rings on the water's\n\
+surface give you an extra\n\
+big water hop!\n\
 \n\
-Bowser has stolen the\n\
-castle's Stars, and he's\n\
-using their power to\n\
-create his own world in\n\
-the paintings and walls.\n\
+Secondly:\n\
+Going through a water ring\n\
+in the air gives you\n\
+another jump!\n\
 \n\
-Please recover the Power\n\
-Stars! As you find them,\n\
-you can use their power\n\
-to open the doors that\n\
-Bowser has sealed.\n\
-\n\
-There are four rooms on\n\
-the first floor. Start in\n\
-the one with the painting\n\
-of Bob-omb inside. It's\n\
-the only room that Bowser\n\
-hasn't sealed.\n\
-When you collect eight\n\
-Power Stars, you'll be\n\
-able to open the door\n\
-with the big star. The\n\
-Princess must be inside!"))
+OH BUT MARIO YOU GOTTA\n\
+BE CAREFUL CUS SOME TOADLES\n\
+ARE SUPER GRUMPY!\n\
+I used to be on that high ledge\n\
+but that asshat knocked me down!"))
 
 DEFINE_DIALOG(DIALOG_134, 1, 5, 30, 200, _("\
-do I look better now \n\
-you bastards"))
+Eee!! Hi Dolphio!\n\
+I'm working on my water\n\
+hops but I still stink...\n\
+\n\
+\n\
+So lemme get this straight.\n\
+Like a wall jump, I press\n\
+『A』 as I hit the water,\n\
+and the deeper I am,\n\
+the higher I'll hop?\n\
+Aannnd I think you said\n\
+I could just hold 『A』\n\
+to keep hopping...\n\
+But I don't get it...\n\
+What is 『A』 and how\n\
+do I press it?"))
 
 DEFINE_DIALOG(DIALOG_135, 1, 5, 30, 200, _("\
 It was Bowser who stole\n\
@@ -1842,21 +1835,9 @@ Whatever it is, it's\n\
 bugging me! I think I'll\n\
 blow it away!"))
 
-DEFINE_DIALOG(DIALOG_154, 1, 5, 30, 200, _("\
-Hold on to your hat! If\n\
-you lose it, you'll be\n\
-easily injured. If you\n\
-lose it, look for it in the\n\
-course where you lost it.\n\
-Speaking of lost, the\n\
-Princess is still stuck in\n\
-the walls somewhere.\n\
-Please help, Mario!\n\
-\n\
-Oh, you know that there\n\
-are secret worlds in the\n\
-walls as well as in the\n\
-paintings, right?"))
+DEFINE_DIALOG(DIALOG_154, 1, 2, 30, 200, _("\
+We know the truth.\n\
+You can't hide it any longer."))
 
 DEFINE_DIALOG(DIALOG_155, 1, 6, 30, 200, _("\
 Thanks to the power of\n\
