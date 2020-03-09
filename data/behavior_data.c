@@ -3540,7 +3540,7 @@ const BehaviorScript bhvWarps6C[] = {
     BREAK(),
 };
 
-const BehaviorScript bhvWarps70[] = {
+const BehaviorScript bhvDeathWarp[] = {
     BREAK(),
 };
 
@@ -3556,7 +3556,7 @@ const BehaviorScript bhvWarps7C[] = {
     BREAK(),
 };
 
-const BehaviorScript bhvWarps80[] = {
+const BehaviorScript bhvPaintingDeathWarp[] = {
     BREAK(),
 };
 

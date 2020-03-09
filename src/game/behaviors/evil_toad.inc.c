@@ -1,10 +1,10 @@
-// #include <ultra64.h>
+#include <ultra64.h>
 
-// #include "sm64.h"
-// #include "behavior_data.h"
-// #include "object_fields.h"
-// #include "types.h"
-// #include "dialog_ids.h"
+#include "sm64.h"
+#include "behavior_data.h"
+#include "object_fields.h"
+#include "types.h"
+#include "dialog_ids.h"
 
 #define TOAD_STAR_1_REQUIREMENT 0
 #define TOAD_STAR_2_REQUIREMENT 0
@@ -24,7 +24,8 @@ enum ToadEvilStates {
     TOAD_IDLE,
     TOAD_TALKING,
     TOAD_EVIL_ATTACKED_MARIO,
-    TOAD_EVIL_JUMP
+    TOAD_EVIL_JUMP,
+    TOAD_EVIL_POUNCE
 };
 
 static struct ObjectHitbox sToadEvilHitbox = {
@@ -80,6 +81,7 @@ static void toad_near_mario(s16 isEvil) {
             : angle_to_object(o, gMarioObject);
         s16 rotSpeed = 0x600;
         f32 fVelInc = 0.2f;
+        if (o->oForwardVel > 10.0f) fVelInc = 1.0f;
 
         if (o->header.gfx.unk38.animFrame == 9) PlaySound2(SOUND_OBJ_TOADLE_HOP);
         if (isEvil) targetVel = 4.0f;
@@ -134,19 +136,24 @@ static void toad_idle(s16 isEvil) {
         o->oToadMessageDialogId == TOAD_STAR_2_DIALOG ||
         o->oToadMessageDialogId == TOAD_STAR_3_DIALOG
     );
-    s16 isCloseToMario = o->oDistanceToMario < 1000.0f;
-    s16 isSemiCloseToMario = o->oDistanceToMario < 2400.0f;
+    s16 isWaitingToPounce = o->oBehParams == 0x1;
+    s16 isCloseToMario = o->oDistanceToMario < (isWaitingToPounce ? 2400.0f : 1000.0f);
+    s16 isSemiCloseToMario = o->oDistanceToMario < (isWaitingToPounce ? 4000.0f : 2400.0f);
 
     if (isSemiCloseToMario && o->header.gfx.unk38.animFrame == 9) PlaySound2(SOUND_OBJ_TOADLE_HOP);
 
     if (isCloseToMario) {
         o->oAction = TOAD_NEAR_MARIO;
         playSoundByToadType(isAvoiding, isEvil, SOUND_OBJ_TOADLE_ATTACK, SOUND_OBJ_TOADLE_SCARED, SOUND_OBJ_TOADLE_EXCITE);
+        if (isEvil && isWaitingToPounce) {
+            o->oAction = TOAD_EVIL_POUNCE;
+            o->oMoveAngleYaw = angle_to_object(o, gMarioObject);
+        }
     } else if (isSemiCloseToMario) {
         s16 targetAngle = isAvoiding 
             ? angle_to_object(gMarioObject, o)
             : angle_to_object(o, gMarioObject);
-        s16 rotSpeed = 0x400;
+        s16 rotSpeed = isWaitingToPounce ? 0x800 : 0x400;
         
         obj_rotate_yaw_toward(targetAngle, rotSpeed);
     }
@@ -161,11 +168,29 @@ static void toad_evil_attacked_mario(void) {
     obj_move_standard(-30);
 }
 
+static void toad_evil_pounce(void) {
+    o->header.gfx.unk38.animFrame = 7;
+    o->oForwardVel = 50.0f;
+    o->oVelY = 20.0f;
+    o->oAction = TOAD_EVIL_JUMP;
+    obj_move_standard(0);
+}
+
 static void toad_evil_jump(void) {
-    obj_resolve_object_collisions(NULL);
     obj_update_floor_and_walls();
-    obj_move_standard(-30);
-    if (o->oMoveFlags & OBJ_MOVE_MASK_ON_GROUND) {
+
+    if (obj_check_anim_frame_in_range(9, 8) || !(o->oMoveFlags & OBJ_MOVE_MASK_ON_GROUND)) {
+        s16 targetAngle = angle_to_object(o, gMarioObject);
+        s16 rotSpeed = 0x200;
+        obj_rotate_yaw_toward(targetAngle, rotSpeed);
+        obj_move_standard(-30);
+    }
+
+    if (!(o->oMoveFlags & OBJ_MOVE_MASK_ON_GROUND)) {
+        o->oTimer = 0;
+    }
+
+    if (o->oTimer > 20) {
         s16 isCloseToMario = o->oDistanceToMario < 1000.0f;
         o->oAction = isCloseToMario 
             ? TOAD_NEAR_MARIO
@@ -176,11 +201,15 @@ static void toad_evil_jump(void) {
 void bhvToadEvil_loop(void) {
     o->oInteractionSubtype = 0;
     switch (o->oAction) {
+        case OBJ_ACT_SQUISHED:
         case TOAD_EVIL_ATTACKED_MARIO:
             toad_evil_attacked_mario();
             break;
         case TOAD_EVIL_JUMP:
             toad_evil_jump();
+            break;
+        case TOAD_EVIL_POUNCE:
+            toad_evil_pounce();
             break;
         case TOAD_NEAR_MARIO:
             toad_near_mario(TRUE);

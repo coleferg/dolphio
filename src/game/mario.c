@@ -799,6 +799,7 @@ static void set_mario_vel_based_on_fspeed_grav(struct MarioState *m, f32 initial
                         + (m->gravPower[0] / initialVelY);
         }
         m->appliedGravChange = TRUE;
+        m->gravPower[2] = 1.0f;
     } else {
         if ((m->forwardVel *= 1.25f) > 55.0f) {
             m->forwardVel = 55.0f;
@@ -1602,7 +1603,7 @@ void mario_reset_bodystate(struct MarioState *m) {
     struct MarioBodyState *bodyState = m->marioBodyState;
 
     bodyState->capState = MARIO_HAS_DEFAULT_CAP_OFF;
-    bodyState->eyeState = MARIO_EYES_LOOK_LEFT;
+    bodyState->eyeState = MARIO_EYES_OPEN;
     bodyState->handState = MARIO_HAND_FISTS;
     bodyState->modelState = 0;
     bodyState->unk07 = 0;

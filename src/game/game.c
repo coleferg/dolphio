@@ -335,7 +335,7 @@ void thread5_game_loop(UNUSED void *arg) {
         if (gShowDebugText) {
             // subtract the end of the gfx pool with the display list to obtain the
             // amount of free space remaining.
-            print_text_fmt_int(180, 20, "BUF %d", gGfxPoolEnd - (u8 *) gDisplayListHead);
+            print_text_fmt_int(40, 20, "BUF %d", gGfxPoolEnd - (u8 *) gDisplayListHead);
         }
     }
 }

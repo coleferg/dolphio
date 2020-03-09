@@ -64,8 +64,8 @@ build/*
 # !/actors/**/*custom*/**/*.png
 # !/textures/**/*custom*.png
 # !/textures/**/*custom*/**/*.png
-# !/sound/**/*custom*.m64
-# !/sound/**/*custom*/**/*.m64
+!/sound/**/*custom*.m64
+!/sound/**/*custom*/**/*.m64
 !/sound/**/*custom*.aiff
 !/sound/**/*custom*/**/*.aiff
 # !/assets/**/*custom*.bin

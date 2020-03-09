@@ -76,13 +76,12 @@ extern const LevelScript level_bitdw_entry[];
 
 // custom
 extern const GeoLayout world_geo[];
-extern const Gfx world_mesh[];
-extern const Gfx death_mesh[];
-extern const Gfx island_mesh[];
-extern const Gfx water_mesh[];
-extern const Gfx dock_mesh[];
-extern const Gfx waterfall_mesh[];
-extern const Gfx material_revert_render_settings[];
+Gfx* world_world_mesh(Gfx* glistp);
+Gfx* world_dock_mesh(Gfx* glistp);
+Gfx* world_island_mesh(Gfx* glistp);
+Gfx* world_water_mesh(Gfx* glistp);
+Gfx* world_waterfall_mesh(Gfx* glistp);
+Gfx* world_material_revert_render_settings(Gfx* glistp);
 extern const Collision world_collision[];
 
 #endif

@@ -312,7 +312,7 @@ void set_mario_initial_action(struct MarioState *m, u32 spawnType, u32 actionArg
         case MARIO_SPAWN_UNKNOWN_14:
             set_mario_action(m, ACT_SPAWN_SPIN_AIRBORNE, 0);
             break;
-        case MARIO_SPAWN_UNKNOWN_15:
+        case MARIO_SPAWN_DEATH:
             set_mario_action(m, ACT_FALLING_DEATH_EXIT, 0);
             break;
         case MARIO_SPAWN_UNKNOWN_16:
@@ -327,7 +327,7 @@ void set_mario_initial_action(struct MarioState *m, u32 spawnType, u32 actionArg
         case MARIO_SPAWN_UNKNOWN_20:
             set_mario_action(m, ACT_EXIT_AIRBORNE, 0);
             break;
-        case MARIO_SPAWN_UNKNOWN_21:
+        case MARIO_SPAWN_PAINTING_DEATH:
             set_mario_action(m, ACT_DEATH_EXIT, 0);
             break;
         case MARIO_SPAWN_UNKNOWN_22:
@@ -1001,7 +1001,7 @@ s32 play_mode_paused(void) {
         if (gDebugLevelSelect) {
             func_80249788(-9, 1);
         } else {
-            initiate_warp(LEVEL_CASTLE, 1, 0x1F, 0);
+            initiate_warp(LEVEL_BITDW, 1, 0x0A, 0);
             func_80249788(0, 0);
             gSavedCourseNum = 0;
         }
@@ -1271,7 +1271,7 @@ s32 lvl_set_current_level(UNUSED s16 arg0, s32 levelNum) {
         return 0;
     }
 
-    if (gCurrLevelNum != LEVEL_BOWSER_1 && gCurrLevelNum != LEVEL_BOWSER_2
+    if (gCurrLevelNum != LEVEL_BOWSER_2
         && gCurrLevelNum != LEVEL_BOWSER_3) {
         gMarioState->numCoins = 0;
         gHudDisplay.coins = 0;

@@ -422,7 +422,7 @@ const Gfx land_mesh[] = {
 
 
 
-const Gfx material_revert_render_settings[] = {
+const Gfx land_material_revert_render_settings[] = {
 	gsDPPipeSync(),
 	gsSPSetGeometryMode(G_LIGHTING),
 	gsSPClearGeometryMode(G_TEXTURE_GEN),

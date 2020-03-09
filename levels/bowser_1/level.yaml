@@ -9,5 +9,5 @@ shared-path: []
 skybox-bin: bidw
 texture-bin: null
 effects: false
-actor-bins: [group12]
+actor-bins: [group13, group15]
 common-bin: []

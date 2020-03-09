@@ -75,3 +75,8 @@ ALIGNED8 const u8 sky_09007800[] = {
 ALIGNED8 const u8 sky_09008000[] = {
 #include "textures/sky/rr_textures.08000.rgba16.inc.c"
 };
+
+// 0x09008000
+ALIGNED8 const u8 world_custom4_rgba16[] = {
+#include "textures/sky/4.custom.rgba16.inc.c"
+};

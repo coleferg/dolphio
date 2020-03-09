@@ -49,12 +49,12 @@ ALIGNED8 static const u8 toad_seg6_texture_06006120[] = {
 
 // 0x06006120
 ALIGNED8 static const u8 bowser_body_rgba16[] = {
-#include "actors/bowser/bowser_body.rgba16.inc.c"
+#include "actors/toad/bowser_body.rgba16.inc.c"
 };
 
 // 0x06006120
 ALIGNED8 static const u8 bowser_claw_edge_rgba16[] = {
-#include "actors/bowser/bowser_claw_edge.rgba16.inc.c"
+#include "actors/toad/bowser_claw_edge.rgba16.inc.c"
 };
 
 const Gfx mat_head_material[] = {

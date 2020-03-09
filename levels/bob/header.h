@@ -24,7 +24,7 @@ extern const Gfx mat_sm64_material_033[];
 extern const Gfx mat_revert_sm64_material_033[];
 extern const Gfx land_mesh[];
 extern const Gfx land_mesh_tri_0[];
-extern const Gfx material_revert_render_settings[];
+extern const Gfx land_material_revert_render_settings[];
 extern const MacroObject bob_seg7_macro_objs[];
 extern const Collision bob_seg7_collision_chain_chomp_gate[];
 extern const Collision bob_seg7_collision_bridge[];

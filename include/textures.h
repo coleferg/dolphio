@@ -198,6 +198,7 @@ extern const u8 texture_metal_hole[];
 extern const u8 sky_09007000[];
 extern const u8 sky_09007800[];
 extern const u8 sky_09008000[];
+extern const u8 world_custom4_rgba16[];
 
 // snow
 extern const u8 snow_09000000[];

@@ -1,8 +1,9 @@
 #ifndef _SURFACE_COLLISION_H
 #define _SURFACE_COLLISION_H
 
-#define LEVEL_BOUNDARY_MAX 0x2000
-#define CELL_SIZE          0x400
+#define LEVEL_BOUNDARY_MAX 0x4000
+#define CELL_SIZE          0x800
+#define NUM_CELLS          0x0F
 
 struct WallCollisionData
 {

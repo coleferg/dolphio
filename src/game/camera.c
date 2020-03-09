@@ -3266,17 +3266,17 @@ void init_camera(struct Camera *c) {
 
     // Set the camera's starting position or start a cutscene for certain levels
     switch (gCurrLevelNum) {
-        case LEVEL_BOWSER_1:
-#ifndef VERSION_JP
-            if (gCurrDemoInput == NULL) {
-                start_cutscene(c, CUTSCENE_ENTER_BOWSER_ARENA);
-            } else if (gSecondCameraFocus != NULL) {
-                gSecondCameraFocus->oBowserUnk88 = 2;
-            }
-#else
-            start_cutscene(c, CUTSCENE_ENTER_BOWSER_ARENA);
-#endif
-            break;
+//         case LEVEL_BOWSER_1:
+// #ifndef VERSION_JP
+//             if (gCurrDemoInput == NULL) {
+//                 start_cutscene(c, CUTSCENE_ENTER_BOWSER_ARENA);
+//             } else if (gSecondCameraFocus != NULL) {
+//                 gSecondCameraFocus->oBowserUnk88 = 2;
+//             }
+// #else
+//             start_cutscene(c, CUTSCENE_ENTER_BOWSER_ARENA);
+// #endif
+//             break;
         case LEVEL_BOWSER_2:
             start_cutscene(c, CUTSCENE_ENTER_BOWSER_ARENA);
             break;
@@ -8054,9 +8054,9 @@ CmdRet bowser_fight_intro_dialog(UNUSED struct Camera *c) {
     s16 dialog;
 
     switch (gCurrLevelNum) {
-        case LEVEL_BOWSER_1:
-            dialog = DIALOG_067;
-            break;
+        // case LEVEL_BOWSER_1:
+        //     dialog = DIALOG_067;
+        //     break;
         case LEVEL_BOWSER_2:
             dialog = DIALOG_092;
             break;

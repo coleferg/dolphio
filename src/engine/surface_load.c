@@ -22,8 +22,8 @@ s32 unused8038BE90;
  * Partitions for course and object surfaces. The arrays represent
  * the 16x16 cells that each level is split into.
  */
-SpatialPartitionCell gStaticSurfacePartition[16][16];
-SpatialPartitionCell gDynamicSurfacePartition[16][16];
+SpatialPartitionCell gStaticSurfacePartition[NUM_CELLS + 0x01][NUM_CELLS + 0x01];
+SpatialPartitionCell gDynamicSurfacePartition[NUM_CELLS + 0x01][NUM_CELLS + 0x01];
 
 /**
  * Pools of data to contain either surface nodes or surfaces.
@@ -84,7 +84,7 @@ static struct Surface *alloc_surface(void) {
  * Iterates through the entire partition, clearing the surfaces.
  */
 static void clear_spatial_partition(SpatialPartitionCell *cells) {
-    register s32 i = 16 * 16;
+    register s32 i = (NUM_CELLS + 1) * (NUM_CELLS + 1);
 
     while (i--) {
         (*cells)[SPATIAL_PARTITION_FLOORS].next = NULL;
@@ -196,19 +196,19 @@ static s16 max_3(s16 a0, s16 a1, s16 a2) {
 static s16 lower_cell_index(s16 t) {
     s16 index;
 
-    // Move from range [-0x2000, 0x2000) to [0, 0x4000)
-    t += 0x2000;
+    // Move from range [-LEVEL_BOUNDARY_MAX, LEVEL_BOUNDARY_MAX) to [0, 0x4000)
+    t += LEVEL_BOUNDARY_MAX;
     if (t < 0) {
         t = 0;
     }
 
     // [0, 16)
-    index = t / 0x400;
+    index = t / CELL_SIZE;
 
     // Include extra cell if close to boundary
     //! Some wall checks are larger than the buffer, meaning wall checks can
     //  miss walls that are near a cell border.
-    if (t % 0x400 < 50) {
+    if (t % CELL_SIZE < 50) {
         index -= 1;
     }
 
@@ -227,24 +227,24 @@ static s16 lower_cell_index(s16 t) {
 static s16 upper_cell_index(s16 t) {
     s16 index;
 
-    // Move from range [-0x2000, 0x2000) to [0, 0x4000)
-    t += 0x2000;
+    // Move from range [-LEVEL_BOUNDARY_MAX, LEVEL_BOUNDARY_MAX) to [0, 0x4000)
+    t += LEVEL_BOUNDARY_MAX;
     if (t < 0) {
         t = 0;
     }
 
     // [0, 16)
-    index = t / 0x400;
+    index = t / CELL_SIZE;
 
     // Include extra cell if close to boundary
     //! Some wall checks are larger than the buffer, meaning wall checks can
     //  miss walls that are near a cell border.
-    if (t % 0x400 > 0x400 - 50) {
+    if (t % CELL_SIZE > CELL_SIZE - 50) {
         index += 1;
     }
 
-    if (index > 15) {
-        index = 15;
+    if (index > NUM_CELLS) {
+        index = NUM_CELLS;
     }
 
     // Potentially < 0, but since lower index is >= 0, not exploitable
@@ -517,8 +517,8 @@ static void load_environmental_regions(s16 **data) {
  * Allocate some of the main pool for surfaces (2300 surf) and for surface nodes (7000 nodes).
  */
 void alloc_surface_pools(void) {
-    sSurfacePoolSize = 2300;
-    sSurfaceNodePool = main_pool_alloc(7000 * sizeof(struct SurfaceNode), MEMORY_POOL_LEFT);
+    sSurfacePoolSize = 4600;
+    sSurfaceNodePool = main_pool_alloc(14000 * sizeof(struct SurfaceNode), MEMORY_POOL_LEFT);
     sSurfacePool = main_pool_alloc(sSurfacePoolSize * sizeof(struct Surface), MEMORY_POOL_LEFT);
 
     gCCMEnteredSlide = 0;

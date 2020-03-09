@@ -16,7 +16,7 @@ const GeoLayout bob_geo_000488[] = {
             GEO_CAMERA(14, 0, 2000, 6000, 0, 0, 0, geo_camera_main),
             GEO_OPEN_NODE(),
                GEO_DISPLAY_LIST(0, land_mesh),
-               GEO_DISPLAY_LIST(0, material_revert_render_settings),
+               GEO_DISPLAY_LIST(0, land_material_revert_render_settings),
                GEO_RENDER_OBJ(),
                GEO_ASM(0, geo_enfvx_main),
             GEO_CLOSE_NODE(),
