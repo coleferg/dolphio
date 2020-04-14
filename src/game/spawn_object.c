@@ -289,6 +289,8 @@ static struct Object *allocate_object(struct ObjectNode *objList) {
     obj->header.gfx.pos[2] = -10000.0f;
     obj->header.gfx.throwMatrix = NULL;
 
+    obj->oKeyNum = 0;
+
     return obj;
 }
 

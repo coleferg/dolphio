@@ -6,9 +6,20 @@ static const Lights1 water_ring_seg6_lights_06012368 = gdSPDefLights1(
     0xff, 0xff, 0xff, 0x28, 0x28, 0x28
 );
 
+// 0x06012368
+static const Lights1 water_ring_seg6_lights_gold = gdSPDefLights1(
+    0x94, 0x87, 0x36, // FFC65D
+    0xff, 0xc6, 0x5d, 0x28, 0x28, 0x28 // 948736
+);
+
 // 0x06012380
 ALIGNED8 static const u8 water_ring_seg6_texture_06012380[] = {
 #include "actors/water_ring/water_ring.rgba16.inc.c"
+};
+
+// 0x06012380
+ALIGNED8 static const u8 water_ring_seg6_texture_gold[] = {
+#include "actors/water_ring/gold_water_ring.custom.rgba16.inc.c"
 };
 
 // 0x06013380
@@ -159,15 +170,9 @@ static const Vtx water_ring_seg6_vertex_06013A80[] = {
     {{{   132,    228,      0}, 0, {     0,      0}, {0x15, 0x25, 0x89, 0x00}}},
 };
 
-// 0x06013AC0 - 0x06013DD8
-const Gfx water_ring_seg6_dl_06013AC0[] = {
-    gsDPPipeSync(),
-    gsSPSetGeometryMode(G_TEXTURE_GEN),
-    gsDPSetCombineMode(G_CC_DECALFADE, G_CC_DECALFADE),
-    gsDPLoadTextureBlock(water_ring_seg6_texture_06012380, G_IM_FMT_RGBA, G_IM_SIZ_16b, 64, 32, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_WRAP | G_TX_NOMIRROR, 6, 5, G_TX_NOLOD, G_TX_NOLOD),
-    gsSPTexture(0x1800, 0x07C0, 0, G_TX_RENDERTILE, G_ON),
-    gsSPLight(&water_ring_seg6_lights_06012368.l, 1),
-    gsSPLight(&water_ring_seg6_lights_06012368.a, 2),
+static const Gfx water_ring_common[] = {
+    gsSPLight(&water_ring_seg6_lights_gold.l, 1),
+    gsSPLight(&water_ring_seg6_lights_gold.a, 2),
     gsSPVertex(water_ring_seg6_vertex_06013380, 16, 0),
     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
     gsSP2Triangles( 4,  5,  6, 0x0,  4,  6,  7, 0x0),
@@ -219,3 +224,144 @@ const Gfx water_ring_seg6_dl_06013AC0[] = {
     gsSPTexture(0x0F80, 0x07C0, 0, G_TX_RENDERTILE, G_OFF),
     gsSPEndDisplayList(),
 };
+
+// 0x06013AC0 - 0x06013DD8
+const Gfx water_ring_seg6_dl_06013AC0[] = {
+    gsDPPipeSync(),
+    gsSPSetGeometryMode(G_TEXTURE_GEN),
+    gsDPSetCombineMode(G_CC_DECALFADE, G_CC_DECALFADE),
+    gsDPLoadTextureBlock(water_ring_seg6_texture_06012380, G_IM_FMT_RGBA, G_IM_SIZ_16b, 64, 32, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_WRAP | G_TX_NOMIRROR, 6, 5, G_TX_NOLOD, G_TX_NOLOD),
+    gsSPTexture(0x1800, 0x07C0, 0, G_TX_RENDERTILE, G_ON),
+    gsSPBranchList(water_ring_common),
+};
+
+// 0x06013AC0 - 0x06013DD8
+const Gfx water_ring_seg6_dl_gold[] = {
+    gsDPPipeSync(),
+    gsSPSetGeometryMode(G_TEXTURE_GEN),
+    gsDPSetCombineMode(G_CC_DECALFADE, G_CC_DECALFADE),
+    gsDPLoadTextureBlock(water_ring_seg6_texture_gold, G_IM_FMT_RGBA, G_IM_SIZ_16b, 64, 32, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_WRAP | G_TX_NOMIRROR, 6, 5, G_TX_NOLOD, G_TX_NOLOD),
+    gsSPTexture(0x1800, 0x07C0, 0, G_TX_RENDERTILE, G_ON),
+    gsSPBranchList(water_ring_common),
+};
+// // 0x06013AC0 - 0x06013DD8
+// const Gfx water_ring_seg6_dl_06013AC0[] = {
+//     gsDPPipeSync(),
+//     gsSPSetGeometryMode(G_TEXTURE_GEN),
+//     gsDPSetCombineMode(G_CC_DECALFADE, G_CC_DECALFADE),
+//     gsDPLoadTextureBlock(water_ring_seg6_texture_06012380, G_IM_FMT_RGBA, G_IM_SIZ_16b, 64, 32, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_WRAP | G_TX_NOMIRROR, 6, 5, G_TX_NOLOD, G_TX_NOLOD),
+//     gsSPTexture(0x1800, 0x07C0, 0, G_TX_RENDERTILE, G_ON),
+//     gsSPLight(&water_ring_seg6_lights_06012368.l, 1),
+//     gsSPLight(&water_ring_seg6_lights_06012368.a, 2),
+//     gsSPVertex(water_ring_seg6_vertex_06013380, 16, 0),
+//     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+//     gsSP2Triangles( 4,  5,  6, 0x0,  4,  6,  7, 0x0),
+//     gsSP2Triangles( 8,  9, 10, 0x0,  8, 10, 11, 0x0),
+//     gsSP2Triangles( 1, 12, 13, 0x0,  1, 13,  2, 0x0),
+//     gsSP2Triangles( 5, 14, 15, 0x0,  5, 15,  6, 0x0),
+//     gsSPVertex(water_ring_seg6_vertex_06013480, 16, 0),
+//     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+//     gsSP2Triangles( 4,  5,  6, 0x0,  4,  6,  7, 0x0),
+//     gsSP2Triangles( 8,  9, 10, 0x0,  8, 10, 11, 0x0),
+//     gsSP2Triangles( 1, 12, 13, 0x0,  1, 13,  2, 0x0),
+//     gsSP2Triangles( 5, 14, 15, 0x0,  5, 15,  6, 0x0),
+//     gsSPVertex(water_ring_seg6_vertex_06013580, 16, 0),
+//     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+//     gsSP2Triangles( 4,  5,  6, 0x0,  4,  6,  7, 0x0),
+//     gsSP2Triangles( 8,  9, 10, 0x0,  8, 10, 11, 0x0),
+//     gsSP2Triangles( 1, 12, 13, 0x0,  1, 13,  2, 0x0),
+//     gsSP2Triangles( 5, 14, 15, 0x0,  5, 15,  6, 0x0),
+//     gsSPVertex(water_ring_seg6_vertex_06013680, 16, 0),
+//     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+//     gsSP2Triangles( 4,  5,  6, 0x0,  4,  6,  7, 0x0),
+//     gsSP2Triangles( 8,  9, 10, 0x0,  8, 10, 11, 0x0),
+//     gsSP2Triangles( 1, 12, 13, 0x0,  1, 13,  2, 0x0),
+//     gsSP2Triangles( 5, 14, 15, 0x0,  5, 15,  6, 0x0),
+//     gsSPVertex(water_ring_seg6_vertex_06013780, 16, 0),
+//     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+//     gsSP2Triangles( 4,  5,  6, 0x0,  4,  6,  7, 0x0),
+//     gsSP2Triangles( 8,  9, 10, 0x0,  8, 10, 11, 0x0),
+//     gsSP2Triangles( 1, 12, 13, 0x0,  1, 13,  2, 0x0),
+//     gsSP2Triangles( 5, 14, 15, 0x0,  5, 15,  6, 0x0),
+//     gsSPVertex(water_ring_seg6_vertex_06013880, 16, 0),
+//     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+//     gsSP2Triangles( 4,  5,  6, 0x0,  4,  6,  7, 0x0),
+//     gsSP2Triangles( 8,  9, 10, 0x0,  8, 10, 11, 0x0),
+//     gsSP2Triangles( 1, 12, 13, 0x0,  1, 13,  2, 0x0),
+//     gsSP2Triangles( 5, 14, 15, 0x0,  5, 15,  6, 0x0),
+//     gsSPVertex(water_ring_seg6_vertex_06013980, 16, 0),
+//     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+//     gsSP2Triangles( 4,  5,  6, 0x0,  4,  6,  7, 0x0),
+//     gsSP2Triangles( 8,  9, 10, 0x0,  8, 10, 11, 0x0),
+//     gsSP2Triangles( 1, 12, 13, 0x0,  1, 13,  2, 0x0),
+//     gsSP2Triangles( 5, 14, 15, 0x0,  5, 15,  6, 0x0),
+//     gsSPVertex(water_ring_seg6_vertex_06013A80, 4, 0),
+//     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+//     gsDPPipeSync(),
+//     gsSPClearGeometryMode(G_TEXTURE_GEN),
+//     gsDPSetEnvColor(255, 255, 255, 255),
+//     gsDPSetCombineMode(G_CC_SHADE, G_CC_SHADE),
+//     gsSPTexture(0x0F80, 0x07C0, 0, G_TX_RENDERTILE, G_OFF),
+//     gsSPEndDisplayList(),
+// };
+
+// // 0x06013AC0 - 0x06013DD8
+// const Gfx water_ring_seg6_dl_gold[] = {
+//     gsDPPipeSync(),
+//     gsSPSetGeometryMode(G_TEXTURE_GEN),
+//     gsDPSetCombineMode(G_CC_DECALFADE, G_CC_DECALFADE),
+//     gsDPLoadTextureBlock(water_ring_seg6_texture_gold, G_IM_FMT_RGBA, G_IM_SIZ_16b, 64, 32, 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_WRAP | G_TX_NOMIRROR, 6, 5, G_TX_NOLOD, G_TX_NOLOD),
+//     gsSPTexture(0x1800, 0x07C0, 0, G_TX_RENDERTILE, G_ON),
+//     gsSPLight(&water_ring_seg6_lights_gold.l, 1),
+//     gsSPLight(&water_ring_seg6_lights_gold.a, 2),
+//     gsSPVertex(water_ring_seg6_vertex_06013380, 16, 0),
+//     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+//     gsSP2Triangles( 4,  5,  6, 0x0,  4,  6,  7, 0x0),
+//     gsSP2Triangles( 8,  9, 10, 0x0,  8, 10, 11, 0x0),
+//     gsSP2Triangles( 1, 12, 13, 0x0,  1, 13,  2, 0x0),
+//     gsSP2Triangles( 5, 14, 15, 0x0,  5, 15,  6, 0x0),
+//     gsSPVertex(water_ring_seg6_vertex_06013480, 16, 0),
+//     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+//     gsSP2Triangles( 4,  5,  6, 0x0,  4,  6,  7, 0x0),
+//     gsSP2Triangles( 8,  9, 10, 0x0,  8, 10, 11, 0x0),
+//     gsSP2Triangles( 1, 12, 13, 0x0,  1, 13,  2, 0x0),
+//     gsSP2Triangles( 5, 14, 15, 0x0,  5, 15,  6, 0x0),
+//     gsSPVertex(water_ring_seg6_vertex_06013580, 16, 0),
+//     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+//     gsSP2Triangles( 4,  5,  6, 0x0,  4,  6,  7, 0x0),
+//     gsSP2Triangles( 8,  9, 10, 0x0,  8, 10, 11, 0x0),
+//     gsSP2Triangles( 1, 12, 13, 0x0,  1, 13,  2, 0x0),
+//     gsSP2Triangles( 5, 14, 15, 0x0,  5, 15,  6, 0x0),
+//     gsSPVertex(water_ring_seg6_vertex_06013680, 16, 0),
+//     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+//     gsSP2Triangles( 4,  5,  6, 0x0,  4,  6,  7, 0x0),
+//     gsSP2Triangles( 8,  9, 10, 0x0,  8, 10, 11, 0x0),
+//     gsSP2Triangles( 1, 12, 13, 0x0,  1, 13,  2, 0x0),
+//     gsSP2Triangles( 5, 14, 15, 0x0,  5, 15,  6, 0x0),
+//     gsSPVertex(water_ring_seg6_vertex_06013780, 16, 0),
+//     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+//     gsSP2Triangles( 4,  5,  6, 0x0,  4,  6,  7, 0x0),
+//     gsSP2Triangles( 8,  9, 10, 0x0,  8, 10, 11, 0x0),
+//     gsSP2Triangles( 1, 12, 13, 0x0,  1, 13,  2, 0x0),
+//     gsSP2Triangles( 5, 14, 15, 0x0,  5, 15,  6, 0x0),
+//     gsSPVertex(water_ring_seg6_vertex_06013880, 16, 0),
+//     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+//     gsSP2Triangles( 4,  5,  6, 0x0,  4,  6,  7, 0x0),
+//     gsSP2Triangles( 8,  9, 10, 0x0,  8, 10, 11, 0x0),
+//     gsSP2Triangles( 1, 12, 13, 0x0,  1, 13,  2, 0x0),
+//     gsSP2Triangles( 5, 14, 15, 0x0,  5, 15,  6, 0x0),
+//     gsSPVertex(water_ring_seg6_vertex_06013980, 16, 0),
+//     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+//     gsSP2Triangles( 4,  5,  6, 0x0,  4,  6,  7, 0x0),
+//     gsSP2Triangles( 8,  9, 10, 0x0,  8, 10, 11, 0x0),
+//     gsSP2Triangles( 1, 12, 13, 0x0,  1, 13,  2, 0x0),
+//     gsSP2Triangles( 5, 14, 15, 0x0,  5, 15,  6, 0x0),
+//     gsSPVertex(water_ring_seg6_vertex_06013A80, 4, 0),
+//     gsSP2Triangles( 0,  1,  2, 0x0,  0,  2,  3, 0x0),
+//     gsDPPipeSync(),
+//     gsSPClearGeometryMode(G_TEXTURE_GEN),
+//     gsDPSetEnvColor(255, 255, 255, 255),
+//     gsDPSetCombineMode(G_CC_SHADE, G_CC_SHADE),
+//     gsSPTexture(0x0F80, 0x07C0, 0, G_TX_RENDERTILE, G_OFF),
+//     gsSPEndDisplayList(),
+// };

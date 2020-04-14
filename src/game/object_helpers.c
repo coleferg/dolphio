@@ -1286,6 +1286,10 @@ static s32 obj_move_xz(f32 steepSlopeNormalY, s32 careAboutEdgesAndSteepSlopes) 
     return FALSE;
 }
 
+void obj_move_xz_2(f32 steepSlopeNormalY, s32 careAboutEdgesAndSteepSlopes) {
+    obj_move_xz(steepSlopeNormalY, careAboutEdgesAndSteepSlopes);
+}
+
 static void obj_move_update_underwater_flags(void) {
     f32 decelY = (f32)(sqrtf(o->oVelY * o->oVelY) * (o->oDragStrength * 7.0f)) / 100.0L;
 

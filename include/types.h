@@ -332,6 +332,8 @@ struct MarioState
     /*0xC8*/ s8 appliedGravChange;
     /*0xCA*/ Vec3f gravPower;
     /*0xCE*/ s8 canAirJump;
+    /*0xD0*/ u32 ringsCollected;
+    /*0xD2*/ s8 paralyzed;
 };
 
 #endif

@@ -30,6 +30,7 @@
 #include "prevent_bss_reordering.h"
 #include "engine/graph_node.h"
 #include "level_table.h"
+#include "main.h"
 
 #define CBUTTON_MASK (U_CBUTTONS | D_CBUTTONS | L_CBUTTONS | R_CBUTTONS)
 
@@ -858,17 +859,23 @@ s32 update_radial_camera(struct Camera *c, Vec3f focus, Vec3f pos) {
  * Update the camera during 8 directional mode
  */
 s32 update_8_directions_camera(struct Camera *c, Vec3f focus, Vec3f pos) {
-    UNUSED f32 cenDistX = sMarioCamState->pos[0] - c->areaCenX;
-    UNUSED f32 cenDistZ = sMarioCamState->pos[2] - c->areaCenZ;
     s16 camYaw = s8DirModeBaseYaw + s8DirModeYawOffset;
     s16 pitch = look_down_slopes(camYaw);
     f32 posY;
     f32 focusY;
-    UNUSED f32 unused1;
-    UNUSED f32 unused2;
-    UNUSED f32 unused3;
     f32 yOff = 125.f;
     f32 baseDist = 1200.f;
+    if (sModeInfo.frame++ == 1) {
+        f32 dist;
+        s16 pitch2;
+        s16 yaw;
+
+        // Get distance and angle from camera to mario.
+        vec3f_get_dist_and_angle(sMarioCamState->pos, c->pos, &dist, &pitch2, &yaw);
+        // if (yaw % DEGREES(45) > DEGREES(45) / 2) s8DirModeYawOffset += DEGREES(45);
+        s8DirModeYawOffset = yaw; // - (yaw % DEGREES(45));
+        camYaw = s8DirModeBaseYaw + s8DirModeYawOffset;
+    }
 
     sAreaYaw = camYaw;
     calc_y_to_curr_floor(&posY, 1.f, 200.f, &focusY, 0.9f, 200.f);
@@ -1112,13 +1119,24 @@ void mode_8_directions_camera(struct Camera *c) {
     s16 oldAreaYaw = sAreaYaw;
 
     radial_camera_input(c, 0.f);
+    if (gShowDebugText) {
+        print_text_fmt_int_no_relocate(260,  20, "c off %d", s8DirModeYawOffset);
+    }
 
     if (gPlayer1Controller->buttonPressed & R_CBUTTONS) {
-        s8DirModeYawOffset += DEGREES(45);
+        if (s8DirModeYawOffset % DEGREES(45) != 0) {
+            s8DirModeYawOffset += DEGREES(45) - (s8DirModeYawOffset % DEGREES(45));
+        } else {
+            s8DirModeYawOffset += DEGREES(45);
+        }
         play_sound_cbutton_side();
     }
     if (gPlayer1Controller->buttonPressed & L_CBUTTONS) {
-        s8DirModeYawOffset -= DEGREES(45);
+        if (s8DirModeYawOffset % DEGREES(45) != 0) {
+            s8DirModeYawOffset -= DEGREES(45) + (s8DirModeYawOffset % DEGREES(45));
+        } else {
+            s8DirModeYawOffset -= DEGREES(45); // + (s8DirModeYawOffset % DEGREES(45));
+        }
         play_sound_cbutton_side();
     }
 
@@ -2809,6 +2827,7 @@ void set_camera_mode(struct Camera *c, s16 mode, s16 frames) {
         sModeInfo.lastMode = c->mode;
         sModeInfo.max = frames;
         sModeInfo.frame = 1;
+        s8DirModeYawOffset = 0;
 
         c->mode = sModeInfo.newMode;
         gLakituState.mode = c->mode;
@@ -3285,19 +3304,19 @@ void init_camera(struct Camera *c) {
             break;
 
         //! Hardcoded position checks determine which cutscene to play when mario enters castle grounds.
-        case LEVEL_CASTLE_GROUNDS:
-            if (is_within_100_units_of_mario(-1328.f, 260.f, 4664.f) != 1) {
-                marioOffset[0] = -400.f;
-                marioOffset[2] = -800.f;
-            }
-            if (is_within_100_units_of_mario(-6901.f, 2376.f, -6509.f) == 1) {
-                start_cutscene(c, CUTSCENE_EXIT_WATERFALL);
-            }
-            if (is_within_100_units_of_mario(5408.f, 4500.f, 3637.f) == 1) {
-                start_cutscene(c, CUTSCENE_EXIT_FALL_WMOTR);
-            }
-            gLakituState.mode = CAMERA_MODE_FREE_ROAM;
-            break;
+        // case LEVEL_CASTLE_GROUNDS:
+        //     if (is_within_100_units_of_mario(-1328.f, 260.f, 4664.f) != 1) {
+        //         marioOffset[0] = -400.f;
+        //         marioOffset[2] = -800.f;
+        //     }
+        //     if (is_within_100_units_of_mario(-6901.f, 2376.f, -6509.f) == 1) {
+        //         start_cutscene(c, CUTSCENE_EXIT_WATERFALL);
+        //     }
+        //     if (is_within_100_units_of_mario(5408.f, 4500.f, 3637.f) == 1) {
+        //         start_cutscene(c, CUTSCENE_EXIT_FALL_WMOTR);
+        //     }
+        //     gLakituState.mode = CAMERA_MODE_FREE_ROAM;
+        //     break;
         case LEVEL_SA:
             marioOffset[2] = 200.f;
             break;
@@ -7053,6 +7072,40 @@ void store_info_star(struct Camera *c) {
 }
 
 /**
+ * Store camera info for object focus from marios POV
+ */
+void store_info_mario_and_object(struct Camera *c) {
+    reset_pan_distance(c);
+    vec3f_copy(sCameraStoreCutscene.pos, gMarioState->pos);
+    vec3f_copy(c->pos, gMarioState->pos);
+    sCameraStoreCutscene.focus[0] = sMarioCamState->pos[0];
+    sCameraStoreCutscene.focus[1] = c->focus[1];
+    sCameraStoreCutscene.focus[2] = sMarioCamState->pos[2];
+}
+
+/**
+ * Store camera info for the star spawn cutscene
+ */
+void follow_mario_around_object(struct Camera *c) {
+    Vec3f objectPos;
+    s32 angleFromMarioToObject;
+    f32 unusedDist;
+    s16 unusedPitch;
+    s16 nextYaw;
+
+    if (gCutsceneFocus != NULL) {
+        object_pos_to_vec3f(objectPos, gCutsceneFocus);
+        angleFromMarioToObject = angle_to_object(gCutsceneFocus, gMarioObject);
+
+        reset_pan_distance(c);
+        vec3f_set_dist_and_angle(objectPos, c->pos, 2850.0f, 0x800, angleFromMarioToObject);
+        vec3f_copy(sMarioCamState->pos, c->pos);
+        vec3f_get_dist_and_angle(objectPos, c->pos, &unusedDist, &unusedPitch, &nextYaw);
+        c->yaw = nextYaw;
+    }
+}
+
+/**
  * Retrieve camera info for the star spawn cutscene
  */
 void retrieve_info_star(struct Camera *c) {
@@ -8119,6 +8172,14 @@ CmdRet cutscene_star_spawn_store_info(struct Camera *c) {
     store_info_star(c);
 }
 
+CmdRet cutscene_store_info_mario_and_object(struct Camera *c) {
+    store_info_mario_and_object(c);
+}
+
+CmdRet cutscene_follow_mario_around_object(struct Camera *c) {
+    follow_mario_around_object(c);
+}
+
 /**
  * Focus on the top of the star.
  */
@@ -8131,6 +8192,25 @@ CmdRet cutscene_star_spawn_focus_star(struct Camera *c) {
         object_pos_to_vec3f(starPos, gCutsceneFocus);
         starPos[1] += gCutsceneFocus->hitboxHeight;
         approach_vec3f_asymptotic(c->focus, starPos, 0.1f, 0.1f, 0.1f);
+    }
+}
+
+/**
+ * Focus on the top of the star.
+ */
+CmdRet cutscene_mario_focus_object(struct Camera *c) {
+    UNUSED f32 hMul;
+    Vec3f starPos;
+    UNUSED f32 vMul;
+
+    if (gCutsceneFocus != NULL) {
+        object_pos_to_vec3f(starPos, gCutsceneFocus);
+        starPos[1] += gCutsceneFocus->hitboxHeight;
+        approach_vec3f_asymptotic(c->focus, starPos, 0.01f, 0.01f, 0.01f);
+        approach_vec3f_asymptotic(c->pos, starPos, 0.001f, 0.01f, 0.001f);
+        gLakituState.shakeMagnitude[2] = 0x900;
+        gLakituState.shakeRollDecay = 0x200;
+        gLakituState.shakeRollVel = 0x100;
     }
 }
 
@@ -8159,6 +8239,21 @@ CmdRet cutscene_star_spawn_fly_back(struct Camera *c) {
 CmdRet cutscene_star_spawn(struct Camera *c) {
     cutscene_event(cutscene_star_spawn_store_info, c, 0, 0);
     cutscene_event(cutscene_star_spawn_focus_star, c, 0, -1);
+    sStatusFlags |= CAM_FLAG_SMOOTH_MOVEMENT;
+
+    if (gObjCutsceneDone) {
+        // Set the timer to CUTSCENE_LOOP, which start the next shot.
+        gCutsceneTimer = CUTSCENE_LOOP;
+    }
+}
+
+/**
+ * Plays when a star spawns (ie from a box).
+ */
+CmdRet cutscene_pov_to_object(struct Camera *c) {
+    cutscene_event(cutscene_store_info_mario_and_object, c, 0, 0);
+    cutscene_event(cutscene_mario_focus_object, c, 0, 300);
+    cutscene_event(cutscene_follow_mario_around_object, c, 300, -1);
     sStatusFlags |= CAM_FLAG_SMOOTH_MOVEMENT;
 
     if (gObjCutsceneDone) {
@@ -10329,6 +10424,15 @@ struct Cutscene sCutsceneEnterCannon[] = {
 /**
  * Cutscene that plays when a star spawns from ie a box or after a boss fight.
  */
+struct Cutscene sCutscenePOVtoObject[] = {
+    { cutscene_pov_to_object, CUTSCENE_LOOP },
+    { cutscene_star_spawn_back, 15 },
+    { cutscene_star_spawn_end, 0 }
+};
+
+/**
+ * Cutscene that plays when a star spawns from ie a box or after a boss fight.
+ */
 struct Cutscene sCutsceneStarSpawn[] = {
     { cutscene_star_spawn, CUTSCENE_LOOP },
     { cutscene_star_spawn_back, 15 },
@@ -11013,6 +11117,7 @@ void play_cutscene(struct Camera *c) {
 
     switch (c->cutscene) {
         CUTSCENE(CUTSCENE_STAR_SPAWN, sCutsceneStarSpawn)
+        CUTSCENE(CUTSCENE_POV_TO_OBJECT, sCutscenePOVtoObject)
         CUTSCENE(CUTSCENE_RED_COIN_STAR_SPAWN, sCutsceneRedCoinStarSpawn)
         CUTSCENE(CUTSCENE_ENDING, sCutsceneEnding)
         CUTSCENE(CUTSCENE_GRAND_STAR, sCutsceneGrandStar)

@@ -2158,6 +2158,7 @@ s32 set_dolphin_action(struct MarioState *m) {
         m->faceAngle[0] = 0;
         m->appliedGravChange = FALSE;
         m->canAirJump = FALSE;
+        m->ringsCollected = 0x0;
 
         set_mario_action(m, ACT_DOLPHIN_DIVE, 0);
         return TRUE;
@@ -2170,6 +2171,7 @@ s32 set_dolphin_action(struct MarioState *m) {
         m->faceAngle[0] = 0;
         m->appliedGravChange = FALSE;
         m->canAirJump = FALSE;
+        m->ringsCollected = 0x0;
 
         set_mario_action(m, ACT_DOLPHIN_DIVE, 0);
         return TRUE;
@@ -2182,6 +2184,7 @@ s32 check_common_airborne_cancels(struct MarioState *m) {
 
     if (m->pos[1] < m->waterLevel - 100) {
         m->canAirJump = FALSE;
+        m->ringsCollected = 0x0;
         return set_water_plunge_action(m);
     }
 

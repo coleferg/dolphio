@@ -339,7 +339,7 @@ void save_file_reload(void) {
  * Update the current save file after collecting a star or a key.
  * If coin score is greater than the current high score, update it.
  */
-void save_file_collect_star_or_key(s16 coinScore, s16 starIndex) {
+void save_file_collect_star_or_key(s16 coinScore, s16 starIndex, s16 keyNum) {
     s32 fileIndex = gCurrSaveFileNum - 1;
     s32 courseIndex = gCurrCourseNum - 1;
 
@@ -368,22 +368,18 @@ void save_file_collect_star_or_key(s16 coinScore, s16 starIndex) {
         }
     }
 
-    switch (gCurrLevelNum) {
-        case LEVEL_BOWSER_1:
+    switch (keyNum) {
+        case 1:
             if (!(save_file_get_flags() & (SAVE_FLAG_HAVE_KEY_1 | SAVE_FLAG_UNLOCKED_BASEMENT_DOOR))) {
                 save_file_set_flags(SAVE_FLAG_HAVE_KEY_1);
             }
             break;
 
-        case LEVEL_BOWSER_2:
+        case 2:
             if (!(save_file_get_flags() & (SAVE_FLAG_HAVE_KEY_2 | SAVE_FLAG_UNLOCKED_UPSTAIRS_DOOR))) {
                 save_file_set_flags(SAVE_FLAG_HAVE_KEY_2);
             }
             break;
-
-        case LEVEL_BOWSER_3:
-            break;
-
         default:
             if (!(save_file_get_star_flags(fileIndex, courseIndex) & starFlag)) {
                 save_file_set_star_flags(fileIndex, courseIndex, starFlag);

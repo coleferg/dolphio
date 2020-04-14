@@ -119,6 +119,7 @@ void bhv_jet_stream_water_ring_loop(void);
 void Unknown802EB8A4(void); /* unused */
 void JetStreamRingSpawnerActiveLoop(void);
 void bhv_jet_stream_ring_spawner_loop(void);
+void bhv_gold_ring_spawner_loop(void);
 void bhv_manta_ray_water_ring_init(void);
 void MantaRayWaterRingNotCollectedLoop(void);
 void bhv_manta_ray_water_ring_loop(void);

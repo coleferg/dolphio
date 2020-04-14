@@ -734,9 +734,8 @@ u32 interact_water_ring(struct MarioState *m, UNUSED u32 interactType, struct Ob
     o->oAction = WATER_RING_ACT_COLLECTED;
 
     m->canAirJump = TRUE;
-    // if (m->pos[1] > m->floorHeight) {
-    //     m->canAirJump = TRUE;
-    // };
+    m->ringsCollected |= o->oBehParams;
+    
     return FALSE;
 }
 
@@ -780,7 +779,7 @@ u32 interact_star_or_key(struct MarioState *m, UNUSED u32 interactType, struct O
         m->usedObj = o;
 
         starIndex = (o->oBehParams >> 24) & 0x1F;
-        save_file_collect_star_or_key(m->numCoins, starIndex);
+        save_file_collect_star_or_key(m->numCoins, starIndex, o->oKeyNum);
 
         m->numStars =
             save_file_get_total_star_count(gCurrSaveFileNum - 1, COURSE_MIN - 1, COURSE_MAX - 1);
@@ -1760,6 +1759,14 @@ void pss_end_slide(struct MarioState *m) {
     }
 }
 
+void warp_to_local_node(struct MarioState *m) {
+    if (m->pos[1] < m->floorHeight + 2048.0f) {
+        if (level_trigger_warp(m, WARP_OP_INSTANT_LOCAL) == 20 && !(m->flags & MARIO_UNKNOWN_18)) {
+            play_sound(SOUND_MARIO_WAAAOOOW, m->marioObj->header.gfx.cameraToObject);
+        }
+    }
+}
+
 void mario_handle_special_floors(struct MarioState *m) {
     if ((m->action & ACT_GROUP_MASK) == ACT_GROUP_CUTSCENE) {
         return;
@@ -1784,6 +1791,10 @@ void mario_handle_special_floors(struct MarioState *m) {
 
             case SURFACE_TIMER_END:
                 pss_end_slide(m);
+                break;
+
+            case SURFACE_INSTANT_WARP_CUSTOM:
+                warp_to_local_node(m);
                 break;
         }
 

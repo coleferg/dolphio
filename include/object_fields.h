@@ -135,6 +135,7 @@
 #define /*0x1BC*/ oUnk1BC                     OBJECT_FIELD_S32(0x4D)
 #define /*0x1C0*/ oFloor                      OBJECT_FIELD_SURFACE(0x4E)
 #define /*0x1C4*/ oDeathSound                 OBJECT_FIELD_S32(0x4F)
+#define /*0x1C4*/ oKeyNum                     OBJECT_FIELD_S32(0x50)
 
 /* Pathed (see obj_follow_path) */
 // TODO: These two 0x0FC fields need merged, one is data and one is a C struct.
@@ -652,6 +653,9 @@
 #define /*0x0F8*/ oEnemyLakituBlinkTimer           OBJECT_FIELD_S32(0x1C)
 #define /*0x0FC*/ oEnemyLakituSpinyCooldown        OBJECT_FIELD_S32(0x1D)
 #define /*0x100*/ oEnemyLakituFaceForwardCountdown OBJECT_FIELD_S32(0x1E)
+
+/* Evil Toad */
+#define /*0x0F4*/ oCultMembersKilled                 OBJECT_FIELD_S32(0x1B)
 
 /* Intro Cutscene Lakitu */
 #define /*0x0F8*/ oIntroLakituSplineSegmentProgress  OBJECT_FIELD_F32(0x1C)

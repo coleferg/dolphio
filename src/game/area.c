@@ -20,6 +20,7 @@
 #include "engine/geo_layout.h"
 #include "save_file.h"
 #include "enhancements/debug_box.inc.c"
+#include "game/rgfx_scroll.h"
 
 struct SpawnInfo gPlayerSpawnInfos[1];
 struct GraphNode *D_8033A160[0x100];
@@ -53,26 +54,26 @@ s16 gCurrLevelNum = 1;
 /* 
  * The following two tables are used in get_mario_spawn_type() to determine spawn type
  * from warp behavior.
- * When looping through WARP_BEHAVIOR_SPAWN_TABLE, if the behavior function in the table matches
- * the spawn behavior executed, the index of that behavior is used with SPAWN_TYPE_FROM_WARP_BHV
+ * When looping through sWarpBhvSpawnTable, if the behavior function in the table matches
+ * the spawn behavior executed, the index of that behavior is used with sSpawnTypeFromWarpBhv
 */
 
 // D _8032CE9C
-const BehaviorScript *WARP_BEHAVIOR_SPAWN_TABLE[] = {
-    bhvDoorWarp, bhvStar,       bhvExitPodiumWarp, bhvWarp,
-    bhvWarpPipe, bhvFadingWarp, bhvWarps60,        bhvWarps64,
-    bhvWarps68,  bhvWarps6C,    bhvDeathWarp,      bhvWarps74,
-    bhvWarps78,  bhvWarps94,    bhvWarps7C,        bhvPaintingDeathWarp,
-    bhvWarps88,  bhvWarps84,    bhvWarps8C,        bhvWarps90,
+const BehaviorScript *sWarpBhvSpawnTable[] = {
+    bhvDoorWarp,                bhvStar,                   bhvExitPodiumWarp,          bhvWarp,
+    bhvWarpPipe,                bhvFadingWarp,             bhvInstantActiveWarp,       bhvAirborneWarp,
+    bhvHardAirKBWarp,           bhvSpinAirborneCircleWarp, bhvDeathWarp,               bhvSpinAirborneWarp,
+    bhvFlyingWarp,              bhvSwimmingWarp,           bhvPaintingStarCollectWarp, bhvPaintingDeathWarp,
+    bhvAirborneStarCollectWarp, bhvAirborneDeathWarp,      bhvLaunchStarCollectWarp,   bhvLaunchDeathWarp,
 };
 
 // D_8032CEEC
-u8 SPAWN_TYPE_FROM_WARP_BHV[] = {
-    MARIO_SPAWN_UNKNOWN_01, MARIO_SPAWN_UNKNOWN_02, MARIO_SPAWN_UNKNOWN_03, MARIO_SPAWN_UNKNOWN_03,
-    MARIO_SPAWN_UNKNOWN_03, MARIO_SPAWN_UNKNOWN_04, MARIO_SPAWN_UNKNOWN_10, MARIO_SPAWN_UNKNOWN_12,
-    MARIO_SPAWN_UNKNOWN_13, MARIO_SPAWN_UNKNOWN_14, MARIO_SPAWN_DEATH,      MARIO_SPAWN_UNKNOWN_16,
-    MARIO_SPAWN_UNKNOWN_17, MARIO_SPAWN_UNKNOWN_11, MARIO_SPAWN_UNKNOWN_20, MARIO_SPAWN_PAINTING_DEATH,
-    MARIO_SPAWN_UNKNOWN_22, MARIO_SPAWN_UNKNOWN_23, MARIO_SPAWN_UNKNOWN_24, MARIO_SPAWN_UNKNOWN_25,
+u8 sSpawnTypeFromWarpBhv[] = {
+    MARIO_SPAWN_DOOR_WARP,             MARIO_SPAWN_UNKNOWN_02,           MARIO_SPAWN_UNKNOWN_03,            MARIO_SPAWN_UNKNOWN_03,
+    MARIO_SPAWN_UNKNOWN_03,            MARIO_SPAWN_TELEPORT,             MARIO_SPAWN_INSTANT_ACTIVE,        MARIO_SPAWN_AIRBORNE,
+    MARIO_SPAWN_HARD_AIR_KB,           MARIO_SPAWN_SPIN_AIRBORNE_CIRCLE, MARIO_SPAWN_DEATH,                 MARIO_SPAWN_SPIN_AIRBORNE,
+    MARIO_SPAWN_FLYING,                MARIO_SPAWN_SWIMMING,             MARIO_SPAWN_PAINTING_STAR_COLLECT, MARIO_SPAWN_PAINTING_DEATH,
+    MARIO_SPAWN_AIRBORNE_STAR_COLLECT, MARIO_SPAWN_AIRBORNE_DEATH,       MARIO_SPAWN_LAUNCH_STAR_COLLECT,   MARIO_SPAWN_LAUNCH_DEATH,
 };
 
 Vp D_8032CF00 = { {
@@ -132,8 +133,8 @@ u32 get_mario_spawn_type(struct Object *o) {
     const BehaviorScript *behavior = virtual_to_segmented(0x13, o->behavior);
 
     for (i = 0; i < 20; i++) {
-        if (WARP_BEHAVIOR_SPAWN_TABLE[i] == behavior) {
-            return SPAWN_TYPE_FROM_WARP_BHV[i];
+        if (sWarpBhvSpawnTable[i] == behavior) {
+            return sSpawnTypeFromWarpBhv[i];
         }
     }
     return 0;
@@ -365,6 +366,7 @@ void render_game(void) {
         geo_process_root(gCurrentArea->unk04, D_8032CE74, D_8032CE78, gFBSetColor);
 
         render_debug_boxes();
+        rgfx_update_scroll();
 
         gSPViewport(gDisplayListHead++, VIRTUAL_TO_PHYSICAL(&D_8032CF00));
 

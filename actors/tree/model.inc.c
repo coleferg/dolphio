@@ -71,7 +71,7 @@ const Gfx tree_seg3_dl_0302FEE8[] = {
 
 // 0x0302FF60
 ALIGNED8 static const u8 tree_seg3_texture_0302FF60[] = {
-#include "actors/tree/pine_tree.rgba16.inc.c"
+#include "actors/tree/newtree2.rgba16.inc.c"
 };
 
 // 0x03030F60

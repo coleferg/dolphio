@@ -1,3 +1,5 @@
+#include "make_const_nonconst.h"
+
 // 0x07002800 - 0x07002818
 static const Lights1 bob_seg7_lights_07002800 = gdSPDefLights1(
     0x66, 0x66, 0x66,

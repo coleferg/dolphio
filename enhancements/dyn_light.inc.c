@@ -23,6 +23,7 @@
 #define SHADE_75 0.75
 #define SHADE_50 0.50
 #define SHADE_25 0.25
+#define SHADE_15 0.15
 
 /* Mario light values */
 
@@ -134,6 +135,12 @@ void set_level_shading(void) {
             point_light(1800, 0, 1500, 150, SHADE_75, 200, SHADE_50);
 
             point_light(1500, 0, 1750, 100, SHADE_50, 150, SHADE_25); /* Window moonlight */
+            break;
+        case LEVEL_BITDW:
+            set_mario_shade_light(SHADE_50);
+            break;
+        case LEVEL_BOWSER_1:
+            set_mario_shade_light(SHADE_15);
             break;
         case LEVEL_HMC:
             set_mario_shade_light(SHADE_25);

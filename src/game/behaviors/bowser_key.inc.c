@@ -20,14 +20,22 @@ void bhv_bowser_key_loop(void) {
     o->oFaceAngleRoll = -0x4000;
     o->oGraphYOffset = 165.0f;
     if (o->oAction == 0) {
-        if (o->oTimer == 0)
+        if (o->oTimer == 0) {
             o->oVelY = 70.0f;
+            cutscene_object(CUTSCENE_STAR_SPAWN, o);
+            set_time_stop_flags(TIME_STOP_ENABLED | TIME_STOP_MARIO_AND_DOORS);
+            o->activeFlags |= 0x20;
+        }
         func_802B2328(3, 200, 80, -60);
         spawn_object(o, MODEL_NONE, bhvSparkleSpawn);
         obj_update_floor_and_walls();
         obj_move_standard(78);
-        if (o->oMoveFlags & OBJ_MOVE_ON_GROUND)
+        if (o->oMoveFlags & OBJ_MOVE_ON_GROUND) {
             o->oAction++;
+            gObjCutsceneDone = TRUE;
+            clear_time_stop_flags(TIME_STOP_ENABLED | TIME_STOP_MARIO_AND_DOORS);
+            o->activeFlags &= ~0x20;
+        }
         else if (o->oMoveFlags & OBJ_MOVE_LANDED)
 #ifndef VERSION_JP
             PlaySound2(SOUND_GENERAL_UNKNOWN3_2);

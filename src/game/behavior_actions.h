@@ -303,6 +303,7 @@ void bhv_big_bully_init(void);
 void bhv_big_bully_with_minions_init(void);
 void bhv_big_bully_with_minions_loop(void);
 void bhv_jet_stream_ring_spawner_loop(void);
+void bhv_gold_ring_spawner_loop(void);
 void bhv_jet_stream_water_ring_init(void);
 void bhv_jet_stream_water_ring_loop(void);
 void bhv_manta_ray_water_ring_init(void);
@@ -379,6 +380,7 @@ void bhv_hidden_red_coin_star_loop(void);
 void bhv_red_coin_init(void);
 void bhv_red_coin_loop(void);
 void bhv_bowser_course_red_coin_star_loop(void);
+void bhv_gold_ring_star_loop(void);
 void bhv_hidden_star_init(void);
 void bhv_hidden_star_loop(void);
 void bhv_hidden_star_trigger_loop(void);
@@ -551,6 +553,8 @@ void bhvToadEvil_init(void);
 void bhvToadEvil_loop(void);
 void bhvToadBasic_init(void);
 void bhvToadBasic_loop(void);
+void bhvToadCultSpawner_init(void);
+void bhvToadCultSpawner_loop(void);
 
 
 extern Gfx *Geo18_802B1BB0(s32 run, UNUSED struct GraphNode *node, Mat4 mtx);

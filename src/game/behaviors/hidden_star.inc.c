@@ -73,3 +73,23 @@ void bhv_bowser_course_red_coin_star_loop(void) {
             break;
     }
 }
+
+void bhv_gold_ring_star_loop(void) {
+    switch (o->oAction) {
+        case 0:
+            if (o->oBehParams - 1 == gMarioState->ringsCollected)
+                o->oAction = 1;
+            break;
+
+        case 1:
+            if (o->oTimer > 2) {
+                struct Object *newKey;
+                newKey = spawn_object(o, MODEL_BOWSER_KEY, bhvBowserKey);
+                newKey->oKeyNum = 1;
+                // func_802F1B84(o->oPosX, o->oPosY, o->oPosZ);
+                func_802A3004();
+                o->activeFlags = 0;
+            }
+            break;
+    }
+}

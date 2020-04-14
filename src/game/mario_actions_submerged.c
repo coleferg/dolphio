@@ -183,9 +183,9 @@ static u32 perform_water_step(struct MarioState *m) {
     nextPos[1] = m->pos[1] + step[1];
     nextPos[2] = m->pos[2] + step[2];
 
-    if (nextPos[1] > m->waterLevel - 80) {
-        // nextPos[1] = m->waterLevel - 80;
-        // m->vel[1] = 0.0f;
+    if (nextPos[1] > m->waterLevel - 80 && !(m->input & INPUT_A_PRESSED)) {
+        nextPos[1] = m->waterLevel - 80;
+        m->vel[1] = 0.0f;
     }
 
     stepResult = perform_water_full_step(m, nextPos);

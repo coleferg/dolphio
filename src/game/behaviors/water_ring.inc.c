@@ -1,5 +1,11 @@
 // water_ring.c.inc
 
+#define RING_ONE   0x00000001;
+#define RING_TWO   0x00000002;
+#define RING_THREE 0x00000004;
+#define RING_FOUR  0x00000008;
+#define RING_FIVE  0x00000010;
+
 f32 WaterRingCalcMarioDistInFront(void) {
     f32 marioDistX = o->oPosX - gMarioObject->header.gfx.pos[0];
     f32 marioDistY = o->oPosY - (gMarioObject->header.gfx.pos[1] + 80.0f);
@@ -69,6 +75,7 @@ void CheckWaterRingCollection(f32 avgScale, struct Object *ringManager) {
     o->oWaterRingMarioDistInFront = marioDistInFront;
 }
 
+
 void SetWaterRingScale(f32 avgScale) {
     o->header.gfx.scale[0] = sins(o->oWaterRingScalePhaseX) * 0.1 + avgScale;
     o->header.gfx.scale[1] = sins(o->oWaterRingScalePhaseY) * 0.5 + avgScale;
@@ -129,6 +136,32 @@ void bhv_jet_stream_water_ring_loop(void) {
     }
 }
 
+
+void GoldWaterRingCollectedLoop(void) {
+    f32 avgScale = (f32) o->oTimer * 0.2 + o->oWaterRingAvgScale;
+
+    if (o->oTimer >= 20)
+        o->activeFlags = 0;
+
+    o->oOpacity -= 10;
+    if (o->oOpacity < 0)
+        o->oOpacity = 0;
+
+    SetWaterRingScale(avgScale);
+}
+
+void bhv_gold_water_ring_loop(void) {
+    switch (o->oAction) {
+        case WATER_RING_ACT_NOT_COLLECTED:
+            JetStreamWaterRingNotCollectedLoop();
+            break;
+
+        case WATER_RING_ACT_COLLECTED:
+            WaterRingCollectedLoop();
+            break;
+    }
+}
+
 void Unknown802EB8A4(void) {
     struct Object *ringManager = spawn_object(o, MODEL_NONE, bhvMantaRayRingManager);
     o->parentObj = ringManager;
@@ -176,6 +209,45 @@ void bhv_jet_stream_ring_spawner_loop(void) {
             break;
     }
 }
+
+void CheckCollectedRingStatus(void) {
+    if (!(o->oBehParams & gMarioState->ringsCollected)) {
+        o->oAction = JS_RING_SPAWNER_ACT_ACTIVE;
+    }
+}
+
+void GoldRingSpawnerActiveLoop(void) {
+    struct Object *currentObj = o->parentObj;
+    struct Object *waterRing;
+
+    if (o->oTimer == 20 && o->oAction != JS_RING_SPAWNER_ACT_INACTIVE) {
+        waterRing = spawn_object(o, MODEL_WATER_RING, bhvGoldWaterRing);
+        waterRing->oBehParams = o->oBehParams;
+    }
+}
+
+void GoldRingSpawnerInactiveLoop(void) {
+    CheckCollectedRingStatus();
+}
+
+void bhv_gold_ring_spawner_loop(void) {
+    switch (o->oAction) {
+        case JS_RING_SPAWNER_ACT_ACTIVE:
+            GoldRingSpawnerActiveLoop();
+
+            if (o->oBehParams & gMarioState->ringsCollected) {
+                o->oTimer = 0;
+                o->oAction = JS_RING_SPAWNER_ACT_INACTIVE;
+                o->oWaterRingSpawnerRingsCollected = 0;
+            }
+            break;
+
+        case JS_RING_SPAWNER_ACT_INACTIVE:
+            GoldRingSpawnerInactiveLoop();
+            break;
+    }
+}
+
 
 void bhv_manta_ray_water_ring_init(void) {
     WaterRingInit();

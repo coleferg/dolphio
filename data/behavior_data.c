@@ -3496,6 +3496,18 @@ const BehaviorScript bhvToadBasic[] = {
     END_LOOP(),
 };
 
+const BehaviorScript bhvToadCultSpawner[] = {
+    BEGIN(OBJ_LIST_GENACTOR),
+    OR_INT(oFlags, (OBJ_FLAG_PERSISTENT_RESPAWN | OBJ_FLAG_COMPUTE_DIST_TO_MARIO | OBJ_FLAG_SET_FACE_YAW_TO_MOVE_YAW | OBJ_FLAG_UPDATE_GFX_POS_AND_ANGLE)),
+    SET_INT(oIntangibleTimer, 0),
+    SET_FLOAT(oDrawingDistance, 5000),
+    SET_HOME(),
+    CALL_NATIVE(bhvToadCultSpawner_init),
+    BEGIN_LOOP(),
+        CALL_NATIVE(bhvToadCultSpawner_loop),
+    END_LOOP(),
+};
+
 const BehaviorScript bhvToadEvil[] = {
     BEGIN(OBJ_LIST_DESTRUCTIVE),
     OR_INT(oFlags, (OBJ_FLAG_PERSISTENT_RESPAWN | OBJ_FLAG_COMPUTE_DIST_TO_MARIO | OBJ_FLAG_SET_FACE_YAW_TO_MOVE_YAW | OBJ_FLAG_UPDATE_GFX_POS_AND_ANGLE)),
@@ -3524,19 +3536,19 @@ const BehaviorScript bhvUnlockDoorStar[] = {
     END_LOOP(),
 };
 
-const BehaviorScript bhvWarps60[] = {
+const BehaviorScript bhvInstantActiveWarp[] = {
     BREAK(),
 };
 
-const BehaviorScript bhvWarps64[] = {
+const BehaviorScript bhvAirborneWarp[] = {
     BREAK(),
 };
 
-const BehaviorScript bhvWarps68[] = {
+const BehaviorScript bhvHardAirKBWarp[] = {
     BREAK(),
 };
 
-const BehaviorScript bhvWarps6C[] = {
+const BehaviorScript bhvSpinAirborneCircleWarp[] = {
     BREAK(),
 };
 
@@ -3544,15 +3556,15 @@ const BehaviorScript bhvDeathWarp[] = {
     BREAK(),
 };
 
-const BehaviorScript bhvWarps74[] = {
+const BehaviorScript bhvSpinAirborneWarp[] = {
     BREAK(),
 };
 
-const BehaviorScript bhvWarps78[] = {
+const BehaviorScript bhvFlyingWarp[] = {
     BREAK(),
 };
 
-const BehaviorScript bhvWarps7C[] = {
+const BehaviorScript bhvPaintingStarCollectWarp[] = {
     BREAK(),
 };
 
@@ -3560,23 +3572,23 @@ const BehaviorScript bhvPaintingDeathWarp[] = {
     BREAK(),
 };
 
-const BehaviorScript bhvWarps84[] = {
+const BehaviorScript bhvAirborneDeathWarp[] = {
     BREAK(),
 };
 
-const BehaviorScript bhvWarps88[] = {
+const BehaviorScript bhvAirborneStarCollectWarp[] = {
     BREAK(),
 };
 
-const BehaviorScript bhvWarps8C[] = {
+const BehaviorScript bhvLaunchStarCollectWarp[] = {
     BREAK(),
 };
 
-const BehaviorScript bhvWarps90[] = {
+const BehaviorScript bhvLaunchDeathWarp[] = {
     BREAK(),
 };
 
-const BehaviorScript bhvWarps94[] = {
+const BehaviorScript bhvSwimmingWarp[] = {
     BREAK(),
 };
 
@@ -4105,6 +4117,14 @@ const BehaviorScript bhvJetStreamRingSpawner[] = {
     END_LOOP(),
 };
 
+const BehaviorScript bhvGoldRingSpawner[] = {
+    BEGIN(OBJ_LIST_DEFAULT),
+    HIDE(),
+    BEGIN_LOOP(),
+        CALL_NATIVE(bhv_gold_ring_spawner_loop),
+    END_LOOP(),
+};
+
 const BehaviorScript bhvJetStreamWaterRing[] = {
     BEGIN(OBJ_LIST_LEVEL),
     OR_INT(oFlags, OBJ_FLAG_UPDATE_GFX_POS_AND_ANGLE),
@@ -4115,6 +4135,23 @@ const BehaviorScript bhvJetStreamWaterRing[] = {
     SET_INT(oIntangibleTimer, 20),
     CALL_NATIVE(bhv_jet_stream_water_ring_init),
     BEGIN_LOOP(),
+        SET_INT(oAnimState, 0),
+        SET_INT(oIntangibleTimer, 0),
+        CALL_NATIVE(bhv_jet_stream_water_ring_loop),
+    END_LOOP(),
+};
+
+const BehaviorScript bhvGoldWaterRing[] = {
+    BEGIN(OBJ_LIST_LEVEL),
+    OR_INT(oFlags, OBJ_FLAG_UPDATE_GFX_POS_AND_ANGLE),
+    LOAD_ANIMATIONS(oAnimations, water_ring_seg6_anims_06013F7C),
+    SET_HITBOX_WITH_OFFSET(/*Radius*/ 450, /*Height*/ 20, /*Downwards offset*/ 20),
+    SET_INTERACT_TYPE(INTERACT_WATER_RING),
+    SET_INT(oDamageOrCoinValue, 2),
+    SET_INT(oIntangibleTimer, 20),
+    CALL_NATIVE(bhv_jet_stream_water_ring_init),
+    BEGIN_LOOP(),
+        SET_INT(oAnimState, 1),
         SET_INT(oIntangibleTimer, 0),
         CALL_NATIVE(bhv_jet_stream_water_ring_loop),
     END_LOOP(),
@@ -4646,6 +4683,14 @@ const BehaviorScript bhvBowserCourseRedCoinStar[] = {
     OR_INT(oFlags, (OBJ_FLAG_PERSISTENT_RESPAWN | OBJ_FLAG_UPDATE_GFX_POS_AND_ANGLE)),
     BEGIN_LOOP(),
         CALL_NATIVE(bhv_bowser_course_red_coin_star_loop),
+    END_LOOP(),
+};
+
+const BehaviorScript bhvGoldRingStar[] = {
+    BEGIN(OBJ_LIST_LEVEL),
+    OR_INT(oFlags, (OBJ_FLAG_PERSISTENT_RESPAWN | OBJ_FLAG_UPDATE_GFX_POS_AND_ANGLE)),
+    BEGIN_LOOP(),
+        CALL_NATIVE(bhv_gold_ring_star_loop),
     END_LOOP(),
 };
 

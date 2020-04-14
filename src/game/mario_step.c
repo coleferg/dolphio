@@ -639,6 +639,7 @@ s32 perform_air_step(struct MarioState *m, u32 stepArg) {
             || quarterStepResult == AIR_STEP_GRABBED_CEILING
             || quarterStepResult == AIR_STEP_HIT_LAVA_WALL) {
             m->canAirJump = FALSE;
+            m->ringsCollected = 0x0;
             break;
         }
     }

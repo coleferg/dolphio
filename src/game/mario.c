@@ -1239,9 +1239,9 @@ s32 set_water_plunge_action(struct MarioState *m) {
         m->faceAngle[0] = (int) (m->faceAngle[0] * 0.7f);
     }
 
-    // if (m->area->camera->mode != CAMERA_MODE_WATER_SURFACE) {
-    //     set_camera_mode(m->area->camera, CAMERA_MODE_WATER_SURFACE, 1);
-    // }
+    if (m->area->camera->mode != CAMERA_MODE_FREE_ROAM) {
+        set_camera_mode(m->area->camera, CAMERA_MODE_FREE_ROAM, 1);
+    }
 
     return set_mario_action(m, ACT_WATER_PLUNGE, 0);
 }
@@ -1287,7 +1287,7 @@ void debug_print_speed_action_normal(struct MarioState *m) {
     // f32 steepness;
     // f32 floor_nY;
 
-    if (TRUE) {
+    if (gShowDebugText) {
         s16 marioDirection = m->marioObj->header.gfx.angle[1] / 182;
         if (marioDirection < 0) marioDirection += 360;
 
@@ -1295,6 +1295,7 @@ void debug_print_speed_action_normal(struct MarioState *m) {
         print_text_fmt_int_no_relocate(150, SCREEN_HEIGHT - 31, "%d", m->pos[1]);
         print_text_fmt_int_no_relocate(220, SCREEN_HEIGHT - 31, "%d", m->pos[2]);
         print_text_fmt_int_no_relocate(10, SCREEN_HEIGHT - 50, "%d", marioDirection);
+        print_text_fmt_int_no_relocate(220, SCREEN_HEIGHT - 81, "%d", gLastCompletedStarNum);
         // steepness = sqrtf(
         //     ((m->floor->normal.x * m->floor->normal.x) + (m->floor->normal.z * m->floor->normal.z)));
         // floor_nY = m->floor->normal.y;
@@ -1326,6 +1327,7 @@ void update_mario_button_inputs(struct MarioState *m) {
     //         m->gravPower[1] = 0.1f;
     //     }
     // }
+    if (m->paralyzed == TRUE) return;
 
     if (m->controller->buttonPressed & A_BUTTON) {
         m->input |= INPUT_A_PRESSED;
@@ -1362,6 +1364,10 @@ void update_mario_button_inputs(struct MarioState *m) {
         m->framesSinceB += 1;
     }
 
+    if (m->controller->buttonPressed & L_TRIG) {
+        gShowDebugText = !gShowDebugText;
+    }
+
     if (m->action != ACT_DEBUG_FREE_MOVE && m->controller->buttonPressed & L_JPAD) {
         set_mario_action(m, ACT_DEBUG_FREE_MOVE, 0);
     }
@@ -1373,6 +1379,11 @@ void update_mario_button_inputs(struct MarioState *m) {
 void update_mario_joystick_inputs(struct MarioState *m) {
     struct Controller *controller = m->controller;
     f32 mag = ((controller->stickMag / 64.0f) * (controller->stickMag / 64.0f)) * 64.0f;
+    if (m->paralyzed == TRUE) {
+        m->intendedMag = 0;
+        m->intendedYaw = 0;
+        return;
+    }
 
     if (m->squishTimer == 0) {
         m->intendedMag = mag / 2.0f;
@@ -1858,7 +1869,9 @@ void init_mario(void) {
     gMarioState->gravPower[0] = 1.0f;
     gMarioState->gravPower[1] = 1.0f;
     gMarioState->gravPower[2] = 1.0f;
+    gMarioState->ringsCollected = 0x0;
     gMarioState->canAirJump = FALSE;
+    gMarioState->paralyzed = FALSE;
 
     gMarioState->invincTimer = 0;
 
@@ -1942,6 +1955,7 @@ void init_mario_from_save_file(void) {
     gMarioState->marioBodyState = &gBodyStates[0];
     gMarioState->controller = &gControllers[0];
     gMarioState->animation = &D_80339D10;
+    gMarioState->paralyzed = FALSE;
 
     gMarioState->numCoins = 0;
     gMarioState->numStars =
@@ -1952,6 +1966,7 @@ void init_mario_from_save_file(void) {
     gMarioState->gravPower[0] = 1.0f;
     gMarioState->gravPower[1] = 1.0f;
     gMarioState->gravPower[2] = 1.0f;
+    gMarioState->ringsCollected = 0x0;
 
     gMarioState->numLives = -1;
     gMarioState->health = 0x880;

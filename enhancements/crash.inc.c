@@ -167,13 +167,13 @@ void fb_fill(int baseX, int baseY, int width, int height) {
 
     for (y = baseY; y < baseY + height; y++) {
         for (x = baseX; x < baseX + width; x++) {
-            fbAddress[y * 320 + x] = fbFillColor;
+            fbAddress[y * SCREEN_WIDTH + x] = fbFillColor;
         }
     }
 }
 
 void fb_draw_char(int x, int y, u8 idx) {
-    u16 *out = &fbAddress[y * 320 + x];
+    u16 *out = &fbAddress[y * SCREEN_WIDTH + x];
     const u8 *in = &crashFont[idx * 3];
     int nbyte;
     int nrow;
@@ -188,7 +188,7 @@ void fb_draw_char(int x, int y, u8 idx) {
                     out[ncol] = fbFillColor;
                 }
             }
-            out += 320;
+            out += SCREEN_WIDTH;
         }
     }
 }

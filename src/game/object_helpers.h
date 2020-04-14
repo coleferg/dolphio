@@ -266,6 +266,7 @@ void obj_update_floor_height(void);
 struct Surface* obj_update_floor_height_and_get_floor(void);
 // extern ? apply_drag_to_value(?);
 void obj_apply_drag_xz(f32);
+extern void obj_move_xz_2(f32, s32);
 // extern ? obj_move_xz(?);
 // extern ? obj_move_update_underwater_flags(?);
 // extern ? obj_move_update_ground_air_flags(?);

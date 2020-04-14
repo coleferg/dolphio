@@ -303,7 +303,7 @@ Gfx *create_skybox_facing_camera(s8 player, s8 background, f32 fov,
 
     //! fov is always set to 90.0f. If this line is removed, then the game crashes because fov is 0 on
     //! the first frame, which causes a floating point divide by 0
-    fov = fov < 1.0f ? 90.0f : fov;
+    fov = 90.0f; // fov < 1.0f ? 90.0f : fov;
     sSkyBoxInfo[player].yaw = atan2s(cameraFaceZ, cameraFaceX);
     sSkyBoxInfo[player].pitch = atan2s(sqrtf(cameraFaceX * cameraFaceX + cameraFaceZ * cameraFaceZ), cameraFaceY);
     sSkyBoxInfo[player].scaledX = calculate_skybox_scaled_x(player, fov);
