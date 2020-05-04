@@ -211,7 +211,7 @@ void bhv_jet_stream_ring_spawner_loop(void) {
 }
 
 void CheckCollectedRingStatus(void) {
-    if (!(o->oBehParams & gMarioState->ringsCollected)) {
+    if (!(o->oBehParams >> 16 & gMarioState->ringsCollected)) {
         o->oAction = JS_RING_SPAWNER_ACT_ACTIVE;
     }
 }
@@ -235,7 +235,7 @@ void bhv_gold_ring_spawner_loop(void) {
         case JS_RING_SPAWNER_ACT_ACTIVE:
             GoldRingSpawnerActiveLoop();
 
-            if (o->oBehParams & gMarioState->ringsCollected) {
+            if (o->oBehParams >> 16 & gMarioState->ringsCollected) {
                 o->oTimer = 0;
                 o->oAction = JS_RING_SPAWNER_ACT_INACTIVE;
                 o->oWaterRingSpawnerRingsCollected = 0;

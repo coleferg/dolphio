@@ -22,6 +22,15 @@ extern Gfx mat_castle_grounds_riverWaterMat[];
 extern Gfx mat_castle_grounds_headWaterMat[];
 extern Gfx mat_castle_grounds_headWaterFallMat[];
 extern Gfx mat_castle_grounds_lakeWaterMat[];
+extern Gfx mat_bowser_1_waterMaterial[];
+extern Gfx mat_bowser_1_waterfallMaterial[];
+extern Gfx mat_world_waterMaterial[];
+extern Gfx mat_world_waterfallMaterial[];
+extern Gfx mat_bowser_1_slideWaterMat[];
+extern Gfx mat_bowser_1_waterCenterMat[];
+extern Gfx mat_bowser_1_warpMaterial[];
+extern Gfx mat_bowser_1_deathPlaneMaterial[];
+extern Gfx mat_bitfs_riverMaterial[];
 
 /*
  * Scrolling texture system by red.
@@ -69,5 +78,24 @@ void rgfx_update_scroll() {
             shift_s(&mat_castle_grounds_lakeWaterMat, 11, PACK_TILESIZE(0, 1));
         }
         break;
+        case LEVEL_BOWSER_1:
+        if (gCurrAreaIndex == 1) {
+            shift_s(&mat_bowser_1_waterMaterial, 11, PACK_TILESIZE(0, 1));
+            shift_t(&mat_bowser_1_waterfallMaterial, 18, PACK_TILESIZE(0, 3));
+            shift_t(&mat_bowser_1_slideWaterMat, 11, PACK_TILESIZE(0, 3));
+            shift_t(&mat_bowser_1_waterCenterMat, 11, PACK_TILESIZE(0, 2));
+            shift_t(&mat_bowser_1_deathPlaneMaterial, 11, PACK_TILESIZE(0, 1));
+            shift_t(&mat_bowser_1_warpMaterial, 11, PACK_TILESIZE(0, 1));
+        }
+        break;
+        case LEVEL_BITDW:
+        if (gCurrAreaIndex == 1) {
+            shift_t(&mat_world_waterMaterial, 12, PACK_TILESIZE(0, 1));
+            shift_s(&mat_world_waterfallMaterial, 12, PACK_TILESIZE(0, 4));
+        }
+        case LEVEL_BITFS:
+        if (gCurrAreaIndex == 1) {
+            shift_s(&mat_bitfs_riverMaterial, 18, PACK_TILESIZE(0, 3));
+        }
     }
 }

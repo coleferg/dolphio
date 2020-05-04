@@ -265,7 +265,7 @@
 #define DOOR_ENTER_LOBBY     2
 
 // Might rename these to reflect what they are used for instead "SET_45" etc.
-#define CAM_FOV_SET_45      1
+#define CAM_FOV_SET_DEFAULT      1
 #define CAM_FOV_DEFAULT     2
 #define CAM_FOV_APP_45      4
 #define CAM_FOV_SET_30      5

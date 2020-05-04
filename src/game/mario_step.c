@@ -552,7 +552,8 @@ void apply_gravity(struct MarioState *m) {
             m->vel[1] = -65.0f;
         }
     } else if (m->action == ACT_DOLPHIN_DIVE || m->action == ACT_DOLPHIN_WALL_KB) {
-        m->vel[1] -= 4.0f;
+        if (should_strengthen_gravity_for_jump_ascent(m)) m->vel[1] /= 1.2f;
+        else m->vel[1] -= 4.0f;
         if (m->vel[1] < -65.0f) {
             m->vel[1] = -65.0f;
         }

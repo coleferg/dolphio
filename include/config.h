@@ -24,10 +24,21 @@
 #define BUGFIX_STAR_BOWSER_KEY (0 || VERSION_US || VERSION_EU)
 
 // Screen Size Defines
-#define SCREEN_WIDTH 426
+// #define SCREEN_WIDTH 640
+// #define SCREEN_HEIGHT 480
+
+// #define SCREEN_WIDTH 640
+// #define SCREEN_HEIGHT 360
+
+#define DEFAULT_SCREEN_WIDTH 320
+
+// #define SCREEN_WIDTH 320
+// #define SCREEN_HEIGHT 240
+
+#define SCREEN_WIDTH 424 // 320 for console
 #define SCREEN_HEIGHT 240
 
 // Border Height Define for NTSC Versions
-#define BORDER_HEIGHT 8
+#define BORDER_HEIGHT 0
 
 #endif

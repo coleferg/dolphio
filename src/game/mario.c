@@ -1519,13 +1519,13 @@ void set_submerged_cam_preset_and_spawn_bubbles(struct MarioState *m) {
                 // set_camera_mode(m->area->camera, CAMERA_MODE_CLOSE, 1);
             }
         } else {
-            // if ((heightBelowWater > 800.0f) && (camPreset != CAMERA_MODE_BEHIND_MARIO)) {
-            //     set_camera_mode(m->area->camera, CAMERA_MODE_BEHIND_MARIO, 1);
-            // }
+            if ((heightBelowWater > 800.0f) && (camPreset != CAMERA_MODE_BEHIND_MARIO)) {
+                set_camera_mode(m->area->camera, CAMERA_MODE_BEHIND_MARIO, 1);
+            }
 
-            // if ((heightBelowWater < 400.0f) && (camPreset != CAMERA_MODE_WATER_SURFACE)) {
-            //     set_camera_mode(m->area->camera, CAMERA_MODE_WATER_SURFACE, 1);
-            // }
+            if ((heightBelowWater < 400.0f) && (camPreset != CAMERA_MODE_WATER_SURFACE)) {
+                set_camera_mode(m->area->camera, CAMERA_MODE_WATER_SURFACE, 1);
+            }
 
             if ((m->action & ACT_FLAG_INTANGIBLE) == 0) {
                 if ((m->pos[1] < (f32)(m->waterLevel - 160)) || (m->faceAngle[0] < -0x800)) {
@@ -1596,9 +1596,7 @@ void update_mario_info_for_cam(struct MarioState *m) {
     m->statusForCamera->action = m->action;
     if (m->canAirJump) {
         m->particleFlags |= PARTICLE_SPARKLES;
-    } else {
-        m->particleFlags &= PARTICLE_SPARKLES;
-    };
+    }
 
     vec3s_copy(m->statusForCamera->faceAngle, m->faceAngle);
 

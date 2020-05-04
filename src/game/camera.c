@@ -33,6 +33,7 @@
 #include "main.h"
 
 #define CBUTTON_MASK (U_CBUTTONS | D_CBUTTONS | L_CBUTTONS | R_CBUTTONS)
+#define BOUNDS_EXTENSION TRUE
 
 /**
  * @file camera.c
@@ -814,6 +815,10 @@ void pan_ahead_of_player(struct Camera *c) {
 }
 
 s16 find_in_bounds_yaw_wdw_bob_thi(Vec3f pos, Vec3f origin, s16 yaw) {
+    // disable bounds restriction when extending level bounds
+#ifdef BOUNDS_EXTENSION
+    return yaw;
+#endif
     switch (gCurrLevelArea) {
         case AREA_WDW_MAIN:
             yaw = clamp_positions_and_find_yaw(pos, origin, 4508.f, -3739.f, 4508.f, -3739.f);
@@ -1718,12 +1723,12 @@ s32 update_behind_mario_camera(struct Camera *c, Vec3f focus, Vec3f pos) {
     s16 yawSpeed;
     s16 pitchInc = 32;
     UNUSED u8 unused[12];
-    f32 maxDist = 800.f;
+    f32 maxDist = 1200.f;
     f32 focYOff = 125.f;
 
     // Zoom in when mario R_TRIG mode is active
     if (sSelectionFlags & CAM_MODE_MARIO_ACTIVE) {
-        maxDist = 350.f;
+        maxDist = 550.f;
         focYOff = 120.f;
     }
     if (!(sMarioCamState->action & (ACT_FLAG_SWIMMING | ACT_FLAG_METAL_WATER))) {
@@ -2354,7 +2359,8 @@ void mode_lakitu_camera(struct Camera *c) {
  * When no other mode is active and the current R button mode is mario
  */
 void mode_mario_camera(struct Camera *c) {
-    gCameraZoomDist = 350.f;
+    // gCameraZoomDist = 350.f;
+    gCameraZoomDist = 650.f;
     mode_default_camera(c);
 }
 
@@ -3156,6 +3162,8 @@ void update_camera(struct Camera *c) {
     gLakituState.lastFrameAction = sMarioCamState->action;
 }
 
+#define DEFAULT_FOV 50.f
+
 /**
  * Reset all the camera variables to their arcane defaults
  */
@@ -3221,7 +3229,7 @@ void reset_camera(struct Camera *c) {
     gLakituState.unusedVec1[2] = 0.f;
     gLakituState.lastFrameAction = 0;
     set_fov_function(CAM_FOV_DEFAULT);
-    sFOVState.fov = 45.f;
+    sFOVState.fov = DEFAULT_FOV;
     sFOVState.fovOffset = 0.f;
     sFOVState.unusedIsSleeping = 0;
     sFOVState.shakeAmplitude = 0.f;
@@ -7102,6 +7110,7 @@ void follow_mario_around_object(struct Camera *c) {
         vec3f_copy(sMarioCamState->pos, c->pos);
         vec3f_get_dist_and_angle(objectPos, c->pos, &unusedDist, &unusedPitch, &nextYaw);
         c->yaw = nextYaw;
+        set_fov_function(CAM_FOV_APP_60);
     }
 }
 
@@ -7439,7 +7448,7 @@ CmdRet cutscene_ending_cake_for_mario(struct Camera *c) {
  * Stop the ending cutscene, reset the fov.
  */
 CmdRet cutscene_ending_stop(struct Camera *c) {
-    set_fov_function(CAM_FOV_SET_45);
+    set_fov_function(CAM_FOV_SET_DEFAULT);
     c->cutscene = 0;
     gCutsceneTimer = CUTSCENE_STOP;
 }
@@ -8793,7 +8802,7 @@ CmdRet cutscene_pyramid_top_explode_warp(struct Camera *c) {
     f32 dist;
 
     set_fov_function(CAM_FOV_DEFAULT);
-    sFOVState.fov = 45.f;
+    sFOVState.fov = DEFAULT_FOV;
 
     vec3f_copy(sCutsceneVars[4].point, c->pos);
     vec3f_copy(sCutsceneVars[5].point, c->focus);
@@ -8817,7 +8826,7 @@ CmdRet cutscene_pyramid_top_explode_closeup(struct Camera *c) {
 
     c->focus[1] += 4.f;
     c->pos[1] -= 5.f;
-    sFOVState.fov = 45.f;
+    sFOVState.fov = DEFAULT_FOV;
     set_handheld_shake(HAND_CAM_SHAKE_CUTSCENE);
 }
 
@@ -9217,7 +9226,7 @@ CmdRet cutscene_non_painting_end(struct Camera *c) {
     if (c->defMode == CAMERA_MODE_CLOSE) {
         c->mode = CAMERA_MODE_CLOSE;
     } else {
-        c->mode = CAMERA_MODE_FREE_ROAM;
+        c->mode = gMarioState->area->camera->defMode;
     }
 
     sStatusFlags |= CAM_FLAG_UNUSED_CUTSCENE_ACTIVE;
@@ -11272,8 +11281,9 @@ void approach_fov_20(UNUSED struct MarioState *m) {
     camera_approach_f32_symmetric_bool(&sFOVState.fov, 20.f, 0.3f);
 }
 
-void set_fov_45(UNUSED struct MarioState *m) {
-    sFOVState.fov = 45.f;
+void set_fov_default(UNUSED struct MarioState *m) {
+    // sFOVState.fov = 45.f;
+    sFOVState.fov = DEFAULT_FOV;
 }
 
 void set_fov_29(UNUSED struct MarioState *m) {
@@ -11297,11 +11307,11 @@ void fov_default(struct MarioState *m) {
         camera_approach_f32_symmetric_bool(&sFOVState.fov, 30.f, (30.f - sFOVState.fov) / 30.f);
         sStatusFlags |= CAM_FLAG_SLEEPING;
     } else {
-        camera_approach_f32_symmetric_bool(&sFOVState.fov, 45.f, (45.f - sFOVState.fov) / 30.f);
+        camera_approach_f32_symmetric_bool(&sFOVState.fov, DEFAULT_FOV, (DEFAULT_FOV - sFOVState.fov) / 30.f);
         sFOVState.unusedIsSleeping = 0;
     }
     if (m->area->camera->cutscene == CUTSCENE_0F_UNUSED) {
-        sFOVState.fov = 45.f;
+        sFOVState.fov = DEFAULT_FOV;
     }
 }
 
@@ -11322,9 +11332,9 @@ void approach_fov_45(struct MarioState *m) {
     f32 targetFoV = sFOVState.fov;
 
     if (m->area->camera->mode == CAMERA_MODE_FIXED && m->area->camera->cutscene == 0) {
-        targetFoV = 45.f;
+        targetFoV = DEFAULT_FOV;
     } else {
-        targetFoV = 45.f;
+        targetFoV = DEFAULT_FOV;
     }
 
     sFOVState.fov = approach_f32(sFOVState.fov, targetFoV, 2.f, 2.f);
@@ -11344,7 +11354,7 @@ void set_fov_bbh(struct MarioState *m) {
     if (m->area->camera->mode == CAMERA_MODE_FIXED && m->area->camera->cutscene == 0) {
         targetFoV = 60.f;
     } else {
-        targetFoV = 45.f;
+        targetFoV = DEFAULT_FOV;
     }
 
     sFOVState.fov = approach_f32(sFOVState.fov, targetFoV, 2.f, 2.f);
@@ -11360,8 +11370,8 @@ Gfx *geo_camera_fov(s32 callContext, struct GraphNode *g, UNUSED void *context) 
 
     if (callContext == GEO_CONTEXT_RENDER) {
         switch (fovFunc) {
-            case CAM_FOV_SET_45:
-                set_fov_45(marioState);
+            case CAM_FOV_SET_DEFAULT:
+                set_fov_default(marioState);
                 break;
             case CAM_FOV_SET_29:
                 set_fov_29(marioState);
@@ -11396,6 +11406,7 @@ Gfx *geo_camera_fov(s32 callContext, struct GraphNode *g, UNUSED void *context) 
             //! No default case
         }
     }
+
 
     perspective->fov = sFOVState.fov;
     shake_camera_fov(perspective);

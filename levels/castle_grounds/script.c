@@ -136,7 +136,7 @@ const LevelScript level_castle_grounds_entry[] = {
     #include "levels/castle_grounds/script.inc.c"
 
 	FREE_LEVEL_POOL(),
-    MARIO_POS(0x01, -1, 14520, 6478, -14801),
+    MARIO_POS(0x01, 132, 14520, 6478, -22993),
     CALL(/*arg*/ 0, /*func*/ lvl_init_or_update),
     CALL_LOOP(/*arg*/ 1, /*func*/ lvl_init_or_update),
     CLEAR_LEVEL(),

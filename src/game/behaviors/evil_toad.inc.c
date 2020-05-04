@@ -18,7 +18,10 @@
 #define TOAD_STAR_2_DIALOG_AFTER DIALOG_155
 #define TOAD_STAR_3_DIALOG_AFTER DIALOG_156
 
-#define EVIL_TOAD_HEALTH 1
+#define EVIL_TOAD_HEALTH 2
+
+#define NUM_TOADS_IN_CULT 10
+// #define NUM_TOADS_IN_CULT 4
 
 enum ToadEvilStates {
     TOAD_NEAR_MARIO,
@@ -41,7 +44,7 @@ static struct ObjectHitbox sToadEvilHitbox = {
     /* downOffset:        */ 0,
     /* damageOrCoinValue: */ 3,
     /* health:            */ EVIL_TOAD_HEALTH,
-    /* numLootCoins:      */ 5,
+    /* numLootCoins:      */ -1,
     /* radius:            */ 72,
     /* height:            */ 50,
     /* hurtboxRadius:     */ 42,
@@ -100,6 +103,7 @@ static void toad_near_mario(s16 isEvil) {
         if (targetVel > 0.0f) {
             o->oForwardVel = approach_f32(o->oForwardVel, targetVel, fVelInc, fVelInc);
             obj_update_floor_and_walls();
+            obj_resolve_object_collisions(NULL);
             obj_move_standard(-30);
         }
     } else if (isCultToad && o->oTimer > 30 + (RandomFloat() * 10)) {
@@ -137,6 +141,7 @@ static void toad_going_home(s16 isEvil) {
         if (targetVel > 0.0f) {
             o->oForwardVel = approach_f32(o->oForwardVel, targetVel, fVelInc, fVelInc);
             obj_update_floor_and_walls();
+            obj_resolve_object_collisions(NULL);
             obj_move_standard(-30);
         }
     }
@@ -184,7 +189,7 @@ static void toad_idle(s16 isEvil) {
         o->oToadMessageDialogId == TOAD_STAR_2_DIALOG ||
         o->oToadMessageDialogId == TOAD_STAR_3_DIALOG
     );
-    s16 isWaitingToPounce = o->oBehParams == 0x1 && isEvil;
+    s16 isWaitingToPounce = o->oBehParams == 0x4 && isEvil;
     s16 isCloseToMario = o->oDistanceToMario < (isWaitingToPounce ? 2400.0f : 1000.0f);
     s16 isSemiCloseToMario = o->oDistanceToMario < (isWaitingToPounce ? 4000.0f : 2400.0f);
 
@@ -236,6 +241,7 @@ static void toad_evil_jump(void) {
         s16 targetAngle = angle_to_object(o, gMarioObject);
         s16 rotSpeed = 0x200;
         obj_rotate_yaw_toward(targetAngle, rotSpeed);
+        obj_resolve_object_collisions(NULL);
         obj_move_standard(-30);
     }
 
@@ -291,7 +297,7 @@ void bhvToadEvil_loop(void) {
             struct Object *cultSpawner = o->parentObj;
             cultSpawner->oCultMembersKilled += 0x1;
             o->oHealth = -1;
-            // if (cultSpawner->oCultMembersKilled == 16) {
+            // if (cultSpawner->oCultMembersKilled == NUM_TOADS_IN_CULT) {
             //     o->oBehParams |= 18 << 24;
             //     create_star(cultSpawner->oPosX, cultSpawner->oPosY + 100, cultSpawner->oPosZ);
             // }
@@ -419,7 +425,7 @@ static void toad_cult_attacking_mario(void) {
     if (o->oTimer % 100 == 0) {
         spawn_object_relative(0x0, 0, 250, 0, o, MODEL_BLUE_FLAME, bhvBlueBowserFlame);
     }
-    if (o->oCultMembersKilled == 16) {
+    if (o->oCultMembersKilled == NUM_TOADS_IN_CULT) {
         struct Object *newStar;
         gObjCutsceneDone = TRUE;
 
@@ -435,7 +441,7 @@ static void toad_cult_attacking_mario(void) {
         // newStar->oInteractionSubtype |= INT_SUBTYPE_NO_EXIT;
 
         // func_802F1BD4(o->oPosX, o->oPosY + 100, o->oPosZ);
-        o->oCultMembersKilled = 17;
+        o->oCultMembersKilled = (NUM_TOADS_IN_CULT + 1);
         o->activeFlags = 0;
     }
 }
@@ -454,8 +460,6 @@ void bhvToadCultSpawner_loop(void) {
             break;
     };
 }
-
-#define NUM_TOADS_IN_CULT 16
 
 void bhvToadCultSpawner_init(void) {
     s32 angleInc = 0xFFFF / NUM_TOADS_IN_CULT;

@@ -77,7 +77,7 @@ void bhv_bowser_course_red_coin_star_loop(void) {
 void bhv_gold_ring_star_loop(void) {
     switch (o->oAction) {
         case 0:
-            if (o->oBehParams - 1 == gMarioState->ringsCollected)
+            if ((o->oBehParams >> 16) - 1 == gMarioState->ringsCollected)
                 o->oAction = 1;
             break;
 

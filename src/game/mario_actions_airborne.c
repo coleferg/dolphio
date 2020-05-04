@@ -822,6 +822,8 @@ s32 act_dolphin_dive(struct MarioState *m) {
         play_mario_sound(m, SOUND_ACTION_THROW, SOUND_MARIO_HOOHOO);
     }
 
+    if (m->actionTimer < 2) m->particleFlags |= PARTICLE_10;
+
     // if (m->prevAction == ACT_WATER_JUMP) {
     //     m->intendedMag = 32.f;
     // }
@@ -2161,6 +2163,7 @@ s32 set_dolphin_action(struct MarioState *m) {
         m->ringsCollected = 0x0;
 
         set_mario_action(m, ACT_DOLPHIN_DIVE, 0);
+        m->particleFlags |= PARTICLE_6;
         return TRUE;
     } else if (m->controller->buttonDown & A_BUTTON && m->appliedGravChange
                 && !(m->input & INPUT_B_PRESSED || m->controller->buttonDown & L_TRIG)) {
@@ -2174,6 +2177,7 @@ s32 set_dolphin_action(struct MarioState *m) {
         m->ringsCollected = 0x0;
 
         set_mario_action(m, ACT_DOLPHIN_DIVE, 0);
+        m->particleFlags |= PARTICLE_10;
         return TRUE;
     };
     return FALSE;

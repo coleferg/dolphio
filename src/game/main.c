@@ -410,6 +410,7 @@ void turn_off_audio(void) {
 
 void dynres_change_vi(OSViMode *mode, int width, int height)
 {
+    // mode->comRegs.vSync = 2100;
     mode->comRegs.width = width;
     mode->comRegs.xScale = (width*512)/320;
     mode->fldRegs[0].origin = width*2;

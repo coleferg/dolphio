@@ -734,7 +734,7 @@ u32 interact_water_ring(struct MarioState *m, UNUSED u32 interactType, struct Ob
     o->oAction = WATER_RING_ACT_COLLECTED;
 
     m->canAirJump = TRUE;
-    m->ringsCollected |= o->oBehParams;
+    m->ringsCollected |= (o->oBehParams >> 16);
     
     return FALSE;
 }
@@ -1760,7 +1760,7 @@ void pss_end_slide(struct MarioState *m) {
 }
 
 void warp_to_local_node(struct MarioState *m) {
-    if (m->pos[1] < m->floorHeight + 2048.0f) {
+    if (m->pos[1] < m->floorHeight + 1800.0f) {
         if (level_trigger_warp(m, WARP_OP_INSTANT_LOCAL) == 20 && !(m->flags & MARIO_UNKNOWN_18)) {
             play_sound(SOUND_MARIO_WAAAOOOW, m->marioObj->header.gfx.cameraToObject);
         }
