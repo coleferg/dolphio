@@ -11,6 +11,8 @@
 #include "segments.h"
 #include "main.h"
 #include "thread6.h"
+// #include "usb/usb.h"
+// #include "usb/debug.h"
 // #include "../enhancements/mem_error_screen.inc.c"
 
 // Message IDs
@@ -492,6 +494,7 @@ void main_func(void) {
 #ifdef TARGET_N64
     VI = osViModeTable[OS_VI_NTSC_LAN1];
     dynres_change_vi(&VI, SCREEN_WIDTH, SCREEN_HEIGHT);
+    // debug_initialize();
 #endif
     osInitialize();
     stub_main_1();
