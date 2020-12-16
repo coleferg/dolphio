@@ -4,6 +4,8 @@
 #include "level_commands.h"
 #include "game/area.h"
 
+#include "make_const_nonconst.h"
+
 #include "segment_symbols.h"
 
 #include "actors/common0.h"
@@ -67,12 +69,13 @@ const LevelScript level_main_scripts_entry[] = {
     LOAD_MODEL_FROM_GEO(MODEL_SMOKE,                   smoke_geo),
     LOAD_MODEL_FROM_GEO(MODEL_SPARKLES,                sparkles_geo),
     LOAD_MODEL_FROM_GEO(MODEL_BUBBLE,                  bubble_geo),
-    LOAD_MODEL_FROM_GEO(MODEL_SPOT_ON_GROUND,          spot_on_ground_geo),
-    LOAD_MODEL_FROM_GEO(MODEL_WATER_WAVES_SURF,        water_waves_surface_geo),
+    LOAD_MODEL_FROM_GEO(MODEL_SMALL_WATER_SPLASH,      small_water_splash_geo),
+    LOAD_MODEL_FROM_GEO(MODEL_IDLE_WATER_WAVE,         idle_water_wave_geo),
     LOAD_MODEL_FROM_GEO(MODEL_WATER_SPLASH,            water_splash_geo),
-    LOAD_MODEL_FROM_GEO(MODEL_WATER_WAVES,             water_waves_geo),
+    LOAD_MODEL_FROM_GEO(MODEL_WAVE_TRAIL,              wave_trail_geo),
     LOAD_MODEL_FROM_GEO(MODEL_YELLOW_COIN,             yellow_coin_geo),
     LOAD_MODEL_FROM_GEO(MODEL_STAR,                    star_geo),
+    LOAD_MODEL_FROM_GEO(MODEL_FRUIT,                   fruit_geo),
     LOAD_MODEL_FROM_GEO(MODEL_TRANSPARENT_STAR,        transparent_star_geo),
     LOAD_MODEL_FROM_GEO(MODEL_WOODEN_SIGNPOST,         wooden_signpost_geo),
     LOAD_MODEL_FROM_DL( MODEL_WHITE_PARTICLE_SMALL,    white_particle_small_dl,     LAYER_ALPHA),
@@ -110,6 +113,8 @@ const LevelScript level_main_scripts_entry[] = {
     LOAD_MODEL_FROM_GEO(MODEL_EXPLOSION,               explosion_geo),
     LOAD_MODEL_FROM_GEO(MODEL_DIRT_ANIMATION,          dirt_animation_geo),
     LOAD_MODEL_FROM_GEO(MODEL_CARTOON_STAR,            cartoon_star_geo),
+    LOAD_MODEL_FROM_GEO(MODEL_SLIDING_DOOR,            sliding_door_geo),
+    LOAD_MODEL_FROM_GEO(MODEL_JELLYCUBE,               jellycube_geo),
     FREE_LEVEL_POOL(),
     CALL(/*arg*/ 0, /*func*/ lvl_init_from_save_file),
     LOOP_BEGIN(),
@@ -230,7 +235,7 @@ const LevelScript script_func_global_5[] = {
 const LevelScript script_func_global_6[] = {
     LOAD_MODEL_FROM_GEO(MODEL_POKEY_HEAD,              pokey_head_geo),
     LOAD_MODEL_FROM_GEO(MODEL_POKEY_BODY_PART,         pokey_body_part_geo),
-    LOAD_MODEL_FROM_GEO(MODEL_TORNADO,                 tornado_seg5_geo_05014630),
+    LOAD_MODEL_FROM_GEO(MODEL_TWEESTER,                tweester_geo),
     LOAD_MODEL_FROM_GEO(MODEL_KLEPTO,                  klepto_geo),
     LOAD_MODEL_FROM_GEO(MODEL_EYEROK_LEFT_HAND,        eyerok_left_hand_geo),
     LOAD_MODEL_FROM_GEO(MODEL_EYEROK_RIGHT_HAND,       eyerok_right_hand_geo),
@@ -329,6 +334,9 @@ const LevelScript script_func_global_16[] = {
     LOAD_MODEL_FROM_GEO(MODEL_LAKITU,                  lakitu_geo),
     LOAD_MODEL_FROM_GEO(MODEL_TOAD,                    toad_geo),
     LOAD_MODEL_FROM_GEO(MODEL_WATER_RING,              water_ring_geo),
+    LOAD_MODEL_FROM_GEO(MODEL_SLOTH_BASIC,             sloth_geo),
+    LOAD_MODEL_FROM_GEO(MODEL_MONKAT,                  monkat_geo),
+    LOAD_MODEL_FROM_GEO(MODEL_LIZARD,                  lizard_geo),
     RETURN(),
 };
 

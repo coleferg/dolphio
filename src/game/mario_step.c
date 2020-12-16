@@ -5,7 +5,7 @@
 #include "engine/surface_collision.h"
 #include "mario.h"
 #include "audio/external.h"
-#include "display.h"
+#include "game_init.h"
 #include "interaction.h"
 #include "mario_step.h"
 
@@ -21,9 +21,9 @@ struct Surface gWaterSurfacePseudoFloor = {
  * to be used for the beta trampoline. Its return value
  * is used by set_mario_y_vel_based_on_fspeed as a constant
  * addition to Mario's Y velocity. Given the closeness of
- * this function to nop_80254E50, it is probable that this
+ * this function to stub_mario_step_2, it is probable that this
  * was intended to check whether a trampoline had made itself
- * known through nop_80254E50 and whether Mario was on it,
+ * known through stub_mario_step_2 and whether Mario was on it,
  * and if so return a higher value than 0.
  */
 f32 get_additive_y_vel_for_jumps(void) {
@@ -33,13 +33,13 @@ f32 get_additive_y_vel_for_jumps(void) {
 /**
  * Does nothing, but takes in a MarioState. This is only ever
  * called by update_mario_inputs, which is called as part of Mario's
- * update routine. Due to its proximity to nop_80254E50, an
+ * update routine. Due to its proximity to stub_mario_step_2, an
  * incomplete trampoline function, and get_additive_y_vel_for_jumps,
  * a potentially trampoline-related function, it is plausible that
  * this could be used for checking if Mario was on the trampoline.
  * It could, for example, make him bounce.
  */
-void nop_80254E3C(UNUSED struct MarioState *x) {
+void stub_mario_step_1(UNUSED struct MarioState *x) {
 }
 
 /**
@@ -49,7 +49,7 @@ void nop_80254E3C(UNUSED struct MarioState *x) {
  * by the trampoline to make itself known to get_additive_y_vel_for_jumps,
  * or to set a variable with its intended additive Y vel.
  */
-void nop_80254E50(void) {
+void stub_mario_step_2(void) {
 }
 
 void transfer_bully_speed(struct BullyCollisionData *obj1, struct BullyCollisionData *obj2) {
@@ -71,8 +71,8 @@ void transfer_bully_speed(struct BullyCollisionData *obj1, struct BullyCollision
     //! Bully battery
 }
 
-void init_bully_collision_data(struct BullyCollisionData *data, f32 posX, f32 posZ, f32 forwardVel,
-                               s16 yaw, f32 conversionRatio, f32 radius) {
+BAD_RETURN(s32) init_bully_collision_data(struct BullyCollisionData *data, f32 posX, f32 posZ,
+                               f32 forwardVel, s16 yaw, f32 conversionRatio, f32 radius) {
     if (forwardVel < 0.0f) {
         forwardVel *= -1.0f;
         yaw += 0x8000;
@@ -152,7 +152,7 @@ u32 mario_update_quicksand(struct MarioState *m, f32 sinkingSpeed) {
         }
     }
 
-    return 0;
+    return FALSE;
 }
 
 u32 mario_push_off_steep_floor(struct MarioState *m, u32 action, u32 actionArg) {
@@ -181,10 +181,10 @@ u32 mario_update_moving_sand(struct MarioState *m) {
         m->vel[0] += pushSpeed * sins(pushAngle);
         m->vel[2] += pushSpeed * coss(pushAngle);
 
-        return 1;
+        return TRUE;
     }
 
-    return 0;
+    return FALSE;
 }
 
 u32 mario_update_windy_ground(struct MarioState *m) {
@@ -214,10 +214,10 @@ u32 mario_update_windy_ground(struct MarioState *m) {
 #if VERSION_JP
         play_sound(SOUND_ENV_WIND2, m->marioObj->header.gfx.cameraToObject);
 #endif
-        return 1;
+        return TRUE;
     }
 
-    return 0;
+    return FALSE;
 }
 
 void stop_and_set_height_to_floor(struct MarioState *m) {
@@ -352,16 +352,16 @@ u32 check_ledge_grab(struct MarioState *m, struct Surface *wall, Vec3f intendedP
     f32 displacementZ;
 
     if (m->vel[1] > 0) {
-        return 0;
+        return FALSE;
     }
 
     displacementX = nextPos[0] - intendedPos[0];
     displacementZ = nextPos[2] - intendedPos[2];
 
-    // Only ledge grab if the wall displaced mario in the opposite direction of
+    // Only ledge grab if the wall displaced Mario in the opposite direction of
     // his velocity.
     if (displacementX * m->vel[0] + displacementZ * m->vel[2] > 0.0f) {
-        return 0;
+        return FALSE;
     }
 
     //! Since the search for floors starts at y + 160, we will sometimes grab
@@ -371,7 +371,7 @@ u32 check_ledge_grab(struct MarioState *m, struct Surface *wall, Vec3f intendedP
     ledgePos[1] = find_floor(ledgePos[0], nextPos[1] + 160.0f, ledgePos[2], &ledgeFloor);
 
     if (ledgePos[1] - nextPos[1] <= 100.0f) {
-        return 0;
+        return FALSE;
     }
 
     vec3f_copy(m->pos, ledgePos);
@@ -382,7 +382,7 @@ u32 check_ledge_grab(struct MarioState *m, struct Surface *wall, Vec3f intendedP
 
     m->faceAngle[0] = 0;
     m->faceAngle[1] = atan2s(wall->normal.z, wall->normal.x) + 0x8000;
-    return 1;
+    return TRUE;
 }
 
 s32 perform_air_quarter_step(struct MarioState *m, Vec3f intendedPos, u32 stepArg) {
@@ -402,7 +402,7 @@ s32 perform_air_quarter_step(struct MarioState *m, Vec3f intendedPos, u32 stepAr
     lowerWall = resolve_and_return_wall_collisions(nextPos, 30.0f, 50.0f);
 
     floorHeight = find_floor(nextPos[0], nextPos[1], nextPos[2], &floor);
-    ceilHeight = vec3f_find_ceil(nextPos, floorHeight, &ceil);
+    ceilHeight = vec3f_find_ceil(nextPos, nextPos[1], &ceil);
 
     waterLevel = find_water_level(nextPos[0], nextPos[2]);
 
@@ -437,7 +437,7 @@ s32 perform_air_quarter_step(struct MarioState *m, Vec3f intendedPos, u32 stepAr
         }
 
         //! When ceilHeight - floorHeight <= 160, the step result says that
-        // mario landed, but his movement is cancelled and his referenced floor
+        // Mario landed, but his movement is cancelled and his referenced floor
         // isn't updated (pedro spots)
         m->pos[1] = floorHeight;
         return AIR_STEP_LANDED;
@@ -535,6 +535,10 @@ u32 should_strengthen_gravity_for_jump_ascent(struct MarioState *m) {
 void apply_gravity(struct MarioState *m) {
     if (m->action == ACT_TWIRLING && m->vel[1] < 0.0f) {
         apply_twirl_gravity(m);
+    } else if (m->action == ACT_DOLPHIN_JELLY_LAUNCH_UP) {
+        m->vel[1] -= 1.5f;
+    } else if (m->action == ACT_FLOATING) {
+        m->vel[1] *= 0.9f;
     } else if (m->action == ACT_SHOT_FROM_CANNON) {
         m->vel[1] -= 1.0f;
         if (m->vel[1] < -75.0f) {
@@ -570,8 +574,7 @@ void apply_gravity(struct MarioState *m) {
             m->vel[1] = -16.0f;
         }
     } else if ((m->flags & MARIO_WING_CAP) && m->vel[1] < 0.0f && (m->input & INPUT_A_DOWN)) {
-        m->marioBodyState->unk07 = 1;
-
+        m->marioBodyState->wingFlutter = TRUE;
         m->vel[1] -= 2.0f;
         if (m->vel[1] < -37.5f) {
             if ((m->vel[1] += 4.0f) > -37.5f) {

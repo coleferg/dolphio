@@ -1,14 +1,21 @@
-#include <ultra64.h>
+#include <PR/ultratypes.h>
 
-#include "sm64.h"
-#include "engine/math_util.h"
-#include "memory.h"
 #include "area.h"
+#include "engine/math_util.h"
+#include "geo_misc.h"
+#include "gfx_dimensions.h"
+#include "level_update.h"
+#include "memory.h"
 #include "save_file.h"
 #include "segment2.h"
 #include "level_update.h"
 #include "geo_misc.h"
+#include "day_cycle.h"
+#include "sm64.h"
 
+#ifndef TARGET_N64
+#define BETTER_SKYBOX_POSITION_PRECISION
+#endif
 
 /**
  * @file skybox.c
@@ -48,11 +55,17 @@ struct Skybox {
     u16 yaw;
     /// The camera's pitch, which is bounded by +-16384, which maps to -90 to 90 degrees
     s16 pitch;
+#ifdef BETTER_SKYBOX_POSITION_PRECISION
+    /// The skybox's X position in world space
+    f32 scaledX;
+    /// The skybox's Y position in world space
+    f32 scaledY;
+#else
     /// The skybox's X position in world space
     s32 scaledX;
     /// The skybox's Y position in world space
     s32 scaledY;
-
+#endif
     /// The index of the upper-left tile in the 3x3 grid that gets drawn
     s32 upperLeftTile;
 };
@@ -92,6 +105,7 @@ SkyboxTexture *sSkyboxTextures[10] = {
 u8 sSkyboxColors[][3] = {
     { 0x50, 0x64, 0x5A },
     { 0xFF, 0xFF, 0xFF },
+    { 0x30, 0x32, 0x38 },
 };
 
 /**
@@ -134,17 +148,30 @@ u8 sSkyboxColors[][3] = {
  *                 (how far is the camera rotated from 0, scaled 0 to 1)   *
  *                 (the screen width)
  */
-int calculate_skybox_scaled_x(s8 player, f32 fov) {
+#ifdef BETTER_SKYBOX_POSITION_PRECISION
+f32
+#else
+s32
+#endif
+calculate_skybox_scaled_x(s8 player, f32 fov) {
     f32 yaw = sSkyBoxInfo[player].yaw;
 
     //! double literals are used instead of floats
     f32 yawScaled = SCREEN_WIDTH * 360.0 * yaw / (fov * 65536.0);
+#ifdef BETTER_SKYBOX_POSITION_PRECISION
+    f32 scaledX = yawScaled;
+
+    if (scaledX > SKYBOX_WIDTH) {
+        scaledX -= (s32) scaledX / SKYBOX_WIDTH * SKYBOX_WIDTH;
+    }
+#else
     // Round the scaled yaw. Since yaw is a u16, it doesn't need to check for < 0
     s32 scaledX = yawScaled + 0.5;
 
     if (scaledX > SKYBOX_WIDTH) {
         scaledX -= scaledX / SKYBOX_WIDTH * SKYBOX_WIDTH;
     }
+#endif
     return SKYBOX_WIDTH - scaledX;
 }
 
@@ -154,18 +181,26 @@ int calculate_skybox_scaled_x(s8 player, f32 fov) {
  * fov may have been used in an earlier version, but the developers changed the function to always use
  * 90 degrees.
  */
-int calculate_skybox_scaled_y(s8 player, UNUSED f32 fov) {
+#ifdef BETTER_SKYBOX_POSITION_PRECISION
+f32
+#else
+s32
+#endif
+calculate_skybox_scaled_y(s8 player, UNUSED f32 fov) {
     // Convert pitch to degrees. Pitch is bounded between -90 (looking down) and 90 (looking up).
     f32 pitchInDegrees = (f32) sSkyBoxInfo[player].pitch * 360.0 / 65535.0;
 
     // Scale by 360 / fov
-    f32 degreesToScale = 360.0f * pitchInDegrees / fov;
+    f32 degreesToScale = 360.0f * pitchInDegrees / 90.0;
+#ifdef BETTER_SKYBOX_POSITION_PRECISION
+    f32 scaledY = degreesToScale + 5 * SKYBOX_TILE_HEIGHT;
+#else
     s32 roundedY = round_float(degreesToScale);
 
     // Since pitch can be negative, and the tile grid starts 1 octant above the camera's focus, add
     // 5 octants to the y position
     s32 scaledY = roundedY + 5 * SKYBOX_TILE_HEIGHT;
-
+#endif
     if (scaledY > SKYBOX_HEIGHT) {
         scaledY = SKYBOX_HEIGHT;
     }
@@ -178,7 +213,7 @@ int calculate_skybox_scaled_y(s8 player, UNUSED f32 fov) {
 /**
  * Converts the upper left xPos and yPos to the index of the upper left tile in the skybox.
  */
-static int get_top_left_tile_idx(s8 player) {
+static s32 get_top_left_tile_idx(s8 player) {
     s32 tileCol = sSkyBoxInfo[player].scaledX / SKYBOX_TILE_WIDTH;
     s32 tileRow = (SKYBOX_HEIGHT - sSkyBoxInfo[player].scaledY) / SKYBOX_TILE_HEIGHT;
 
@@ -227,12 +262,7 @@ void draw_skybox_tile_grid(Gfx **dlist, s8 background, s8 player, s8 colorIndex)
                 (*(SkyboxTexture *) segmented_to_virtual(sSkyboxTextures[background]))[tileIndex];
             Vtx *vertices = make_skybox_rect(tileIndex, colorIndex);
 
-            gDPSetTextureImage((*dlist)++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, texture);
-            gDPTileSync((*dlist)++);
-            gDPSetTile((*dlist)++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_LOADTILE, 0,
-                G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD);
-            gDPLoadSync((*dlist)++);
-            gDPLoadBlock((*dlist)++, G_TX_LOADTILE, 0, 0, 32 * 32 - 1, CALC_DXT(32, G_IM_SIZ_16b_BYTES));
+            gLoadBlockTexture((*dlist)++, 32, 32, G_IM_FMT_RGBA, texture);
             gSPVertex((*dlist)++, VIRTUAL_TO_PHYSICAL(vertices), 4, 0);
             gSPDisplayList((*dlist)++, dl_draw_quad_verts_0123);
         }
@@ -246,6 +276,16 @@ void *create_skybox_ortho_matrix(s8 player) {
     f32 top = sSkyBoxInfo[player].scaledY;
     Mtx *mtx = alloc_display_list(sizeof(*mtx));
 
+#ifdef TRUE
+    f32 half_width = (4.0f / 3.0f) / GFX_DIMENSIONS_ASPECT_RATIO * SCREEN_WIDTH / 2;
+    f32 center = (sSkyBoxInfo[player].scaledX + SCREEN_WIDTH / 2);
+    if (half_width < SCREEN_WIDTH / 2) {
+        // A wider screen than 4:3
+        left = center - half_width;
+        right = center + half_width;
+    }
+#endif
+
     if (mtx != NULL) {
         guOrtho(mtx, left, right, bottom, top, 0.0f, 3.0f, 1.0f);
     } else {
@@ -258,7 +298,7 @@ void *create_skybox_ortho_matrix(s8 player) {
  * Creates the skybox's display list, then draws the 3x3 grid of tiles.
  */
 Gfx *init_skybox_display_list(s8 player, s8 background, s8 colorIndex) {
-    s32 dlCommandCount = 5 + 9 * 7; // 5 for the start and end, plus 9 skybox tiles
+    s32 dlCommandCount = 5 + (3 * 3) * 7; // 5 for the start and end, plus 9 skybox tiles
     void *skybox = alloc_display_list(dlCommandCount * sizeof(Gfx));
     Gfx *dlist = skybox;
 
@@ -296,14 +336,18 @@ Gfx *create_skybox_facing_camera(s8 player, s8 background, f32 fov,
     f32 cameraFaceZ = focZ - posZ;
     s8 colorIndex = 1;
 
-    // If the first star is collected in JRB, make the sky darker and slightly green
-    if (background == 8 && !(save_file_get_star_flags(gCurrSaveFileNum - 1, COURSE_JRB - 1) & 1)) {
-        colorIndex = 0;
-    }
+    // // If the first star is collected in JRB, make the sky darker and slightly green
+    // if (background == 8 && !(save_file_get_star_flags(gCurrSaveFileNum - 1, COURSE_JRB - 1) & 1)) {
+    //     colorIndex = 0;
+    // }
+    // colorIndex = 2;
+    // sSkyboxColors[colorIndex][0] = get_interpolated_color_u8(0xFF, 0x30, gDayAmtR);
+    // sSkyboxColors[colorIndex][1] = get_interpolated_color_u8(0xFF, 0x32, gDayAmtG);
+    // sSkyboxColors[colorIndex][2] = get_interpolated_color_u8(0xFF, 0x38, gDayAmtB);
 
     //! fov is always set to 90.0f. If this line is removed, then the game crashes because fov is 0 on
     //! the first frame, which causes a floating point divide by 0
-    fov = 90.0f; // fov < 1.0f ? 90.0f : fov;
+    fov = 90.0f;
     sSkyBoxInfo[player].yaw = atan2s(cameraFaceZ, cameraFaceX);
     sSkyBoxInfo[player].pitch = atan2s(sqrtf(cameraFaceX * cameraFaceX + cameraFaceZ * cameraFaceZ), cameraFaceY);
     sSkyBoxInfo[player].scaledX = calculate_skybox_scaled_x(player, fov);

@@ -49,5 +49,6 @@
 #include "levels/bitdw/collapsing_stairs_4/collision.inc.c"
 #include "levels/bitdw/collapsing_stairs_5/collision.inc.c"
 
-#include "levels/bitdw/areas/1/world/model.inc.c"
-#include "levels/bitdw/areas/1/world/collision.inc.c"
+// #include "levels/bitdw/areas/1/world/model.inc.c"
+// #include "levels/bitdw/areas/1/world/collision.inc.c"
+#include "levels/bitdw/leveldata.inc.c"

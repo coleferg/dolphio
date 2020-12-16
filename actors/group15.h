@@ -100,4 +100,18 @@ extern const GeoLayout water_ring_geo[];
 extern const Gfx water_ring_seg6_dl_06013AC0[];
 extern const Gfx water_ring_seg6_dl_gold[];
 extern const struct Animation *const water_ring_seg6_anims_06013F7C[];
+#include "toadle/geo_header.h"
+
+#include "sloth/geo_header.h"
+
+#include "monkat/geo_header.h"
+
+
+#include "monkat/anim_header.h"
+
+#include "sloth/anim_header.h"
+#include "lizard/geo_header.h"
+
+
+#include "lizard/anim_header.h"
 #endif

@@ -1,11 +1,13 @@
-#include "ultra64.h"
-#include "sm64.h"
-#include "prevent_bss_reordering.h"
-#include "types.h"
+#include <PR/ultratypes.h>
+
 #include "game/memory.h"
 #include "game/segment2.h"
 #include "game/segment7.h"
 #include "intro_geo.h"
+#include "sm64.h"
+#include "textures.h"
+#include "types.h"
+#include "prevent_bss_reordering.h"
 
 // frame counts for the zoom in, hold, and zoom out of title model
 #define INTRO_STEPS_ZOOM_IN 20
@@ -22,26 +24,15 @@ struct GraphNodeMore {
     /*0x18*/ u32 unk18;
 };
 
-// title screen segment A
-extern Gfx title_screen_bg_dl_0A000118[];
-extern Gfx title_screen_bg_dl_0A000100[];
-extern Gfx title_screen_bg_dl_0A000130[];
-extern Gfx title_screen_bg_dl_0A000148[];
-extern Gfx title_screen_bg_dl_0A000160[];
-extern Gfx title_screen_bg_dl_0A000178[];
-extern Gfx title_screen_bg_dl_0A000190[];
-extern const u8 *const mario_title_texture_table[];
-extern const u8 *const game_over_texture_table[];
-
 // intro geo bss
-int gGameOverFrameCounter;
-int gGameOverTableIndex;
+s32 gGameOverFrameCounter;
+s32 gGameOverTableIndex;
 s16 gTitleZoomCounter;
 s32 gTitleFadeCounter;
 
 // intro screen background display lists for each of four 80x20 textures
-Gfx *introBackgroundDlRows[] = { title_screen_bg_dl_0A000130, title_screen_bg_dl_0A000148,
-                                 title_screen_bg_dl_0A000160, title_screen_bg_dl_0A000178 };
+const Gfx *introBackgroundDlRows[] = { title_screen_bg_dl_0A000130, title_screen_bg_dl_0A000148,
+                                       title_screen_bg_dl_0A000160, title_screen_bg_dl_0A000178 };
 
 // intro screen background texture X offsets
 float introBackgroundOffsetX[] = {
@@ -77,7 +68,7 @@ s8 gameOverBackgroundTable[] = {
 s8 gameOverBackgroundFlipOrder[] = { 0x00, 0x01, 0x02, 0x03, 0x07, 0x0B,
                                      0x0a, 0x09, 0x08, 0x04, 0x05, 0x06 };
 
-Gfx *geo18_title_screen(u32 sp50, struct GraphNode *sp54, UNUSED void *context) {
+Gfx *geo_title_screen(s32 sp50, struct GraphNode *sp54, UNUSED void *context) {
     struct GraphNode *graphNode; // sp4c
     Gfx *displayList;            // sp48
     Gfx *displayListIter;        // sp44
@@ -127,7 +118,7 @@ Gfx *geo18_title_screen(u32 sp50, struct GraphNode *sp54, UNUSED void *context) 
     return displayList;
 }
 
-Gfx *geo18_fade_transition(u32 sp40, struct GraphNode *sp44, UNUSED void *context) {
+Gfx *geo_fade_transition(s32 sp40, struct GraphNode *sp44, UNUSED void *context) {
     struct GraphNode *graphNode = sp44; // sp3c
     Gfx *displayList = NULL;            // sp38
     Gfx *displayListIter = NULL;        // sp34
@@ -161,7 +152,7 @@ Gfx *geo18_fade_transition(u32 sp40, struct GraphNode *sp44, UNUSED void *contex
     return displayList;
 }
 
-Gfx *intro_backdrop_one_image(u32 index, s8 *backgroundTable) {
+Gfx *intro_backdrop_one_image(s32 index, s8 *backgroundTable) {
     Mtx *mtx;                         // sp5c
     Gfx *displayList;                 // sp58
     Gfx *displayListIter;             // sp54
@@ -184,7 +175,7 @@ Gfx *intro_backdrop_one_image(u32 index, s8 *backgroundTable) {
     return displayList;
 }
 
-Gfx *geo18_intro_backdrop(u32 sp48, struct GraphNode *sp4c, UNUSED void *context) {
+Gfx *geo_intro_backdrop(s32 sp48, struct GraphNode *sp4c, UNUSED void *context) {
     struct GraphNodeMore *graphNode; // sp44
     s32 index;                       // sp40
     s8 *backgroundTable;             // sp3c
@@ -211,7 +202,7 @@ Gfx *geo18_intro_backdrop(u32 sp48, struct GraphNode *sp4c, UNUSED void *context
     return displayList;
 }
 
-Gfx *geo18_game_over_tile(u32 sp40, struct GraphNode *sp44, UNUSED void *context) {
+Gfx *geo_game_over_tile(s32 sp40, struct GraphNode *sp44, UNUSED void *context) {
     struct GraphNode *graphNode; // sp3c
     Gfx *displayList;            // sp38
     Gfx *displayListIter;        // sp34

@@ -12,7 +12,7 @@
 #include "engine/surface_collision.h"
 #include "geo_misc.h"
 #include "rendering_graph_node.h"
-#include "room.h"
+#include "object_list_processor.h"
 
 /**
  * This file contains functions for generating display lists with moving textures
@@ -144,11 +144,11 @@ extern Gfx ssl_dl_pyramid_sand_pathway_floor_begin[];
 extern Gfx ssl_dl_pyramid_sand_pathway_floor_end[];
 extern s16 ssl_movtex_tris_pyramid_sand_pathway_side[];
 extern Gfx ssl_dl_pyramid_sand_pathway_side_end[];
-extern s16 bitfs_movtex_tris_lava_first_section[];
-extern Gfx bitfs_dl_lava_sections[];
-extern s16 bitfs_movtex_tris_lava_second_section[];
-extern s16 bitfs_movtex_tris_lava_floor[];
-extern Gfx bitfs_dl_lava_floor[];
+// extern s16 bitfs_movtex_tris_lava_first_section[];
+// extern Gfx bitfs_dl_lava_sections[];
+// extern s16 bitfs_movtex_tris_lava_second_section[];
+// extern s16 bitfs_movtex_tris_lava_floor[];
+// extern Gfx bitfs_dl_lava_floor[];
 extern s16 lll_movtex_tris_lava_floor[];
 extern Gfx lll_dl_lava_floor[];
 extern s16 lll_movtex_tris_lavafall_volcano[];
@@ -214,14 +214,22 @@ struct MovtexObject gMovtexNonColored[] = {
 
     // Bowser in the Fire Sea has lava at 3 heights, lava_floor is the lowest
     // and lava_second_section is the highest
-    { MOVTEX_BITFS_LAVA_FIRST, TEXTURE_LAVA, 4, bitfs_movtex_tris_lava_first_section,
-      dl_waterbox_rgba16_begin, dl_waterbox_end, bitfs_dl_lava_sections, 0xff, 0xff, 0xff, 0xff,
+    { MOVTEX_BITFS_LAVA_FIRST, TEXTURE_LAVA, 4, NULL,
+      dl_waterbox_rgba16_begin, dl_waterbox_end, NULL, 0xff, 0xff, 0xff, 0xff,
       LAYER_OPAQUE },
-    { MOVTEX_BITFS_LAVA_SECOND, TEXTURE_LAVA, 4, bitfs_movtex_tris_lava_second_section,
-      dl_waterbox_rgba16_begin, dl_waterbox_end, bitfs_dl_lava_sections, 0xff, 0xff, 0xff, 0xb4,
+    { MOVTEX_BITFS_LAVA_SECOND, TEXTURE_LAVA, 4, NULL,
+      dl_waterbox_rgba16_begin, dl_waterbox_end, NULL, 0xff, 0xff, 0xff, 0xb4,
       LAYER_TRANSPARENT },
-    { MOVTEX_BITFS_LAVA_FLOOR, TEXTURE_LAVA, 9, bitfs_movtex_tris_lava_floor, dl_waterbox_rgba16_begin,
-      dl_waterbox_end, bitfs_dl_lava_floor, 0xff, 0xff, 0xff, 0xb4, LAYER_TRANSPARENT },
+    { MOVTEX_BITFS_LAVA_FLOOR, TEXTURE_LAVA, 9, NULL, dl_waterbox_rgba16_begin,
+      dl_waterbox_end, NULL, 0xff, 0xff, 0xff, 0xb4, LAYER_TRANSPARENT },
+    // { MOVTEX_BITFS_LAVA_FIRST, TEXTURE_LAVA, 4, bitfs_movtex_tris_lava_first_section,
+    //   dl_waterbox_rgba16_begin, dl_waterbox_end, bitfs_dl_lava_sections, 0xff, 0xff, 0xff, 0xff,
+    //   LAYER_OPAQUE },
+    // { MOVTEX_BITFS_LAVA_SECOND, TEXTURE_LAVA, 4, bitfs_movtex_tris_lava_second_section,
+    //   dl_waterbox_rgba16_begin, dl_waterbox_end, bitfs_dl_lava_sections, 0xff, 0xff, 0xff, 0xb4,
+    //   LAYER_TRANSPARENT },
+    // { MOVTEX_BITFS_LAVA_FLOOR, TEXTURE_LAVA, 9, bitfs_movtex_tris_lava_floor, dl_waterbox_rgba16_begin,
+    //   dl_waterbox_end, bitfs_dl_lava_floor, 0xff, 0xff, 0xff, 0xb4, LAYER_TRANSPARENT },
 
     // Lava floor in Lethal Lava Land and the lava fall in the volcano
     //! Note that the lava floor in the volcano is actually a quad.
@@ -301,17 +309,16 @@ struct MovtexObject gMovtexColored2[] = {
  * Sets the initial water level in Wet-Dry World based on how high Mario
  * jumped into the painting.
  */
-Gfx *geo_wdw_set_initial_water_level(s32 callContext, UNUSED struct GraphNode *node,
-                                     UNUSED f32 mtx[4][4]) {
+Gfx *geo_wdw_set_initial_water_level(s32 callContext, UNUSED struct GraphNode *node, UNUSED Mat4 mtx) {
     s32 i;
     UNUSED u8 unused[] = { 1, 0, 4, 0, 7, 0, 10, 0 };
     s16 wdwWaterHeight;
 
     // Why was this global variable needed when they could just check for GEO_CONTEXT_AREA_LOAD?
     if (callContext != GEO_CONTEXT_RENDER) {
-        gWdwWaterLevelSet = 0;
+        gWdwWaterLevelSet = FALSE;
     } else if (callContext == GEO_CONTEXT_RENDER && gEnvironmentRegions != NULL
-               && gWdwWaterLevelSet == 0) {
+               && !gWdwWaterLevelSet) {
         if (gPaintingMarioYEntry <= 1382.4) {
             wdwWaterHeight = 31;
         } else if (gPaintingMarioYEntry >= 1600.0) {
@@ -322,7 +329,7 @@ Gfx *geo_wdw_set_initial_water_level(s32 callContext, UNUSED struct GraphNode *n
         for (i = 0; i < *gEnvironmentRegions; i++) {
             gEnvironmentRegions[i * 6 + 6] = wdwWaterHeight;
         }
-        gWdwWaterLevelSet = 1;
+        gWdwWaterLevelSet = TRUE;
     }
     return NULL;
 }
@@ -332,7 +339,7 @@ Gfx *geo_wdw_set_initial_water_level(s32 callContext, UNUSED struct GraphNode *n
  * Textures update when gMovtexCounterPrev != gMovtexCounter.
  * This ensures water / sand flow stops when the game pauses.
  */
-Gfx *geo_movtex_pause_control(s32 callContext, UNUSED struct GraphNode *node, UNUSED f32 mtx[4][4]) {
+Gfx *geo_movtex_pause_control(s32 callContext, UNUSED struct GraphNode *node, UNUSED Mat4 mtx) {
     if (callContext != GEO_CONTEXT_RENDER) {
         gMovtexCounterPrev = gAreaUpdateCounter - 1;
         gMovtexCounter = gAreaUpdateCounter;
@@ -448,21 +455,9 @@ Gfx *movtex_gen_from_quad(s16 y, struct MovtexQuad *quad) {
         if (textureId == TEXTURE_MIST) { // an ia16 texture
             if (0) {
             }
-            gDPSetTextureImage(gfx++, G_IM_FMT_IA, G_IM_SIZ_16b, 1, gMovtexIdToTexture[textureId]);
-            gDPTileSync(gfx++);
-            gDPSetTile(gfx++, G_IM_FMT_IA, G_IM_SIZ_16b, 0, 0, G_TX_LOADTILE, 0,
-                       G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD, G_TX_WRAP | G_TX_NOMIRROR,
-                       G_TX_NOMASK, G_TX_NOLOD);
-            gDPLoadSync(gfx++);
-            gDPLoadBlock(gfx++, G_TX_LOADTILE, 0, 0, 32 * 32 - 1, CALC_DXT(32, G_IM_SIZ_16b_BYTES));
+            gLoadBlockTexture(gfx++, 32, 32, G_IM_FMT_IA, gMovtexIdToTexture[textureId]);
         } else { // any rgba16 texture
-            gDPSetTextureImage(gfx++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, gMovtexIdToTexture[textureId]);
-            gDPTileSync(gfx++);
-            gDPSetTile(gfx++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_LOADTILE, 0,
-                       G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD, G_TX_WRAP | G_TX_NOMIRROR,
-                       G_TX_NOMASK, G_TX_NOLOD);
-            gDPLoadSync(gfx++);
-            gDPLoadBlock(gfx++, G_TX_LOADTILE, 0, 0, 32 * 32 - 1, CALC_DXT(32, G_IM_SIZ_16b_BYTES));
+            gLoadBlockTexture(gfx++, 32, 32, G_IM_FMT_RGBA, gMovtexIdToTexture[textureId]);
             if (0) {
             }
         }
@@ -633,7 +628,7 @@ void movtex_change_texture_format(u32 quadCollectionId, Gfx **gfx) {
  * of the corresponding water region. The node's parameter determines which quad
  * collection is drawn, see moving_texture.h.
  */
-Gfx *geo_movtex_draw_water_regions(s32 callContext, struct GraphNode *node, UNUSED f32 mtx[4][4]) {
+Gfx *geo_movtex_draw_water_regions(s32 callContext, struct GraphNode *node, UNUSED Mat4 mtx) {
     Gfx *gfxHead = NULL;
     Gfx *gfx = NULL;
     Gfx *subList;
@@ -661,7 +656,7 @@ Gfx *geo_movtex_draw_water_regions(s32 callContext, struct GraphNode *node, UNUS
             if (gLakituState.goalPos[1] < 1024.0) { // if camera under water
                 return NULL;
             }
-            if (save_file_get_star_flags(gCurrSaveFileNum - 1, 2) & 1) { // first level in JRB complete
+            if (save_file_get_star_flags(gCurrSaveFileNum - 1, COURSE_JRB - 1) & 1) { // first star in JRB complete
                 return NULL;
             }
         } else if (asGenerated->parameter == HMC_MOVTEX_TOXIC_MAZE_MIST) {
@@ -832,13 +827,7 @@ Gfx *movtex_gen_list(s16 *movtexVerts, struct MovtexObject *movtexList, s8 attrL
     }
 
     gSPDisplayList(gfx++, movtexList->beginDl);
-    gDPSetTextureImage(gfx++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 1,
-                       gMovtexIdToTexture[movtexList->textureId]);
-    gDPTileSync(gfx++);
-    gDPSetTile(gfx++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_LOADTILE, 0, G_TX_WRAP | G_TX_NOMIRROR,
-               G_TX_NOMASK, G_TX_NOLOD, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOLOD);
-    gDPLoadSync(gfx++);
-    gDPLoadBlock(gfx++, G_TX_LOADTILE, 0, 0, 32 * 32 - 1, CALC_DXT(32, G_IM_SIZ_16b_BYTES));
+    gLoadBlockTexture(gfx++, 32, 32, G_IM_FMT_RGBA, gMovtexIdToTexture[movtexList->textureId]);
     gSPVertex(gfx++, VIRTUAL_TO_PHYSICAL2(verts), movtexList->vtx_count, 0);
     gSPDisplayList(gfx++, movtexList->triDl);
     gSPDisplayList(gfx++, movtexList->endDl);
@@ -849,7 +838,7 @@ Gfx *movtex_gen_list(s16 *movtexVerts, struct MovtexObject *movtexList, s8 attrL
 /**
  * Function for a geo node that draws a MovtexObject in the gMovtexNonColored list.
  */
-Gfx *geo_movtex_draw_nocolor(s32 callContext, struct GraphNode *node, UNUSED f32 mtx[4][4]) {
+Gfx *geo_movtex_draw_nocolor(s32 callContext, struct GraphNode *node, UNUSED Mat4 mtx) {
     s32 i;
     s16 *movtexVerts;
     struct GraphNodeGenerated *asGenerated;
@@ -877,7 +866,7 @@ Gfx *geo_movtex_draw_nocolor(s32 callContext, struct GraphNode *node, UNUSED f32
 /**
  * Function for a geo node that draws a MovtexObject in the gMovtexColored list.
  */
-Gfx *geo_movtex_draw_colored(s32 callContext, struct GraphNode *node, UNUSED f32 mtx[4][4]) {
+Gfx *geo_movtex_draw_colored(s32 callContext, struct GraphNode *node, UNUSED Mat4 mtx) {
     s32 i;
     s16 *movtexVerts;
     struct GraphNodeGenerated *asGenerated;
@@ -908,7 +897,7 @@ Gfx *geo_movtex_draw_colored(s32 callContext, struct GraphNode *node, UNUSED f32
  * instances (like TTC treadmills) so you don't want the animation speed to
  * increase the more instances there are.
  */
-Gfx *geo_movtex_draw_colored_no_update(s32 callContext, struct GraphNode *node, UNUSED f32 mtx[4][4]) {
+Gfx *geo_movtex_draw_colored_no_update(s32 callContext, struct GraphNode *node, UNUSED Mat4 mtx) {
     s32 i;
     s16 *movtexVerts;
     struct GraphNodeGenerated *asGenerated;
@@ -935,8 +924,7 @@ Gfx *geo_movtex_draw_colored_no_update(s32 callContext, struct GraphNode *node, 
  * Exact copy of geo_movtex_draw_colored_no_update, but now using the gMovtexColored2 array.
  * Used for the sand pits in SSL, both outside and inside the pyramid.
  */
-Gfx *geo_movtex_draw_colored_2_no_update(s32 callContext, struct GraphNode *node,
-                                         UNUSED f32 mtx[4][4]) {
+Gfx *geo_movtex_draw_colored_2_no_update(s32 callContext, struct GraphNode *node, UNUSED Mat4 mtx) {
     s32 i;
     s16 *movtexVerts;
     struct GraphNodeGenerated *asGenerated;
@@ -971,7 +959,7 @@ Gfx *geo_movtex_draw_colored_2_no_update(s32 callContext, struct GraphNode *node
  * model to update multiple times.
  * Note that the final TTC only has one big treadmill though.
  */
-Gfx *geo_movtex_update_horizontal(s32 callContext, struct GraphNode *node, UNUSED f32 mtx[4][4]) {
+Gfx *geo_movtex_update_horizontal(s32 callContext, struct GraphNode *node, UNUSED Mat4 mtx) {
     void *movtexVerts;
 
     if (callContext == GEO_CONTEXT_RENDER) {

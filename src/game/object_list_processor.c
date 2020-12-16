@@ -1,30 +1,25 @@
-#include <ultra64.h>
+#include <PR/ultratypes.h>
 
 #include "sm64.h"
-#include "behavior_data.h"
-#include "engine/behavior_script.h"
 #include "area.h"
+#include "behavior_data.h"
 #include "camera.h"
-#include "engine/graph_node.h"
-#include "interaction.h"
 #include "debug.h"
-#include "profiler.h"
-#include "spawn_object.h"
+#include "engine/behavior_script.h"
+#include "engine/graph_node.h"
 #include "engine/surface_collision.h"
-#include "memory.h"
+#include "engine/surface_load.h"
+#include "interaction.h"
 #include "level_update.h"
+#include "mario.h"
+#include "memory.h"
 #include "object_collision.h"
 #include "object_helpers.h"
-#include "platform_displacement.h"
-#include "engine/surface_load.h"
-#include "room.h"
 #include "object_list_processor.h"
-#include "mario.h"
+#include "platform_displacement.h"
+#include "profiler.h"
+#include "spawn_object.h"
 
-/**
- * Nodes used to represent the doubly linked object lists.
- */
-struct ObjectNode gObjectListArray[16];
 
 /**
  * Flags controlling what debug info is displayed.
@@ -39,6 +34,8 @@ s32 gNumFindFloorMisses;
 
 UNUSED s32 unused_8033BEF8;
 
+
+f32 gWaterHeight;
 /**
  * An unused debug counter with the label "WALL".
  */
@@ -68,10 +65,12 @@ s16 gDebugInfoOverwrite[16][8];
  */
 u32 gTimeStopState;
 
+#ifndef USE_SYSTEM_MALLOC
 /**
  * The pool that objects are allocated from.
  */
 struct Object gObjectPool[OBJECT_POOL_CAPACITY];
+#endif
 
 /**
  * A special object whose purpose is to act as a parent for macro objects.
@@ -91,7 +90,7 @@ struct ObjectNode *gObjectLists;
 struct ObjectNode gFreeObjectList;
 
 /**
- * The object representing mario.
+ * The object representing Mario.
  */
 struct Object *gMarioObject;
 
@@ -112,7 +111,7 @@ struct Object *gCurrentObject;
 /**
  * The next object behavior command to be executed.
  */
-const BehaviorScript *gBehCommand;
+const BehaviorScript *gCurBhvCommand;
 
 /**
  * The number of objects that were processed last frame, which may miss some
@@ -148,6 +147,29 @@ s32 gNumStaticSurfaces;
  */
 struct MemoryPool *gObjectMemoryPool;
 
+
+s16 gCheckingSurfaceCollisionsForCamera;
+s16 gFindFloorIncludeSurfaceIntangible;
+s16 *gEnvironmentRegions;
+s32 gEnvironmentLevels[20];
+s8 gDoorAdjacentRooms[60][2];
+s16 gMarioCurrentRoom;
+s16 D_8035FEE2;
+s16 D_8035FEE4;
+s16 gTHIWaterDrained;
+s16 gTTCSpeedSetting;
+s16 gMarioShotFromCannon;
+s16 gCCMEnteredSlide;
+s16 gNumRoomedObjectsInMarioRoom;
+s16 gNumRoomedObjectsNotInMarioRoom;
+s16 gWDWWaterLevelChanging;
+s16 gMarioOnMerryGoRound;
+
+/**
+ * Nodes used to represent the doubly linked object lists.
+ */
+struct ObjectNode gObjectListArray[16];
+
 /**
  * The order that object lists are processed in a frame.
  */
@@ -178,29 +200,29 @@ struct ParticleProperties {
  * A table mapping particle flags to various properties use when spawning a particle.
  */
 struct ParticleProperties sParticleTypes[] = {
-    { PARTICLE_DUST, ACTIVE_PARTICLE_0, MODEL_MIST, bhvMarioDustGenerator },
-    { PARTICLE_1, ACTIVE_PARTICLE_18, MODEL_NONE, bhvWallTinyStarParticleSpawn },
-    { PARTICLE_4, ACTIVE_PARTICLE_4, MODEL_NONE, bhvPoundTinyStarParticleSpawn },
-    { PARTICLE_SPARKLES, ACTIVE_PARTICLE_3, MODEL_SPARKLES, bhvSpecialTripleJumpSparkles },
-    { PARTICLE_5, ACTIVE_PARTICLE_5, MODEL_BUBBLE, bhvBubbleMario },
-    { PARTICLE_6, ACTIVE_PARTICLE_6, MODEL_WATER_SPLASH, bhvWaterSplash },
-    { PARTICLE_7, ACTIVE_PARTICLE_7, MODEL_WATER_WAVES_SURF, bhvSurfaceWaves },
-    { PARTICLE_9, ACTIVE_PARTICLE_9, MODEL_WHITE_PARTICLE_SMALL, bhvWaterWaves },
-    { PARTICLE_10, ACTIVE_PARTICLE_10, MODEL_WATER_WAVES, bhvWaveTrailOnSurface },
-    { PARTICLE_11, ACTIVE_PARTICLE_11, MODEL_RED_FLAME, bhvFlameMario },
-    { PARTICLE_8, ACTIVE_PARTICLE_8, MODEL_NONE, bhvWavesGenerator },
-    { PARTICLE_12, ACTIVE_PARTICLE_12, MODEL_NONE, bhvSurfaceWaveShrinking },
-    { PARTICLE_LEAVES, ACTIVE_PARTICLE_13, MODEL_NONE, bhvSnowLeafParticleSpawn },
-    { PARTICLE_14, ACTIVE_PARTICLE_16, MODEL_NONE, bhvGroundSnow },
-    { PARTICLE_17, ACTIVE_PARTICLE_17, MODEL_NONE, bhvWaterMistSpawn },
-    { PARTICLE_15, ACTIVE_PARTICLE_14, MODEL_NONE, bhvGroundSand },
-    { PARTICLE_16, ACTIVE_PARTICLE_15, MODEL_NONE, bhvPoundWhitePuffs },
-    { PARTICLE_18, ACTIVE_PARTICLE_19, MODEL_NONE, bhvPunchTinyTriangleSpawn },
+    { PARTICLE_DUST,                 ACTIVE_PARTICLE_DUST,                 MODEL_MIST,                 bhvMistParticleSpawner },
+    { PARTICLE_VERTICAL_STAR,        ACTIVE_PARTICLE_V_STAR,               MODEL_NONE,                 bhvVertStarParticleSpawner },
+    { PARTICLE_HORIZONTAL_STAR,      ACTIVE_PARTICLE_H_STAR,               MODEL_NONE,                 bhvHorStarParticleSpawner },
+    { PARTICLE_SPARKLES,             ACTIVE_PARTICLE_SPARKLES,             MODEL_SPARKLES,             bhvSparkleParticleSpawner },
+    { PARTICLE_BUBBLE,               ACTIVE_PARTICLE_BUBBLE,               MODEL_BUBBLE,               bhvBubbleParticleSpawner },
+    { PARTICLE_WATER_SPLASH,         ACTIVE_PARTICLE_WATER_SPLASH,         MODEL_WATER_SPLASH,         bhvWaterSplash },
+    { PARTICLE_IDLE_WATER_WAVE,      ACTIVE_PARTICLE_IDLE_WATER_WAVE,      MODEL_IDLE_WATER_WAVE,      bhvIdleWaterWave },
+    { PARTICLE_PLUNGE_BUBBLE,        ACTIVE_PARTICLE_PLUNGE_BUBBLE,        MODEL_WHITE_PARTICLE_SMALL, bhvPlungeBubble },
+    { PARTICLE_WAVE_TRAIL,           ACTIVE_PARTICLE_WAVE_TRAIL,           MODEL_WAVE_TRAIL,           bhvWaveTrail },
+    { PARTICLE_FIRE,                 ACTIVE_PARTICLE_FIRE,                 MODEL_RED_FLAME,            bhvFireParticleSpawner },
+    { PARTICLE_SHALLOW_WATER_WAVE,   ACTIVE_PARTICLE_SHALLOW_WATER_WAVE,   MODEL_NONE,                 bhvShallowWaterWave },
+    { PARTICLE_SHALLOW_WATER_SPLASH, ACTIVE_PARTICLE_SHALLOW_WATER_SPLASH, MODEL_NONE,                 bhvShallowWaterSplash },
+    { PARTICLE_LEAF,                 ACTIVE_PARTICLE_LEAF,                 MODEL_NONE,                 bhvLeafParticleSpawner },
+    { PARTICLE_SNOW,                 ACTIVE_PARTICLE_SNOW,                 MODEL_NONE,                 bhvSnowParticleSpawner },
+    { PARTICLE_BREATH,               ACTIVE_PARTICLE_BREATH,               MODEL_NONE,                 bhvBreathParticleSpawner },
+    { PARTICLE_DIRT,                 ACTIVE_PARTICLE_DIRT,                 MODEL_NONE,                 bhvDirtParticleSpawner },
+    { PARTICLE_MIST_CIRCLE,          ACTIVE_PARTICLE_MIST_CIRCLE,          MODEL_NONE,                 bhvMistCircParticleSpawner },
+    { PARTICLE_TRIANGLE,             ACTIVE_PARTICLE_TRIANGLE,             MODEL_NONE,                 bhvTriangleParticleSpawner },
     { 0, 0, MODEL_NONE, NULL },
 };
 
 /**
- * Copy position, velocity, and angle variables from MarioState to the mario
+ * Copy position, velocity, and angle variables from MarioState to the Mario
  * object.
  */
 void copy_mario_state_to_object(void) {
@@ -239,7 +261,7 @@ void spawn_particle(u32 activeParticleFlag, s16 model, const BehaviorScript *beh
         struct Object *particle;
         gCurrentObject->oActiveParticleFlags |= activeParticleFlag;
         particle = spawn_object_at_origin(gCurrentObject, 0, model, behavior);
-        copy_object_pos_and_angle(particle, gCurrentObject);
+        obj_copy_pos_and_angle(particle, gCurrentObject);
     }
 }
 
@@ -254,7 +276,7 @@ void bhv_mario_update(void) {
     gCurrentObject->oMarioParticleFlags = particleFlags;
 
     // Mario code updates MarioState's versions of position etc, so we need
-    // to sync it with the mario object
+    // to sync it with the Mario object
     copy_mario_state_to_object();
 
     i = 0;
@@ -279,7 +301,7 @@ s32 update_objects_starting_at(struct ObjectNode *objList, struct ObjectNode *fi
         gCurrentObject = (struct Object *) firstObj;
 
         gCurrentObject->header.gfx.node.flags |= GRAPH_RENDER_HAS_ANIMATION;
-        cur_object_exec_behavior();
+        cur_obj_update();
 
         firstObj = firstObj->next;
         count += 1;
@@ -290,7 +312,7 @@ s32 update_objects_starting_at(struct ObjectNode *objList, struct ObjectNode *fi
 
 /**
  * Update objects in objList starting with firstObj while time stop is active.
- * This means that only certain select objects will be updated, such as mario,
+ * This means that only certain select objects will be updated, such as Mario,
  * doors, unimportant objects, and the object that initiated time stop.
  * The exact set of objects that are updated depends on which flags are set
  * in gTimeStopState.
@@ -326,7 +348,7 @@ s32 update_objects_during_time_stop(struct ObjectNode *objList, struct ObjectNod
         // Only update if unfrozen
         if (unfrozen) {
             gCurrentObject->header.gfx.node.flags |= GRAPH_RENDER_HAS_ANIMATION;
-            cur_object_exec_behavior();
+            cur_obj_update();
         } else {
             gCurrentObject->header.gfx.node.flags &= ~GRAPH_RENDER_HAS_ANIMATION;
         }
@@ -422,7 +444,7 @@ void unload_objects_from_area(UNUSED s32 unused, s32 areaIndex) {
             obj = (struct Object *) node;
             node = node->next;
 
-            if (obj->header.gfx.unk19 == areaIndex) {
+            if (obj->header.gfx.activeAreaIndex == areaIndex) {
                 unload_object(obj);
             }
         }
@@ -437,10 +459,10 @@ void spawn_objects_from_info(UNUSED s32 unused, struct SpawnInfo *spawnInfo) {
     gTimeStopState = 0;
 
     gWDWWaterLevelChanging = FALSE;
-    gMarioOnMerryGoRound = 0;
+    gMarioOnMerryGoRound = FALSE;
 
-    //! (Spawning Displacement) On the Japanese version, mario's platform object
-    //  isn't cleared when transitioning between areas. This can cause mario to
+    //! (Spawning Displacement) On the Japanese version, Mario's platform object
+    //  isn't cleared when transitioning between areas. This can cause Mario to
     //  receive displacement after spawning.
 #ifndef VERSION_JP
     clear_mario_platform();
@@ -501,12 +523,11 @@ void spawn_objects_from_info(UNUSED s32 unused, struct SpawnInfo *spawnInfo) {
     }
 }
 
-void stub_8029CA50() {
+void stub_obj_list_processor_1(void) {
 }
 
 /**
- * Clear objects, dynamic surfaces, and some miscellaneous level data used by
- * objects.
+ * Clear objects, dynamic surfaces, and some miscellaneous level data used by objects.
  */
 void clear_objects(void) {
     s32 i;
@@ -523,16 +544,20 @@ void clear_objects(void) {
 
     debug_unknown_level_select_check();
 
+#ifndef USE_SYSTEM_MALLOC
     init_free_object_list();
+#endif
     clear_object_lists(gObjectListArray);
 
-    stub_80385BF0();
-    stub_8029CA50();
+    stub_behavior_script_2();
+    stub_obj_list_processor_1();
 
+#ifndef USE_SYSTEM_MALLOC
     for (i = 0; i < OBJECT_POOL_CAPACITY; i++) {
-        gObjectPool[i].activeFlags = ACTIVE_FLAGS_DEACTIVATED;
+        gObjectPool[i].activeFlags = ACTIVE_FLAG_DEACTIVATED;
         geo_reset_object_node(&gObjectPool[i].header.gfx);
     }
+#endif
 
     gObjectMemoryPool = mem_pool_init(0x800, MEMORY_POOL_LEFT);
     gObjectLists = gObjectListArray;
@@ -618,7 +643,7 @@ void update_objects(UNUSED s32 unused) {
     gCheckingSurfaceCollisionsForCamera = FALSE;
 
     reset_debug_objectinfo();
-    stub_802CA5D0();
+    stub_debug_5();
 
     gObjectLists = gObjectListArray;
 
@@ -630,7 +655,7 @@ void update_objects(UNUSED s32 unused) {
     cycleCounts[2] = get_clock_difference(cycleCounts[0]);
     update_terrain_objects();
 
-    // If mario was touching a moving platform at the end of last frame, apply
+    // If Mario was touching a moving platform at the end of last frame, apply
     // displacement now
     //! If the platform object unloaded and a different object took its place,
     //  displacement could be applied incorrectly
@@ -648,7 +673,7 @@ void update_objects(UNUSED s32 unused) {
     cycleCounts[5] = get_clock_difference(cycleCounts[0]);
     unload_deactivated_objects();
 
-    // Check if mario is on a platform object and save this object
+    // Check if Mario is on a platform object and save this object
     cycleCounts[6] = get_clock_difference(cycleCounts[0]);
     update_mario_platform();
 

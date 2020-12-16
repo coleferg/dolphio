@@ -11,8 +11,11 @@
 #include "walk_smoke/geo.inc.c"
 #include "burn_smoke/geo.inc.c"
 #include "stomp_smoke/geo.inc.c"
-#include "water_waves/geo.inc.c"
+#include "water_wave/geo.inc.c"
 #include "sparkle/geo.inc.c"
 #include "water_splash/geo.inc.c"
 #include "sparkle_animation/geo.inc.c"
 #include "mario/geo.inc.c"
+
+#include "sliding_door/geo.inc.c"
+#include "jellycube/geo.inc.c"

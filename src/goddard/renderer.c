@@ -1,31 +1,38 @@
 #include <ultra64.h>
-#include <macros.h>
 #include <stdarg.h>
 #include <stdio.h>
 
+#ifndef VERSION_EU
 #include "prevent_bss_reordering.h"
-#include "gd_types.h"
-#include "gd_macros.h"
-#include "dynlists/dynlists.h"
-
-#include "renderer.h"
-#include "gd_main.h"
-#include "gd_memory.h"
-#include "sfx.h"
-#include "draw_objects.h"
-#include "objects.h"
-#include "dynlist_proc.h"
+#endif
 #include "debug_utils.h"
-#include "skin.h"
+#include "draw_objects.h"
+#include "dynlist_proc.h"
+#include "dynlists/dynlists.h"
+#include "gd_macros.h"
+#include "gd_main.h"
 #include "gd_math.h"
+#include "gd_memory.h"
+#include "gd_types.h"
+#include "macros.h"
+#include "objects.h"
+#include "renderer.h"
+#include "sfx.h"
 #include "shape_helper.h"
+#include "skin.h"
 
 #define MAX_GD_DLS 1000
 #define OS_MESG_SI_COMPLETE 0x33333333
 
+#ifndef NO_SEGMENTED_MEMORY
 #define GD_VIRTUAL_TO_PHYSICAL(addr) ((uintptr_t)(addr) &0x0FFFFFFF)
 #define GD_LOWER_24(addr) ((uintptr_t)(addr) &0x00FFFFFF)
 #define GD_LOWER_29(addr) (((uintptr_t)(addr)) & 0x1FFFFFFF)
+#else
+#define GD_VIRTUAL_TO_PHYSICAL(addr) (addr)
+#define GD_LOWER_24(addr) ((uintptr_t)(addr))
+#define GD_LOWER_29(addr) (((uintptr_t)(addr)))
+#endif
 
 #define MTX_INTPART_PACK(w1, w2) (((w1) &0xFFFF0000) | (((w2) >> 16) & 0xFFFF))
 #define MTX_FRACPART_PACK(w1, w2) ((((w1) << 16) & 0xFFFF0000) | ((w2) &0xFFFF))
@@ -80,6 +87,25 @@ struct DynListBankInfo {
 };
 
 // bss
+#ifdef VERSION_EU
+static OSMesgQueue D_801BE830; // controller msg queue
+static OSMesg D_801BE848[10];
+u8 EUpad1[0x40];
+static OSMesgQueue D_801BE8B0;
+static OSMesgQueue sGdDMAQueue; // @ 801BE8C8
+// static u32 unref_801be870[16];
+// static u32 unref_801be8e0[25];
+// static u32 unref_801be948[13];
+u8 EUpad2[0x64];
+static OSMesg sGdMesgBuf[1]; // @ 801BE944
+u8 EUpad3[0x34];
+static OSMesg D_801BE97C; // msg buf for D_801BE8B0 queue
+static OSIoMesg D_801BE980;
+static struct ObjView *D_801BE994; // store if View flag 0x40 set
+
+u8 EUpad4[0x88];
+#endif
+
 static OSContStatus D_801BAE60[4];
 static OSContPad sGdContPads[4];    // @ 801BAE70
 static OSContPad sPrevFrameCont[4]; // @ 801BAE88
@@ -88,8 +114,10 @@ static struct ObjGadget *sTimerGadgets[GD_NUM_TIMERS]; // @ 801BAEA8
 static u32 D_801BAF28;                                 // RAM addr offset?
 static s16 D_801BAF30[13][8];                          // [[s16; 8]; 13]? vert indices?
 static u32 unref_801bb000[3];
+#ifndef USE_SYSTEM_MALLOC
 static u8 *sMemBlockPoolBase; // @ 801BB00C
 static u32 sAllocMemory;      // @ 801BB010; malloc-ed bytes
+#endif
 static u32 unref_801bb014;
 static s32 D_801BB018;
 static s32 D_801BB01C;
@@ -105,7 +133,7 @@ static struct ObjGroup *sCarSceneGrp;   // @ 801BB0B8
 static s32 D_801BB0BC; // vtx's to load into RPD? Vtx len in GD Dl and in the lower bank (AF30)
 static struct ObjView *sYoshiSceneView; // @ 801BB0C0
 static s32 D_801BB0C4;                  // first offset into D_801BAF30
-static struct ObjView *sMSceneView;     // @ 801BB0C8; mario scene view
+static struct ObjView *sMSceneView;     // @ 801BB0C8; Mario scene view
 static s32 D_801BB0CC;                  // Vtx start in GD Dl
 static struct ObjView *sCarSceneView;   // @ 801BB0D0
 static s32 sUpdateYoshiScene;           // @ 801BB0D4; update dl Vtx from ObjVertex?
@@ -142,6 +170,7 @@ static s32 sPickBufPosition;                         // @ 801BE784
 static s16 *sPickBuf;                                // @ 801BE788
 static LookAt D_801BE790[2];
 static LookAt D_801BE7D0[3];
+#ifndef VERSION_EU
 static OSMesgQueue D_801BE830; // controller msg queue
 static OSMesg D_801BE848[10];
 static u32 unref_801be870[16];
@@ -153,6 +182,12 @@ static u32 unref_801be948[13];
 static OSMesg D_801BE97C; // msg buf for D_801BE8B0 queue
 static OSIoMesg D_801BE980;
 static struct ObjView *D_801BE994; // store if View flag 0x40 set
+#endif
+
+#ifdef USE_SYSTEM_MALLOC
+static void *(*sAllocFn)(u32 size);
+static void (*sFreeFn)(void *ptr);
+#endif
 
 // data
 static u32 unref_801a8670 = 0;
@@ -165,8 +200,10 @@ static f32 sDynamicsTime = 0.0f;      // @ 801A8688
 static f32 sDLGenTime = 0.0f;         // @ 801A868C
 static f32 sRCPTime = 0.0f;           // @ 801A8690
 static f32 sTimeScaleFactor = 1.0f;   // @ D_801A8694
+#ifndef USE_SYSTEM_MALLOC
 static u32 sMemBlockPoolSize = 1;     // @ 801A8698
 static s32 sMemBlockPoolUsed = 0;     // @ 801A869C
+#endif
 static s32 D_801A86A0 = 0;
 static struct GdTimer *D_801A86A4 = NULL; // timer for dlgen, dynamics, or rcp
 static struct GdTimer *D_801A86A8 = NULL; // timer for dlgen, dynamics, or rcp
@@ -735,7 +772,11 @@ void reset_cur_dl_indices(void);
 // TODO: make a gddl_num_t?
 
 u32 get_alloc_mem_amt(void) {
+#ifdef USE_SYSTEM_MALLOC
+    return 0;
+#else
     return sAllocMemory;
+#endif
 }
 
 s32 gd_get_ostime(void) {
@@ -931,9 +972,14 @@ void gd_exit(UNUSED s32 code) {
 
 /* 24A1D4 -> 24A220; orig name: func_8019BA04 */
 void gd_free(void *ptr) {
+#ifdef USE_SYSTEM_MALLOC
+    sFreeFn(ptr);
+#else
     sAllocMemory -= gd_free_mem(ptr);
+#endif
 }
 
+#ifndef USE_SYSTEM_MALLOC
 /* 24A220 -> 24A318 */
 void *gd_allocblock(u32 size) {
     void *block; // 1c
@@ -952,9 +998,13 @@ void *gd_allocblock(u32 size) {
     sMemBlockPoolUsed += size;
     return block;
 }
+#endif
 
 /* 24A318 -> 24A3E8 */
-void *gd_malloc(u32 size, u8 perm) {
+void *gd_malloc(u32 size, UNUSED u8 perm) {
+#ifdef USE_SYSTEM_MALLOC
+    return sAllocFn(size);
+#else
     void *ptr; // 1c
     size = ALIGN(size, 8);
     ptr = gd_request_mem(size, perm);
@@ -970,6 +1020,7 @@ void *gd_malloc(u32 size, u8 perm) {
     sAllocMemory += size;
 
     return ptr;
+#endif
 }
 
 /* 24A3E8 -> 24A420; orig name: func_8019BC18 */
@@ -1094,12 +1145,23 @@ void Unknown8019C288(s32 stickX, s32 stickY) {
     ctrl->stickYf = (f32)(stickY / 2);
 }
 
+#ifndef USE_SYSTEM_MALLOC
 /* 24AAA8 -> 24AAE0; orig name: func_8019C2D8 */
 void gd_add_to_heap(void *addr, u32 size) {
     // TODO: is this `1` for permanence special?
     gd_add_mem_to_heap(size, addr, 1);
 }
+#endif
 
+#ifdef USE_SYSTEM_MALLOC
+void gdm_init(void *(*allocFn)(u32 size), void (*freeFn)(void *addr)) {
+    add_to_stacktrace("gdm_init");
+    sAllocFn = allocFn;
+    sFreeFn = freeFn;
+    gd_reset_sfx();
+    imout();
+}
+#else
 /* 24AAE0 -> 24AB7C */
 void gdm_init(void *blockpool, u32 size) {
     UNUSED u32 pad;
@@ -1117,6 +1179,7 @@ void gdm_init(void *blockpool, u32 size) {
     gd_reset_sfx();
     imout();
 }
+#endif
 
 /* 24AB7C -> 24AC18 */
 void gdm_setup(void) {
@@ -1174,7 +1237,7 @@ void gdm_maketestdl(s32 id) {
         case 1:
             reset_nets_and_gadgets(sYoshiSceneGrp);
             break;
-        case 2: // normal mario head
+        case 2: // normal Mario head
             if (sMarioSceneGrp == NULL) {
                 load_mario_head(animate_mario_head_normal);
                 sMarioSceneGrp = gMarioFaceGrp; // gMarioFaceGrp set by load_mario_head
@@ -1182,7 +1245,7 @@ void gdm_maketestdl(s32 id) {
             }
             sMSceneView = make_view_withgrp("mscene", sMarioSceneGrp);
             break;
-        case 3: // game over mario head
+        case 3: // game over Mario head
             if (sMarioSceneGrp == NULL) {
                 load_mario_head(animate_mario_head_gameover);
                 sMarioSceneGrp = gMarioFaceGrp;
@@ -1659,7 +1722,8 @@ u32 Unknown8019EC88(Gfx *dl, UNUSED s32 arg1) {
 }
 
 /* 24D4C4 -> 24D63C; orig name: func_8019ECF4 */
-void mat4_to_mtx(const Mat4f *src, Mtx *dst) {
+void mat4_to_mtx(Mat4f *src, Mtx *dst) {
+#ifndef GBI_FLOATS
     s32 i; // 14
     s32 j; // 10
     s32 w1;
@@ -1677,6 +1741,9 @@ void mat4_to_mtx(const Mat4f *src, Mtx *dst) {
             mtxFrc++;
         }
     }
+#else
+    guMtxF2L(*src, dst);
+#endif
 }
 
 /* 24D63C -> 24D6E4; orig name: func_8019EE6C */
@@ -1732,8 +1799,8 @@ void func_8019F258(f32 x, f32 y, f32 z) {
     vec.x = x;
     vec.y = y;
     vec.z = z;
-    set_identity_mat4(&mtx);
-    func_8019415C(&mtx, &vec);
+    gd_set_identity_mat4(&mtx);
+    gd_scale_mat4f_by_vec3f(&mtx, &vec);
     add_mat4_to_dl(&mtx);
 }
 
@@ -1741,19 +1808,18 @@ void func_8019F258(f32 x, f32 y, f32 z) {
 void func_8019F2C4(f32 arg0, s8 arg1) {
     Mat4f mtx; // 18
 
-    set_identity_mat4(&mtx);
-    absrot_mat4(&mtx, arg1 - 120, -arg0);
+    gd_set_identity_mat4(&mtx);
+    gd_absrot_mat4(&mtx, arg1 - 120, -arg0);
     add_mat4_to_dl(&mtx);
 }
 
 /* 24DAE8 -> 24E1A8 */
-void func_8019F318(struct ObjCamera *cam, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6,
-                   f32 arg7) {
+void func_8019F318(struct ObjCamera *cam, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5, f32 arg6, f32 arg7) {
     LookAt *lookat; // 5c
 
     arg7 *= RAD_PER_DEG;
 
-    func_80193B68(&cam->unkE8, arg1, arg2, arg3, arg4, arg5, arg6, gd_sin_d(arg7), gd_cos_d(arg7),
+    gd_mat4f_lookat(&cam->unkE8, arg1, arg2, arg3, arg4, arg5, arg6, gd_sin_d(arg7), gd_cos_d(arg7),
                   0.0f);
     // 8019F3C8
     mat4_to_mtx(&cam->unkE8, &DL_CURRENT_MTX(sCurrentGdDl));
@@ -1836,7 +1902,7 @@ void check_tri_display(s32 vtxcount) {
 }
 
 /* 24E230 -> 24E6C0; orig name: func_8019FA60 */
-Vtx *make_Vtx_if_new(f32 x, f32 y, f32 z, f32 alpha) {
+Vtx *make_vtx_if_new(f32 x, f32 y, f32 z, f32 alpha) {
     Vtx *vtx = NULL; // 1c
     s32 i;           // 18
 
@@ -1886,9 +1952,9 @@ void add_tri_to_dl(f32 x1, f32 y1, f32 z1, f32 x2, f32 y2, f32 z2, f32 x3, f32 y
     Vtx *vtx; // 24
 
     vtx = &DL_CURRENT_VTX(sCurrentGdDl);
-    make_Vtx_if_new(x1, y1, z1, 1.0f);
-    make_Vtx_if_new(x2, y2, z2, 1.0f);
-    make_Vtx_if_new(x3, y3, z3, 1.0f);
+    make_vtx_if_new(x1, y1, z1, 1.0f);
+    make_vtx_if_new(x2, y2, z2, 1.0f);
+    make_vtx_if_new(x3, y3, z3, 1.0f);
 
     gSPVertex(next_gfx(), osVirtualToPhysical(vtx), 3, 0);
     gSP1Triangle(next_gfx(), 0, 1, 2, 0);
@@ -2291,7 +2357,9 @@ void start_view_dl(struct ObjView *view) {
         uly = lry - 1.0f;
     }
 
+#ifdef TARGET_N64
     gDPSetScissor(next_gfx(), G_SC_NON_INTERLACE, ulx, uly, lrx, lry);
+#endif
     gSPClearGeometryMode(next_gfx(), 0xFFFFFFFF);
     gSPSetGeometryMode(next_gfx(), G_LIGHTING | G_CULL_BACK | G_SHADING_SMOOTH | G_SHADE);
     if (view->flags & VIEW_ALLOC_ZBUF) {
@@ -2734,7 +2802,7 @@ void gd_init_controllers(void) {
 }
 
 /* 252BAC -> 252BC0 */
-void Proc801A43DC(UNUSED struct GdObj *obj) {
+void func_801A43DC(UNUSED struct GdObj *obj) {
 }
 
 /* 252BC0 -> 252BE0 */
@@ -2743,18 +2811,18 @@ void *func_801A43F0(UNUSED const char *menufmt, ...) {
 }
 
 /* 252BE0 -> 252BF0 */
-void Proc801A4410(UNUSED void *arg0) {
+void func_801A4410(UNUSED void *arg0) {
 }
 
 /* 252BF0 -> 252C08 */
-void Proc801A4424(UNUSED void *arg0) {
+void func_801A4424(UNUSED void *arg0) {
 }
 
 /* 252C08 -> 252C70 */
-void func_801A4438(f32 arg0, f32 arg1, f32 arg2) {
-    D_801BB0E8.x = arg0 - (sActiveView->lowerRight.x / 2.0f);
-    D_801BB0E8.y = (sActiveView->lowerRight.y / 2.0f) - arg1;
-    D_801BB0E8.z = arg2;
+void func_801A4438(f32 x, f32 y, f32 z) {
+    D_801BB0E8.x = x - (sActiveView->lowerRight.x / 2.0f);
+    D_801BB0E8.y = (sActiveView->lowerRight.y / 2.0f) - y;
+    D_801BB0E8.z = z;
 }
 
 /* 252C70 -> 252DB4 */
@@ -3085,9 +3153,11 @@ void gd_init(void) {
     s8 *data; // 2c
 
     add_to_stacktrace("gd_init");
+#ifndef USE_SYSTEM_MALLOC
     i = (u32)(sMemBlockPoolSize - DOUBLE_SIZE_ON_64_BIT(0x3E800));
     data = gd_allocblock(i);
     gd_add_mem_to_heap(i, data, 0x10);
+#endif
     D_801BB184 = (u16) 0xff;
     D_801A867C = 0;
     D_801A8680 = 0;
@@ -3114,7 +3184,7 @@ void gd_init(void) {
     }
 
     sNumLights = NUMLIGHTS_2;
-    set_identity_mat4(&sInitIdnMat4);
+    gd_set_identity_mat4(&sInitIdnMat4);
     mat4_to_mtx(&sInitIdnMat4, &sIdnMtx);
     remove_all_memtrackers();
     null_obj_lists();
@@ -3242,7 +3312,7 @@ void Unknown801A5AE0(s32 arg0) {
 }
 
 /* 254328 -> 2543B8; orig name: func_801A5B58 */
-void set_Vtx_tc_buf(f32 tcS, f32 tcT) {
+void set_vtx_tc_buf(f32 tcS, f32 tcT) {
     sVtxCvrtTCBuf[0] = (s16)(tcS * 512.0f);
     sVtxCvrtTCBuf[1] = (s16)(tcT * 512.0f);
 }
@@ -3407,11 +3477,11 @@ void gd_put_sprite(u16 *sprite, s32 x, s32 y, s32 wx, s32 wy) {
     s32 r; // 58
 
     gSPDisplayList(next_gfx(), osVirtualToPhysical(gd_dl_sprite_start_tex_block));
-    for (r = 0; r < wy; r += 0x20) {
-        for (c = 0; c < wx; c += 0x20) {
-             gDPLoadTextureBlock(next_gfx(), (r * 0x20) + sprite + c, G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 32, 0,
+    for (r = 0; r < wy; r += 32) {
+        for (c = 0; c < wx; c += 32) {
+             gDPLoadTextureBlock(next_gfx(), (r * 32) + sprite + c, G_IM_FMT_RGBA, G_IM_SIZ_16b, 32, 32, 0,
                 G_TX_WRAP | G_TX_NOMIRROR, G_TX_WRAP | G_TX_NOMIRROR, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD)
-             gSPTextureRectangle(next_gfx(), x << 2, (y + r) << 2, (x + 0x20) << 2, (y + r + 0x20) << 2,
+             gSPTextureRectangle(next_gfx(), x << 2, (y + r) << 2, (x + 32) << 2, (y + r + 32) << 2,
                 G_TX_RENDERTILE, 0, 0, 1 << 10, 1 << 10);
         }
     }
@@ -3592,6 +3662,7 @@ void Unknown801A6E30(UNUSED u32 a0) {
 void Unknown801A6E44(UNUSED u32 a0) {
 }
 
+#ifndef NO_SEGMENTED_MEMORY
 /* 255628 -> 255704; orig name: func_801A6E58 */
 void gd_block_dma(u32 devAddr, void *vAddr, s32 size) {
     s32 transfer; // 2c
@@ -3669,6 +3740,11 @@ struct GdObj *load_dynlist(struct DynList *dynlist) {
 
     return loadedList;
 }
+#else
+struct GdObj *load_dynlist(struct DynList *dynlist) {
+    return proc_dynlist(dynlist);
+}
+#endif
 
 /* 255988 -> 25599C */
 void stub_801A71B8(UNUSED u32 a0) {

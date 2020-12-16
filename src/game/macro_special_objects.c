@@ -1,4 +1,4 @@
-#include <ultra64.h>
+#include <PR/ultratypes.h>
 
 #include "sm64.h"
 #include "object_helpers.h"
@@ -79,7 +79,7 @@ void spawn_macro_abs_special(u32 model, const BehaviorScript *behavior, s16 x, s
     newObj->oMacroUnk110 = (f32) unkC;
 }
 
-static void Unknown802E142C(const BehaviorScript *behavior, s16 a1[]) {
+static void spawn_macro_coin_unknown(const BehaviorScript *behavior, s16 a1[]) {
     struct Object *sp3C;
     s16 model;
 
@@ -93,7 +93,7 @@ static void Unknown802E142C(const BehaviorScript *behavior, s16 a1[]) {
 }
 
 struct LoadedPreset {
-    /*0x00*/ const BehaviorScript *beh;
+    /*0x00*/ const BehaviorScript *behavior;
     /*0x04*/ s16 param; // huh? why does the below function swap these.. just use the struct..
     /*0x06*/ s16 model;
 };
@@ -112,8 +112,8 @@ void spawn_macro_objects(s16 areaIndex, s16 *macroObjList) {
     struct Object *newObj;
     struct LoadedPreset preset;
 
-    gMacroObjectDefaultParent.header.gfx.unk18 = areaIndex;
-    gMacroObjectDefaultParent.header.gfx.unk19 = areaIndex;
+    gMacroObjectDefaultParent.header.gfx.areaIndex = areaIndex;
+    gMacroObjectDefaultParent.header.gfx.activeAreaIndex = areaIndex;
 
     while (TRUE) {
         if (*macroObjList == -1) { // An encountered value of -1 means the list has ended.
@@ -135,7 +135,7 @@ void spawn_macro_objects(s16 areaIndex, s16 *macroObjList) {
 
         // Get the preset values from the MacroObjectPresets list.
         preset.model = MacroObjectPresets[presetID].model;
-        preset.beh = MacroObjectPresets[presetID].beh;
+        preset.behavior = MacroObjectPresets[presetID].behavior;
         preset.param = MacroObjectPresets[presetID].param;
 
         if (preset.param != 0) {
@@ -151,7 +151,7 @@ void spawn_macro_objects(s16 areaIndex, s16 *macroObjList) {
                 spawn_object_abs_with_rot(&gMacroObjectDefaultParent, // Parent object
                                           0,                          // Unused
                                           preset.model,               // Model ID
-                                          preset.beh,                 // Behavior address
+                                          preset.behavior,            // Behavior address
                                           macroObject[MACRO_OBJ_X],   // X-position
                                           macroObject[MACRO_OBJ_Y],   // Y-position
                                           macroObject[MACRO_OBJ_Z],   // Z-position
@@ -174,7 +174,7 @@ void spawn_macro_objects(s16 areaIndex, s16 *macroObjList) {
 void spawn_macro_objects_hardcoded(s16 areaIndex, s16 *macroObjList) {
     UNUSED u8 pad[8];
 
-    // This version of macroObjList has the preset and Y-Rotation seperated,
+    // This version of macroObjList has the preset and Y-Rotation separated,
     // and lacks behavior params. Might be an early version of the macro object list?
     s16 macroObjX;
     s16 macroObjY;
@@ -184,8 +184,8 @@ void spawn_macro_objects_hardcoded(s16 areaIndex, s16 *macroObjList) {
 
     UNUSED u8 pad2[10];
 
-    gMacroObjectDefaultParent.header.gfx.unk18 = areaIndex;
-    gMacroObjectDefaultParent.header.gfx.unk19 = areaIndex;
+    gMacroObjectDefaultParent.header.gfx.areaIndex = areaIndex;
+    gMacroObjectDefaultParent.header.gfx.activeAreaIndex = areaIndex;
 
     while (TRUE) {
         macroObjPreset = *macroObjList++;
@@ -258,8 +258,8 @@ void spawn_special_objects(s16 areaIndex, s16 **specialObjList) {
     numOfSpecialObjects = **specialObjList;
     (*specialObjList)++;
 
-    gMacroObjectDefaultParent.header.gfx.unk18 = areaIndex;
-    gMacroObjectDefaultParent.header.gfx.unk19 = areaIndex;
+    gMacroObjectDefaultParent.header.gfx.areaIndex = areaIndex;
+    gMacroObjectDefaultParent.header.gfx.activeAreaIndex = areaIndex;
 
     for (i = 0; i < numOfSpecialObjects; i++) {
         presetID = (u8) * *specialObjList;
@@ -327,3 +327,49 @@ void spawn_special_objects(s16 areaIndex, s16 **specialObjList) {
         }
     }
 }
+
+#ifdef NO_SEGMENTED_MEMORY
+u32 get_special_objects_size(s16 *data) {
+    s16 *startPos = data;
+    s32 numOfSpecialObjects;
+    s32 i;
+    u8 presetID;
+    s32 offset;
+
+    numOfSpecialObjects = *data++;
+
+    for (i = 0; i < numOfSpecialObjects; i++) {
+        presetID = (u8) *data++;
+        data += 3;
+        offset = 0;
+
+        while (TRUE) {
+            if (SpecialObjectPresets[offset].preset_id == presetID) {
+                break;
+            }
+            offset++;
+        }
+
+        switch (SpecialObjectPresets[offset].type) {
+            case SPTYPE_NO_YROT_OR_PARAMS:
+                break;
+            case SPTYPE_YROT_NO_PARAMS:
+                data++;
+                break;
+            case SPTYPE_PARAMS_AND_YROT:
+                data += 2;
+                break;
+            case SPTYPE_UNKNOWN:
+                data += 3;
+                break;
+            case SPTYPE_DEF_PARAM_AND_YROT:
+                data++;
+                break;
+            default:
+                break;
+        }
+    }
+
+    return data - startPos;
+}
+#endif

@@ -128,7 +128,7 @@ const GeoLayout toad_geo[] = {
       GEO_OPEN_NODE(),
          GEO_TRANSLATE_ROTATE(1, 0, 0, 0, 0, -23, 0),
          GEO_OPEN_NODE(),
-            GEO_ASM(10, Geo18_8029D924),
+            GEO_ASM(10, geo_update_layer_transparency),
             GEO_SWITCH_CASE(2, geo_switch_anim_state),
             GEO_OPEN_NODE(),
                GEO_BRANCH(1, toad_geo_000114),

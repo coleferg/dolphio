@@ -17,14 +17,42 @@ pipeline {
         sh './extract_assets.py jp us eu'
       }
     }
+<<<<<<< HEAD
+    stage('Build U Source') {
+      steps {
+        sh 'make -j4 VERSION=us'
+      }
+    }
+    stage('Build E Source') {
+      steps {
+        sh 'make -j4 VERSION=eu'
+      }
+    }
+=======
+>>>>>>> dolphio/dolphio
     stage('Build J Source') {
       steps {
         sh 'make -j4 VERSION=jp'
       }
     }
+<<<<<<< HEAD
+    stage('Test Enhancements') {
+      steps {
+        sh '''
+          set -e
+          for f in enhancements/*.patch
+          do
+            git clean -fd .
+            git checkout -- .
+            echo 'y' | tools/apply_patch.sh "$f"
+            make -j4 VERSION=us COMPARE=0
+          done
+        '''
+=======
     stage('Build U Source') {
       steps {
         sh 'make -j4 VERSION=us'
+>>>>>>> dolphio/dolphio
       }
     }
   }

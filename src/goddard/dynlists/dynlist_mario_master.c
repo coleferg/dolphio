@@ -1,4 +1,5 @@
-#include <ultra64.h>
+#include <PR/ultratypes.h>
+
 #include "dynlist_macros.h"
 #include "dynlists.h"
 #include "animdata.h"
@@ -964,8 +965,8 @@ struct DynList dynlist_mario_master[1026] = {
     SetNodeGroup(0x7B),
     LinkWith(0x7A),
 
-    MakeDynObj(D_DATA_GRP, 0x84), // hat
-    LinkWithPtr(&anim_mario_hat),
+    MakeDynObj(D_DATA_GRP, 0x84), // cap
+    LinkWithPtr(&anim_mario_cap),
     MakeDynObj(D_ANIMATOR, 0x85),
     AttachTo(0x0, 0x3E9),
     SetNodeGroup(0x84),

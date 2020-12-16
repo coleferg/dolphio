@@ -20,6 +20,8 @@ def read_local_asset_list(f):
 
 
 def asset_needs_update(asset, version):
+    if version <= 5 and asset == "textures/spooky/bbh_textures.00800.rgba16.png":
+        return True
     if version <= 4 and asset in ["textures/mountain/ttm_textures.01800.rgba16.png", "textures/mountain/ttm_textures.05800.rgba16.png"]:
         return True
     if version <= 3 and asset == "textures/cave/hmc_textures.01800.rgba16.png":
@@ -57,7 +59,7 @@ def clean_assets(local_asset_file):
 def main():
     # In case we ever need to change formats of generated files, we keep a
     # revision ID in the local asset file.
-    new_version = 5
+    new_version = 6
 
     try:
         local_asset_file = open(".assets-local.txt")
@@ -72,7 +74,7 @@ def main():
         clean_assets(local_asset_file)
         sys.exit(0)
 
-    all_langs = ["jp", "us", "eu"]
+    all_langs = ["jp", "us", "eu", "sh"]
     if not langs or not all(a in all_langs for a in langs):
         langs_str = " ".join("[" + lang + "]" for lang in all_langs)
         print("Usage: " + sys.argv[0] + " " + langs_str)
@@ -134,8 +136,8 @@ def main():
         try:
             with open(fname, "rb") as f:
                 roms[lang] = f.read()
-        except:
-            print("Failed to open " + fname + ". Please ensure it exists!")
+        except Exception as e:
+            print("Failed to open " + fname + "! " + str(e))
             sys.exit(1)
         sha1 = hashlib.sha1(roms[lang]).hexdigest()
         with open("sm64." + lang + ".sha1", "r") as f:
@@ -164,15 +166,17 @@ def main():
         assets = todo[key]
         lang, mio0 = key
         if mio0 == "@sound":
-            with tempfile.NamedTemporaryFile(prefix="ctl") as ctl_file:
-                with tempfile.NamedTemporaryFile(prefix="tbl") as tbl_file:
+            with tempfile.NamedTemporaryFile(prefix="ctl", delete=False) as ctl_file:
+                with tempfile.NamedTemporaryFile(prefix="tbl", delete=False) as tbl_file:
                     rom = roms[lang]
                     size, locs = asset_map["@sound ctl " + lang]
                     offset = locs[lang][0]
                     ctl_file.write(rom[offset : offset + size])
+                    ctl_file.close()
                     size, locs = asset_map["@sound tbl " + lang]
                     offset = locs[lang][0]
                     tbl_file.write(rom[offset : offset + size])
+                    tbl_file.close()
                     args = [
                         "python3",
                         "tools/disassemble_sound.py",
@@ -183,7 +187,11 @@ def main():
                     for (asset, pos, size, meta) in assets:
                         print("extracting", asset)
                         args.append(asset + ":" + str(pos))
-                    subprocess.run(args, check=True)
+                    try:
+                        subprocess.run(args, check=True)
+                    finally:
+                        os.unlink(ctl_file.name)
+                        os.unlink(tbl_file.name)
             continue
 
         if mio0 is not None:
@@ -194,7 +202,7 @@ def main():
                     "-o",
                     str(mio0),
                     "baserom." + lang + ".z64",
-                    "/dev/stdout",
+                    "-",
                 ],
                 check=True,
                 stdout=subprocess.PIPE,
@@ -207,9 +215,11 @@ def main():
             input = image[pos : pos + size]
             os.makedirs(os.path.dirname(asset), exist_ok=True)
             if asset.endswith(".png"):
-                with tempfile.NamedTemporaryFile(prefix="asset") as png_file:
+                png_file = tempfile.NamedTemporaryFile(prefix="asset", delete=False)
+                try:
                     png_file.write(input)
                     png_file.flush()
+                    png_file.close()
                     if asset.startswith("textures/skyboxes/") or asset.startswith("levels/ending/cake"):
                         if asset.startswith("textures/skyboxes/"):
                             imagetype = "sky"
@@ -245,6 +255,9 @@ def main():
                             ],
                             check=True,
                         )
+                finally:
+                    png_file.close()
+                    os.remove(png_file.name)
             else:
                 with open(asset, "wb") as f:
                     f.write(input)

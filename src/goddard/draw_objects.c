@@ -1,18 +1,17 @@
-#include <ultra64.h>
-#include <macros.h>
+#include <PR/ultratypes.h>
 #include <stdio.h>
 
-#include "gd_types.h"
+#include "debug_utils.h"
+#include "dynlist_proc.h"
 #include "gd_macros.h"
 #include "gd_main.h"
-#include "objects.h"
-#include "dynlist_proc.h"
-#include "old_menu.h"
-#include "debug_utils.h"
 #include "gd_math.h"
-#include "shape_helper.h"
+#include "gd_types.h"
+#include "macros.h"
+#include "objects.h"
+#include "old_menu.h"
 #include "renderer.h"
-#include "prevent_bss_reordering.h"
+#include "shape_helper.h"
 #include "draw_objects.h"
 
 /**
@@ -143,8 +142,8 @@ void Unknown801781DC(struct ObjZone *zone) {
         lightPos.y = light->position.y;
         lightPos.z = light->position.z;
         unk = (struct ObjUnk200000 *) obj;
-        sp34 = dot_product_vec3f(&unk->unk34->normal, &unk->unk30->pos);
-        sp30 = dot_product_vec3f(&unk->unk34->normal, &lightPos);
+        sp34 = gd_dot_vec3f(&unk->unk34->normal, &unk->unk30->pos);
+        sp30 = gd_dot_vec3f(&unk->unk34->normal, &lightPos);
         lightPos.x -= unk->unk34->normal.x * (sp30 - sp34);
         lightPos.y -= unk->unk34->normal.y * (sp30 - sp34);
         lightPos.z -= unk->unk34->normal.z * (sp30 - sp34);
@@ -261,7 +260,7 @@ void draw_shape_2d(struct ObjShape *shape, s32 flag, UNUSED f32 c, UNUSED f32 d,
         sp1C.y = g;
         sp1C.z = h;
         if (gViewUpdateCamera != NULL) {
-            func_80196430(&sp1C, &gViewUpdateCamera->unkE8);
+            gd_rotate_and_translate_vec3f(&sp1C, &gViewUpdateCamera->unkE8);
         }
         translate_load_mtx_gddl(sp1C.x, sp1C.y, sp1C.z);
     }
@@ -285,11 +284,11 @@ void draw_light(struct ObjLight *light) {
     sLightColours[0].b = light->colour.b;
 
     if (light->flags & LIGHT_UNK02) {
-        set_identity_mat4(&sp54);
+        gd_set_identity_mat4(&sp54);
         sp94.x = -light->unk80.x;
         sp94.y = -light->unk80.y;
         sp94.z = -light->unk80.z;
-        func_80194358(&sp54, &sp94, 0.0f);
+        gd_create_origin_lookat(&sp54, &sp94, 0.0f);
         uMultiplier = light->unk38 / 45.0;
         shape = D_801A82E4;
         uMatPtr = &sp54;
@@ -479,10 +478,10 @@ void draw_face(struct ObjFace *face) {
         //!      as the struct requests fields passed the end of an ObjVertex.
         //!      The bad code is statically unreachable, so...
         if (hasTextCoords) {
-            set_Vtx_tc_buf(((struct BetaVtx *) vtx)->s, ((struct BetaVtx *) vtx)->t);
+            set_vtx_tc_buf(((struct BetaVtx *) vtx)->s, ((struct BetaVtx *) vtx)->t);
         }
 
-        gbiVtx = make_Vtx_if_new(x, y, z, vtx->alpha);
+        gbiVtx = make_vtx_if_new(x, y, z, vtx->alpha);
 
         if (gbiVtx != NULL) {
             vtx->gbiVerts = make_vtx_link(vtx->gbiVerts, gbiVtx);
@@ -696,7 +695,7 @@ void func_80179B64(struct ObjGroup *group) {
 
 /* 22836C -> 228498 */
 void func_80179B9C(struct GdVec3f *pos, struct ObjCamera *cam, struct ObjView *view) {
-    func_80196430(pos, &cam->unkE8);
+    gd_rotate_and_translate_vec3f(pos, &cam->unkE8);
     if (pos->z > -256.0f) {
         return;
     }
@@ -1023,7 +1022,7 @@ void Proc8017A980(struct ObjLight *light) {
     sLightPositionCache[light->id].x = light->position.x - sLightPositionOffset.x;
     sLightPositionCache[light->id].y = light->position.y - sLightPositionOffset.y;
     sLightPositionCache[light->id].z = light->position.z - sLightPositionOffset.z;
-    into_unit_vec3f(&sLightPositionCache[light->id]);
+    gd_normalize_vec3f(&sLightPositionCache[light->id]);
     if (light->flags & LIGHT_UNK20) {
         sPhongLightPosition.x = sLightPositionCache[light->id].x;
         sPhongLightPosition.y = sLightPositionCache[light->id].y;
@@ -1032,7 +1031,7 @@ void Proc8017A980(struct ObjLight *light) {
     }
     sp24 = light->unk30;
     if (light->flags & LIGHT_UNK02) {
-        sp20 = -dot_product_vec3f(&sLightPositionCache[light->id], &light->unk80);
+        sp20 = -gd_dot_vec3f(&sLightPositionCache[light->id], &light->unk80);
         sp1C = 1.0 - light->unk38 / 90.0;
         if (sp20 > sp1C) {
             sp20 = (sp20 - sp1C) * (1.0 / (1.0 - sp1C));

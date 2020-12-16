@@ -1,6 +1,8 @@
 #ifndef AUDIO_EFFECTS_H
 #define AUDIO_EFFECTS_H
 
+#include <PR/ultratypes.h>
+
 #include "internal.h"
 #include "platform_info.h"
 
@@ -35,6 +37,10 @@ void sequence_player_process_sound(struct SequencePlayer *seqPlayer);
 void note_vibrato_update(struct Note *note);
 void note_vibrato_init(struct Note *note);
 void adsr_init(struct AdsrState *adsr, struct AdsrEnvelope *envelope, s16 *volOut);
+#ifdef VERSION_EU
+f32 adsr_update(struct AdsrState *adsr);
+#else
 s32 adsr_update(struct AdsrState *adsr);
+#endif
 
-#endif /* AUDIO_EFFECTS_H */
+#endif // AUDIO_EFFECTS_H

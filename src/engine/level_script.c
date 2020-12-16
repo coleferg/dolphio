@@ -1,11 +1,14 @@
 #include <ultra64.h>
+#ifdef NO_SEGMENTED_MEMORY
+#include <string.h>
+#endif
 
 #include "sm64.h"
 #include "audio/external.h"
 #include "buffers/framebuffers.h"
 #include "buffers/zbuffer.h"
 #include "game/area.h"
-#include "game/display.h"
+#include "game/game_init.h"
 #include "game/mario.h"
 #include "game/memory.h"
 #include "game/object_helpers.h"
@@ -17,12 +20,10 @@
 #include "geo_layout.h"
 #include "graph_node.h"
 #include "level_script.h"
+#include "level_misc_macros.h"
 #include "math_util.h"
 #include "surface_collision.h"
 #include "surface_load.h"
-
-#define CMD_SIZE_SHIFT (sizeof(void *) >> 3)
-#define CMD_PROCESS_OFFSET(offset) ((offset & 3) | ((offset & ~3) << CMD_SIZE_SHIFT))
 
 #define CMD_GET(type, offset) (*(type *) (CMD_PROCESS_OFFSET(offset) + (u8 *) sCurrentCmd))
 
@@ -53,6 +54,10 @@ static uintptr_t *sStackBase = NULL;
 static s16 sScriptStatus;
 static s32 sRegister;
 static struct LevelCommand *sCurrentCmd;
+
+#ifdef USE_SYSTEM_MALLOC
+static struct MemoryPool *sMemPoolForGoddard;
+#endif
 
 static s32 eval_script_op(s8 op, s32 arg) {
     s32 result = 0;
@@ -104,7 +109,8 @@ static void level_cmd_exit_and_execute(void) {
     main_pool_pop_state();
     main_pool_push_state();
 
-    load_segment(CMD_GET(s16, 2), CMD_GET(void *, 4), CMD_GET(void *, 8), MEMORY_POOL_LEFT);
+    load_segment(CMD_GET(s16, 2), CMD_GET(void *, 4), CMD_GET(void *, 8),
+            MEMORY_POOL_LEFT);
 
     sStackTop = sStackBase;
     sCurrentCmd = segmented_to_virtual(targetAddr);
@@ -268,7 +274,8 @@ static void level_cmd_load_to_fixed_address(void) {
 }
 
 static void level_cmd_load_raw(void) {
-    load_segment(CMD_GET(s16, 2), CMD_GET(void *, 4), CMD_GET(void *, 8), MEMORY_POOL_LEFT);
+    load_segment(CMD_GET(s16, 2), CMD_GET(void *, 4), CMD_GET(void *, 8),
+            MEMORY_POOL_LEFT);
     sCurrentCmd = CMD_NEXT;
 }
 
@@ -277,23 +284,40 @@ static void level_cmd_load_mio0(void) {
     sCurrentCmd = CMD_NEXT;
 }
 
+#ifdef USE_SYSTEM_MALLOC
+static void *alloc_for_goddard(u32 size) {
+    return mem_pool_alloc(sMemPoolForGoddard, size);
+}
+
+static void free_for_goddard(void *ptr) {
+    mem_pool_free(sMemPoolForGoddard, ptr);
+}
+#endif
+
 static void level_cmd_load_mario_head(void) {
+#ifdef USE_SYSTEM_MALLOC
+    sMemPoolForGoddard = mem_pool_init(0, 0);
+    gdm_init(alloc_for_goddard, free_for_goddard);
+    gdm_setup();
+    gdm_maketestdl(CMD_GET(s16, 2));
+#else
     // TODO: Fix these hardcoded sizes
     void *addr = main_pool_alloc(DOUBLE_SIZE_ON_64_BIT(0xE1000), MEMORY_POOL_LEFT);
     if (addr != NULL) {
         gdm_init(addr, DOUBLE_SIZE_ON_64_BIT(0xE1000));
-        gd_add_to_heap(gZBuffer, sizeof(gZBuffer));               // 0x25800
+        gd_add_to_heap(gZBuffer, sizeof(gZBuffer)); // 0x25800
         gd_add_to_heap(gFrameBuffer0, 3 * sizeof(gFrameBuffer0)); // 0x70800
         gdm_setup();
         gdm_maketestdl(CMD_GET(s16, 2));
     } else {
     }
+#endif
 
     sCurrentCmd = CMD_NEXT;
 }
 
 static void level_cmd_load_mio0_texture(void) {
-    func_80278304(CMD_GET(s16, 2), CMD_GET(void *, 4), CMD_GET(void *, 8));
+    load_segment_decompress_heap(CMD_GET(s16, 2), CMD_GET(void *, 4), CMD_GET(void *, 8));
     sCurrentCmd = CMD_NEXT;
 }
 
@@ -308,7 +332,7 @@ static void level_cmd_init_level(void) {
 
 static void level_cmd_clear_level(void) {
     clear_objects();
-    func_8027A7C4();
+    clear_area_graph_nodes();
     clear_areas();
     main_pool_pop_state();
 
@@ -317,8 +341,12 @@ static void level_cmd_clear_level(void) {
 
 static void level_cmd_alloc_level_pool(void) {
     if (sLevelPool == NULL) {
+#ifdef USE_SYSTEM_MALLOC
+        sLevelPool = alloc_only_pool_init();
+#else
         sLevelPool = alloc_only_pool_init(main_pool_available() - sizeof(struct AllocOnlyPool),
                                           MEMORY_POOL_LEFT);
+#endif
     }
 
     sCurrentCmd = CMD_NEXT;
@@ -327,7 +355,9 @@ static void level_cmd_alloc_level_pool(void) {
 static void level_cmd_free_level_pool(void) {
     s32 i;
 
+#ifndef USE_SYSTEM_MALLOC
     alloc_only_pool_resize(sLevelPool, sLevelPool->usedSpace);
+#endif
     sLevelPool = NULL;
 
     for (i = 0; i < 8; i++) {
@@ -351,7 +381,7 @@ static void level_cmd_begin_area(void) {
 
         sCurrAreaIndex = areaIndex;
         screenArea->areaIndex = areaIndex;
-        gAreas[areaIndex].unk04 = (struct GraphNode *) screenArea;
+        gAreas[areaIndex].unk04 = screenArea;
 
         if (node != NULL) {
             gAreas[areaIndex].camera = (struct Camera *) node->config.camera;
@@ -370,7 +400,11 @@ static void level_cmd_end_area(void) {
 
 static void level_cmd_load_model_from_dl(void) {
     s16 val1 = CMD_GET(s16, 2) & 0x0FFF;
+#ifdef VERSION_EU
+    s16 val2 = (CMD_GET(s16, 2) & 0xFFFF) >> 12;
+#else
     s16 val2 = CMD_GET(u16, 2) >> 12;
+#endif
     void *val3 = CMD_GET(void *, 4);
 
     if (val1 < 256) {
@@ -399,7 +433,11 @@ static void level_cmd_23(void) {
     } arg2;
 
     s16 model = CMD_GET(s16, 2) & 0x0FFF;
+#ifdef VERSION_EU
+    s16 arg0H = (CMD_GET(s16, 2) & 0xFFFF) >> 12;
+#else
     s16 arg0H = CMD_GET(u16, 2) >> 12;
+#endif
     void *arg1 = CMD_GET(void *, 4);
     // load an f32, but using an integer load instruction for some reason (hence the union)
     arg2.i = CMD_GET(s32, 8);
@@ -591,7 +629,18 @@ static void level_cmd_set_gamma(void) {
 
 static void level_cmd_set_terrain_data(void) {
     if (sCurrAreaIndex != -1) {
+#ifndef NO_SEGMENTED_MEMORY
         gAreas[sCurrAreaIndex].terrainData = segmented_to_virtual(CMD_GET(void *, 4));
+#else
+        Collision *data;
+        u32 size;
+
+        // The game modifies the terrain data and must be reset upon level reload.
+        data = segmented_to_virtual(CMD_GET(void *, 4));
+        size = get_area_terrain_size(data) * sizeof(Collision);
+        gAreas[sCurrAreaIndex].terrainData = alloc_only_pool_alloc(sLevelPool, size);
+        memcpy(gAreas[sCurrAreaIndex].terrainData, data, size);
+#endif
     }
     sCurrentCmd = CMD_NEXT;
 }
@@ -605,7 +654,19 @@ static void level_cmd_set_rooms(void) {
 
 static void level_cmd_set_macro_objects(void) {
     if (sCurrAreaIndex != -1) {
+#ifndef NO_SEGMENTED_MEMORY
         gAreas[sCurrAreaIndex].macroObjects = segmented_to_virtual(CMD_GET(void *, 4));
+#else
+        // The game modifies the macro object data (for example marking coins as taken),
+        // so it must be reset when the level reloads.
+        MacroObject *data = segmented_to_virtual(CMD_GET(void *, 4));
+        s32 len = 0;
+        while (data[len++] != MACRO_OBJECT_END()) {
+            len += 4;
+        }
+        gAreas[sCurrAreaIndex].macroObjects = alloc_only_pool_alloc(sLevelPool, len * sizeof(MacroObject));
+        memcpy(gAreas[sCurrAreaIndex].macroObjects, data, len * sizeof(MacroObject));
+#endif
     }
     sCurrentCmd = CMD_NEXT;
 }
@@ -620,8 +681,8 @@ static void level_cmd_load_area(void) {
     sCurrentCmd = CMD_NEXT;
 }
 
-static void level_cmd_2A(void) {
-    func_8027A998();
+static void level_cmd_unload_area(void) {
+    unload_area();
     sCurrentCmd = CMD_NEXT;
 }
 
@@ -639,7 +700,7 @@ static void level_cmd_set_mario_start_pos(void) {
 }
 
 static void level_cmd_2C(void) {
-    func_8027AA88();
+    unload_mario_area();
     sCurrentCmd = CMD_NEXT;
 }
 
@@ -682,7 +743,7 @@ static void level_cmd_set_menu_music(void) {
 }
 
 static void level_cmd_38(void) {
-    func_802491FC(CMD_GET(s16, 2));
+    fadeout_music(CMD_GET(s16, 2));
     sCurrentCmd = CMD_NEXT;
 }
 
@@ -771,7 +832,7 @@ static void (*LevelScriptJumpTable[])(void) = {
     /*27*/ level_cmd_create_painting_warp_node,
     /*28*/ level_cmd_create_instant_warp,
     /*29*/ level_cmd_load_area,
-    /*2A*/ level_cmd_2A,
+    /*2A*/ level_cmd_unload_area,
     /*2B*/ level_cmd_set_mario_start_pos,
     /*2C*/ level_cmd_2C,
     /*2D*/ level_cmd_2D,

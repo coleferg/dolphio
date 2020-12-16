@@ -10,8 +10,7 @@ void intro_peach_set_pos_and_opacity(struct Object *o, f32 targetOpacity, f32 in
     f32 UNUSED dist, newOpacity;
 
     vec3f_get_dist_and_angle(gLakituState.pos, gLakituState.focus, &dist, &focusPitch, &focusYaw);
-    vec3f_set_dist_and_angle(gLakituState.pos, newPos, o->oIntroPeachDistToCamera,
-                             o->oIntroPeachPitchFromFocus + focusPitch,
+    vec3f_set_dist_and_angle(gLakituState.pos, newPos, o->oIntroPeachDistToCamera, o->oIntroPeachPitchFromFocus + focusPitch,
                              o->oIntroPeachYawFromFocus + focusYaw);
     vec3f_to_object_pos(o, newPos);
     newOpacity = o->oOpacity;
@@ -23,14 +22,14 @@ void bhv_intro_peach_loop(void) {
     switch (gCurrentObject->oAction) {
         case 0:
             gCurrentObject->oAction += 1;
-            gCurrentObject->oFaceAnglePitch = 0x380;
-            gCurrentObject->oFaceAngleYaw = 0x6850;
-            gCurrentObject->oFaceAngleRoll = -0x2800;
-            gCurrentObject->oIntroPeachDistToCamera = 150.f;
-            gCurrentObject->oIntroPeachPitchFromFocus = -12084.f;
-            gCurrentObject->oIntroPeachYawFromFocus = -2008.f;
+            gCurrentObject->oFaceAnglePitch = 0x400;
+            gCurrentObject->oFaceAngleYaw = 0x7500;
+            gCurrentObject->oFaceAngleRoll = -0x3700;
+            gCurrentObject->oIntroPeachDistToCamera = 186.f;
+            gCurrentObject->oIntroPeachPitchFromFocus = -9984.f;
+            gCurrentObject->oIntroPeachYawFromFocus = -768.f;
             gCurrentObject->oOpacity = 255;
-            gCurrentObject->header.gfx.unk38.animFrame = 100;
+            gCurrentObject->header.gfx.animInfo.animFrame = 100;
             break;
         case 1:
             intro_peach_set_pos_and_opacity(gCurrentObject, 0.f, 0.f);
@@ -48,7 +47,7 @@ void bhv_intro_peach_loop(void) {
             intro_peach_set_pos_and_opacity(gCurrentObject, 0.f, 8.f);
 
             if (gCurrentObject->oTimer > 60)
-                mark_object_for_deletion(gCurrentObject);
+                obj_mark_for_deletion(gCurrentObject);
             break;
     }
 }

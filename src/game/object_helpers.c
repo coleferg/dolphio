@@ -1,157 +1,147 @@
-#include <ultra64.h>
+#include <PR/ultratypes.h>
 
 #include "sm64.h"
+#include "area.h"
+#include "behavior_actions.h"
 #include "behavior_data.h"
-#include "engine/behavior_script.h"
 #include "camera.h"
 #include "debug.h"
+#include "dialog_ids.h"
+#include "engine/behavior_script.h"
+#include "engine/geo_layout.h"
+#include "engine/math_util.h"
+#include "engine/surface_collision.h"
+#include "game_init.h"
 #include "helper_macros.h"
+#include "ingame_menu.h"
+#include "interaction.h"
+#include "level_table.h"
+#include "level_update.h"
 #include "mario.h"
 #include "mario_actions_cutscene.h"
-#include "engine/math_util.h"
 #include "memory.h"
-#include "level_update.h"
+#include "obj_behaviors.h"
+#include "object_helpers.h"
 #include "object_list_processor.h"
 #include "rendering_graph_node.h"
 #include "spawn_object.h"
 #include "spawn_sound.h"
-#include "engine/surface_collision.h"
-#include "area.h"
-#include "engine/geo_layout.h"
-#include "ingame_menu.h"
-#include "game.h"
-#include "obj_behaviors.h"
-#include "interaction.h"
-#include "object_list_processor.h"
-#include "room.h"
-#include "level_table.h"
-#include "dialog_ids.h"
 
-#include "object_helpers.h"
-#include "object_helpers2.h"
-
-s8 D_8032F0A0[] = { 0xF8, 0x08, 0xFC, 0x04 };
+s8 D_8032F0A0[] = { -8, 8, -4, 4 };
 s16 D_8032F0A4[] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
 static s8 sLevelsWithRooms[] = { LEVEL_BBH, LEVEL_CASTLE, LEVEL_HMC, -1 };
 
-s32 sGrabReleaseState;
-
-// These can be static:
-extern void func_8029D704(Mat4, Mat4, Mat4);
-extern void func_8029EA0C(struct Object *);
-extern void translate_object_local(struct Object *, s16, s16);
-extern void copy_object_pos(struct Object *, struct Object *);
-extern void copy_object_angle(struct Object *, struct Object *);
-extern struct Object *obj_find_nearest_object_with_behavior(const BehaviorScript *, f32 *);
-extern void obj_move_y(f32, f32, f32);
 static s32 clear_move_flag(u32 *, s32);
-extern void func_802AA618(s32, s32, f32);
-extern void spawn_triangle_break_particles(s32, s32, f32, s32);
 
 #define o gCurrentObject
 
-Gfx *Geo18_8029D890(s32 run, UNUSED struct GraphNode *node, f32 mtx[4][4]) {
+Gfx *geo_update_projectile_pos_from_parent(s32 callContext, UNUSED struct GraphNode *node, Mat4 mtx) {
     Mat4 sp20;
     struct Object *sp1C;
 
-    if (run == TRUE) {
+    if (callContext == GEO_CONTEXT_RENDER) {
         sp1C = (struct Object *) gCurGraphNodeObject; // TODO: change global type to Object pointer
         if (sp1C->prevObj) {
-            func_8029D704(sp20, mtx, gCurGraphNodeCamera->matrixPtr);
-            func_8029D558(sp20, sp1C->prevObj);
-            func_8029EA0C(sp1C->prevObj);
+            create_transformation_from_matrices(sp20, mtx, *gCurGraphNodeCamera->matrixPtr);
+            obj_update_pos_from_parent_transformation(sp20, sp1C->prevObj);
+            obj_set_gfx_pos_from_pos(sp1C->prevObj);
         }
     }
     return NULL;
 }
 
-Gfx *Geo18_8029D924(s32 run, struct GraphNode *node, UNUSED void *context) {
-    Gfx *sp3C, *sp38;
-    struct Object *sp34;
-    struct GraphNodeGenerated *sp30;
+Gfx *geo_update_layer_transparency(s32 callContext, struct GraphNode *node, UNUSED void *context) {
+    Gfx *dlStart, *dlHead;
+    struct Object *objectGraphNode;
+    struct GraphNodeGenerated *currentGraphNode;
     UNUSED struct GraphNodeGenerated *sp2C;
-    s32 sp28;
+    s32 objectOpacity;
 
-    sp3C = NULL;
+    dlStart = NULL;
 
-    if (run == TRUE) {
-        sp34 = (struct Object *) gCurGraphNodeObject; // TODO: change this to object pointer?
-        sp30 = (struct GraphNodeGenerated *) node;
+    if (callContext == GEO_CONTEXT_RENDER) {
+        objectGraphNode = (struct Object *) gCurGraphNodeObject; // TODO: change this to object pointer?
+        currentGraphNode = (struct GraphNodeGenerated *) node;
         sp2C = (struct GraphNodeGenerated *) node;
 
         if (gCurGraphNodeHeldObject) {
-            sp34 = gCurGraphNodeHeldObject->objNode;
+            objectGraphNode = gCurGraphNodeHeldObject->objNode;
         }
 
-        sp28 = sp34->oOpacity;
-        sp3C = alloc_display_list(sizeof(Gfx) * 3);
+        objectOpacity = objectGraphNode->oOpacity;
+        dlStart = alloc_display_list(sizeof(Gfx) * 3);
 
-        sp38 = sp3C;
+        dlHead = dlStart;
 
-        if (sp28 == 0xFF) {
-            if (sp30->parameter == 20) {
-                sp30->fnNode.node.flags = 0x600 | (sp30->fnNode.node.flags & 0xFF);
+        if (objectOpacity == 0xFF) {
+            if (currentGraphNode->parameter == 20) {
+                currentGraphNode->fnNode.node.flags =
+                0x600 | (currentGraphNode->fnNode.node.flags & 0xFF);
             } else {
-                sp30->fnNode.node.flags = 0x100 | (sp30->fnNode.node.flags & 0xFF);
+                currentGraphNode->fnNode.node.flags =
+                0x100 | (currentGraphNode->fnNode.node.flags & 0xFF);
             }
 
-            sp34->oAnimState = 0;
+            objectGraphNode->oAnimState = 0;
         } else {
-            if (sp30->parameter == 20) {
-                sp30->fnNode.node.flags = 0x600 | (sp30->fnNode.node.flags & 0xFF);
+            if (currentGraphNode->parameter == 20) {
+                currentGraphNode->fnNode.node.flags =
+                0x600 | (currentGraphNode->fnNode.node.flags & 0xFF);
             } else {
-                sp30->fnNode.node.flags = 0x500 | (sp30->fnNode.node.flags & 0xFF);
+                currentGraphNode->fnNode.node.flags =
+                0x500 | (currentGraphNode->fnNode.node.flags & 0xFF);
             }
 
-            sp34->oAnimState = 1;
+            objectGraphNode->oAnimState = 1;
 
 #ifdef VERSION_JP
-            if (sp30->parameter == 10) {
+            if (currentGraphNode->parameter == 10) {
                 if (gDebugInfo[DEBUG_PAGE_ENEMYINFO][3]) {
-                    gDPSetAlphaCompare(sp38++, G_AC_DITHER);
+                    gDPSetAlphaCompare(dlHead++, G_AC_DITHER);
                 }
             } else {
-                if (sp34->activeFlags & ACTIVE_FLAG_UNK7) {
-                    gDPSetAlphaCompare(sp38++, G_AC_DITHER);
+                if (objectGraphNode->activeFlags & ACTIVE_FLAG_DITHERED_ALPHA) {
+                    gDPSetAlphaCompare(dlHead++, G_AC_DITHER);
                 }
             }
 #else // gDebugInfo accesses were removed in all non-JP versions.
-            if (sp28 == 0 && segmented_to_virtual(bhvBowser) == sp34->behavior) {
-                sp34->oAnimState = 2;
+            if (objectOpacity == 0 && segmented_to_virtual(bhvBowser) == objectGraphNode->behavior) {
+                objectGraphNode->oAnimState = 2;
             }
             // the debug info check was removed in US. so we need to
             // perform the only necessary check instead of the debuginfo
             // one.
-            if (sp30->parameter != 10) {
-                if (sp34->activeFlags & ACTIVE_FLAG_UNK7) {
-                    gDPSetAlphaCompare(sp38++, G_AC_DITHER);
+            if (currentGraphNode->parameter != 10) {
+                if (objectGraphNode->activeFlags & ACTIVE_FLAG_DITHERED_ALPHA) {
+                    gDPSetAlphaCompare(dlHead++, G_AC_DITHER);
                 }
             }
 #endif
         }
 
-        gDPSetEnvColor(sp38++, 255, 255, 255, sp28);
-        gSPEndDisplayList(sp38);
+        gDPSetEnvColor(dlHead++, 255, 255, 255, objectOpacity);
+        gSPEndDisplayList(dlHead);
     }
 
-    return sp3C;
+    return dlStart;
 }
 
 /**
- * @bug Every geo function declares the 3 parameters of run, node, and the matrix array.
- * This one (see also geo_switch_area) doesn't. When executed, the node function
- * executor passes the 3rd argument to a function that doesn't declare it. This is
- * undefined behavior, but harmless in practice due to the o32 calling convention.
+ * @bug Every geo function declares the 3 parameters of callContext, node, and
+ * the matrix array. This one (see also geo_switch_area) doesn't. When executed,
+ * the node function executor passes the 3rd argument to a function that doesn't
+ * declare it. This is undefined behavior, but harmless in practice due to the
+ * o32 calling convention.
  */
 #ifdef AVOID_UB
-Gfx *geo_switch_anim_state(s32 run, struct GraphNode *node, UNUSED void *context) {
+Gfx *geo_switch_anim_state(s32 callContext, struct GraphNode *node, UNUSED void *context) {
 #else
-Gfx *geo_switch_anim_state(s32 run, struct GraphNode *node) {
+Gfx *geo_switch_anim_state(s32 callContext, struct GraphNode *node) {
 #endif
     struct Object *obj;
     struct GraphNodeSwitchCase *switchCase;
 
-    if (run == TRUE) {
+    if (callContext == GEO_CONTEXT_RENDER) {
         obj = (struct Object *) gCurGraphNodeObject; // TODO: change global type to Object pointer
 
         // move to a local var because GraphNodes are passed in all geo functions.
@@ -177,9 +167,9 @@ Gfx *geo_switch_anim_state(s32 run, struct GraphNode *node) {
 
 //! @bug Same issue as geo_switch_anim_state.
 #ifdef AVOID_UB
-Gfx *geo_switch_area(s32 run, struct GraphNode *node, UNUSED void *context) {
+Gfx *geo_switch_area(s32 callContext, struct GraphNode *node, UNUSED void *context) {
 #else
-Gfx *geo_switch_area(s32 run, struct GraphNode *node) {
+Gfx *geo_switch_area(s32 callContext, struct GraphNode *node) {
 #endif
     s16 sp26;
     struct Surface *sp20;
@@ -187,7 +177,7 @@ Gfx *geo_switch_area(s32 run, struct GraphNode *node) {
         (struct Object *) gCurGraphNodeObject; // TODO: change global type to Object pointer
     struct GraphNodeSwitchCase *switchCase = (struct GraphNodeSwitchCase *) node;
 
-    if (run == TRUE) {
+    if (callContext == GEO_CONTEXT_RENDER) {
         if (gMarioObject == NULL) {
             switchCase->selectedCase = 0;
         } else {
@@ -212,19 +202,17 @@ Gfx *geo_switch_area(s32 run, struct GraphNode *node) {
     return NULL;
 }
 
-void func_8029D558(Mat4 a0, struct Object *a1) {
-    f32 spC, sp8, sp4;
-
-    spC = a1->oParentRelativePosX;
-    sp8 = a1->oParentRelativePosY;
-    sp4 = a1->oParentRelativePosZ;
+void obj_update_pos_from_parent_transformation(Mat4 a0, struct Object *a1) {
+    f32 spC = a1->oParentRelativePosX;
+    f32 sp8 = a1->oParentRelativePosY;
+    f32 sp4 = a1->oParentRelativePosZ;
 
     a1->oPosX = spC * a0[0][0] + sp8 * a0[1][0] + sp4 * a0[2][0] + a0[3][0];
     a1->oPosY = spC * a0[0][1] + sp8 * a0[1][1] + sp4 * a0[2][1] + a0[3][1];
     a1->oPosZ = spC * a0[0][2] + sp8 * a0[1][2] + sp4 * a0[2][2] + a0[3][2];
 }
 
-void apply_object_scale_to_matrix(struct Object *obj, Mat4 dst, Mat4 src) {
+void obj_apply_scale_to_matrix(struct Object *obj, Mat4 dst, Mat4 src) {
     dst[0][0] = src[0][0] * obj->header.gfx.scale[0];
     dst[1][0] = src[1][0] * obj->header.gfx.scale[1];
     dst[2][0] = src[2][0] * obj->header.gfx.scale[2];
@@ -246,7 +234,7 @@ void apply_object_scale_to_matrix(struct Object *obj, Mat4 dst, Mat4 src) {
     dst[3][3] = src[3][3];
 }
 
-void func_8029D704(Mat4 a0, Mat4 a1, Mat4 a2) {
+void create_transformation_from_matrices(Mat4 a0, Mat4 a1, Mat4 a2) {
     f32 spC, sp8, sp4;
 
     spC = a2[3][0] * a2[0][0] + a2[3][1] * a2[0][1] + a2[3][2] * a2[0][2];
@@ -275,7 +263,7 @@ void func_8029D704(Mat4 a0, Mat4 a1, Mat4 a2) {
     a0[3][3] = 1.0f;
 }
 
-void set_object_held_state(struct Object *obj, const BehaviorScript *heldBehavior) {
+void obj_set_held_state(struct Object *obj, const BehaviorScript *heldBehavior) {
     obj->parentObj = o;
 
     if (obj->oFlags & OBJ_FLAG_HOLDABLE) {
@@ -291,8 +279,8 @@ void set_object_held_state(struct Object *obj, const BehaviorScript *heldBehavio
             obj->oHeldState = HELD_DROPPED;
         }
     } else {
-        obj->behScript = segmented_to_virtual(heldBehavior);
-        obj->stackIndex = 0;
+        obj->curBhvCommand = segmented_to_virtual(heldBehavior);
+        obj->bhvStackIndex = 0;
     }
 }
 
@@ -311,7 +299,7 @@ f32 dist_between_objects(struct Object *obj1, struct Object *obj2) {
     return sqrtf(dx * dx + dy * dy + dz * dz);
 }
 
-void obj_forward_vel_approach_upward(f32 target, f32 increment) {
+void cur_obj_forward_vel_approach_upward(f32 target, f32 increment) {
     if (o->oForwardVel >= target) {
         o->oForwardVel = target;
     } else {
@@ -379,7 +367,7 @@ s16 approach_s16_symmetric(s16 value, s16 target, s16 increment) {
     return value;
 }
 
-s32 obj_rotate_yaw_toward(s16 target, s16 increment) {
+s32 cur_obj_rotate_yaw_toward(s16 target, s16 increment) {
     s16 startYaw;
 
     startYaw = (s16) o->oMoveAngleYaw;
@@ -392,14 +380,12 @@ s32 obj_rotate_yaw_toward(s16 target, s16 increment) {
     }
 }
 
-s16 angle_to_object(struct Object *obj1, struct Object *obj2) {
+s16 obj_angle_to_object(struct Object *obj1, struct Object *obj2) {
     f32 z1, x1, z2, x2;
     s16 angle;
 
-    z1 = obj1->oPosZ;
-    z2 = obj2->oPosZ;
-    x1 = obj1->oPosX;
-    x2 = obj2->oPosX;
+    z1 = obj1->oPosZ; z2 = obj2->oPosZ; // ordering of instructions..
+    x1 = obj1->oPosX; x2 = obj2->oPosX;
 
     angle = atan2s(z2 - z1, x2 - x1);
     return angle;
@@ -439,38 +425,38 @@ s16 obj_turn_toward_object(struct Object *obj, struct Object *target, s16 angleI
     return targetAngle;
 }
 
-void set_object_parent_relative_pos(struct Object *obj, s16 relX, s16 relY, s16 relZ) {
+void obj_set_parent_relative_pos(struct Object *obj, s16 relX, s16 relY, s16 relZ) {
     obj->oParentRelativePosX = relX;
     obj->oParentRelativePosY = relY;
     obj->oParentRelativePosZ = relZ;
 }
 
-void set_object_pos(struct Object *obj, s16 x, s16 y, s16 z) {
+void obj_set_pos(struct Object *obj, s16 x, s16 y, s16 z) {
     obj->oPosX = x;
     obj->oPosY = y;
     obj->oPosZ = z;
 }
 
-void set_object_angle(struct Object *a0, s16 pitch, s16 yaw, s16 roll) {
-    a0->oFaceAnglePitch = pitch;
-    a0->oFaceAngleYaw = yaw;
-    a0->oFaceAngleRoll = roll;
+void obj_set_angle(struct Object *obj, s16 pitch, s16 yaw, s16 roll) {
+    obj->oFaceAnglePitch = pitch;
+    obj->oFaceAngleYaw = yaw;
+    obj->oFaceAngleRoll = roll;
 
-    a0->oMoveAnglePitch = pitch;
-    a0->oMoveAngleYaw = yaw;
-    a0->oMoveAngleRoll = roll;
+    obj->oMoveAnglePitch = pitch;
+    obj->oMoveAngleYaw = yaw;
+    obj->oMoveAngleRoll = roll;
 }
 
 /*
  * Spawns an object at an absolute location with a specified angle.
  */
 struct Object *spawn_object_abs_with_rot(struct Object *parent, s16 uselessArg, u32 model,
-                                         const BehaviorScript *behavior, s16 x, s16 y, s16 z, s16 rx,
-                                         s16 ry, s16 rz) {
+                                         const BehaviorScript *behavior,
+                                         s16 x, s16 y, s16 z, s16 rx, s16 ry, s16 rz) {
     // 'uselessArg' is unused in the function spawn_object_at_origin()
     struct Object *newObj = spawn_object_at_origin(parent, uselessArg, model, behavior);
-    set_object_pos(newObj, x, y, z);
-    set_object_angle(newObj, rx, ry, rz);
+    obj_set_pos(newObj, x, y, z);
+    obj_set_angle(newObj, rx, ry, rz);
 
     return newObj;
 }
@@ -480,58 +466,57 @@ struct Object *spawn_object_abs_with_rot(struct Object *parent, s16 uselessArg, 
  * The rz argument is never used, and the z offset is used for z-rotation instead. This is most likely
  * a copy-paste typo by one of the programmers.
  */
-struct Object *spawn_object_rel_with_rot(struct Object *parent, u32 model,
-                                         const BehaviorScript *behavior, s16 xOff, s16 yOff, s16 zOff,
-                                         s16 rx, s16 ry, UNUSED s16 rz) {
+struct Object *spawn_object_rel_with_rot(struct Object *parent, u32 model, const BehaviorScript *behavior,
+                                         s16 xOff, s16 yOff, s16 zOff, s16 rx, s16 ry, UNUSED s16 rz) {
     struct Object *newObj = spawn_object_at_origin(parent, 0, model, behavior);
     newObj->oFlags |= OBJ_FLAG_TRANSFORM_RELATIVE_TO_PARENT;
-    set_object_parent_relative_pos(newObj, xOff, yOff, zOff);
-    set_object_angle(newObj, rx, ry, zOff); // Nice typo you got there Nintendo.
+    obj_set_parent_relative_pos(newObj, xOff, yOff, zOff);
+    obj_set_angle(newObj, rx, ry, zOff); // Nice typo you got there Nintendo.
 
     return newObj;
 }
 
-struct Object *Unknown8029E330(struct Object *sp20, s32 model, const BehaviorScript *sp28) {
+struct Object *spawn_obj_with_transform_flags(struct Object *sp20, s32 model, const BehaviorScript *sp28) {
     struct Object *sp1C = spawn_object(sp20, model, sp28);
-    sp1C->oFlags |= OBJ_FLAG_0020 | OBJ_FLAG_0800;
+    sp1C->oFlags |= OBJ_FLAG_0020 | OBJ_FLAG_SET_THROW_MATRIX_FROM_TRANSFORM;
     return sp1C;
 }
 
-struct Object *spawn_water_splash(struct Object *parent, struct WaterSplashParams *params) {
+struct Object *spawn_water_droplet(struct Object *parent, struct WaterDropletParams *params) {
     f32 randomScale;
     struct Object *newObj = spawn_object(parent, params->model, params->behavior);
 
-    if (params->flags & WATER_SPLASH_FLAG_RAND_ANGLE) {
-        newObj->oMoveAngleYaw = RandomU16();
+    if (params->flags & WATER_DROPLET_FLAG_RAND_ANGLE) {
+        newObj->oMoveAngleYaw = random_u16();
     }
 
-    if (params->flags & WATER_SPLASH_FLAG_RAND_ANGLE_INCR_PLUS_8000) {
+    if (params->flags & WATER_DROPLET_FLAG_RAND_ANGLE_INCR_PLUS_8000) {
         newObj->oMoveAngleYaw = (s16)(newObj->oMoveAngleYaw + 0x8000)
                                 + (s16) random_f32_around_zero(params->moveAngleRange);
     }
 
-    if (params->flags & WATER_SPLASH_FLAG_RAND_ANGLE_INCR) {
+    if (params->flags & WATER_DROPLET_FLAG_RAND_ANGLE_INCR) {
         newObj->oMoveAngleYaw =
             (s16) newObj->oMoveAngleYaw + (s16) random_f32_around_zero(params->moveAngleRange);
     }
 
-    if (params->flags & WATER_SPLASH_FLAG_SET_Y_TO_WATER_LEVEL) {
+    if (params->flags & WATER_DROPLET_FLAG_SET_Y_TO_WATER_LEVEL) {
         newObj->oPosY = find_water_level(newObj->oPosX, newObj->oPosZ);
     }
 
-    if (params->flags & WATER_SPLASH_FLAG_RAND_OFFSET_XZ) {
-        translate_object_xz_random(newObj, params->moveRange);
+    if (params->flags & WATER_DROPLET_FLAG_RAND_OFFSET_XZ) {
+        obj_translate_xz_random(newObj, params->moveRange);
     }
 
-    if (params->flags & WATER_SPLASH_FLAG_RAND_OFFSET_XYZ) {
-        translate_object_xyz_random(newObj, params->moveRange);
+    if (params->flags & WATER_DROPLET_FLAG_RAND_OFFSET_XYZ) {
+        obj_translate_xyz_random(newObj, params->moveRange);
     }
 
-    newObj->oForwardVel = RandomFloat() * params->randForwardVelScale + params->randForwardVelOffset;
-    newObj->oVelY = RandomFloat() * params->randYVelScale + params->randYVelOffset;
+    newObj->oForwardVel = random_float() * params->randForwardVelScale + params->randForwardVelOffset;
+    newObj->oVelY = random_float() * params->randYVelScale + params->randYVelOffset;
 
-    randomScale = RandomFloat() * params->randSizeScale + params->randSizeOffset;
-    scale_object(newObj, randomScale);
+    randomScale = random_float() * params->randSizeScale + params->randSizeOffset;
+    obj_scale(newObj, randomScale);
 
     return newObj;
 }
@@ -545,8 +530,8 @@ struct Object *spawn_object_at_origin(struct Object *parent, UNUSED s32 unusedAr
     obj = create_object(behaviorAddr);
 
     obj->parentObj = parent;
-    obj->header.gfx.unk18 = parent->header.gfx.unk18;
-    obj->header.gfx.unk19 = parent->header.gfx.unk18;
+    obj->header.gfx.areaIndex = parent->header.gfx.areaIndex;
+    obj->header.gfx.activeAreaIndex = parent->header.gfx.areaIndex;
 
     geo_obj_init((struct GraphNodeObject *) &obj->header.gfx, gLoadedGraphNodes[model], gVec3fZero,
                  gVec3sZero);
@@ -555,10 +540,9 @@ struct Object *spawn_object_at_origin(struct Object *parent, UNUSED s32 unusedAr
 }
 
 struct Object *spawn_object(struct Object *parent, s32 model, const BehaviorScript *behavior) {
-    struct Object *obj;
+    struct Object *obj = spawn_object_at_origin(parent, 0, model, behavior);
 
-    obj = spawn_object_at_origin(parent, 0, model, behavior);
-    copy_object_pos_and_angle(obj, parent);
+    obj_copy_pos_and_angle(obj, parent);
 
     return obj;
 }
@@ -567,40 +551,43 @@ struct Object *try_to_spawn_object(s16 offsetY, f32 scale, struct Object *parent
                                    const BehaviorScript *behavior) {
     struct Object *obj;
 
-    if (gFreeObjectList.next != NULL) {
+    if (
+#ifdef USE_SYSTEM_MALLOC
+        TRUE
+#else
+        gFreeObjectList.next != NULL
+#endif
+    ) {
         obj = spawn_object(parent, model, behavior);
         obj->oPosY += offsetY;
-        scale_object(obj, scale);
+        obj_scale(obj, scale);
         return obj;
     } else {
         return NULL;
     }
 }
 
-struct Object *spawn_object_with_scale(struct Object *parent, s32 model, const BehaviorScript *behavior,
-                                       f32 scale) {
-    struct Object *obj;
+struct Object *spawn_object_with_scale(struct Object *parent, s32 model, const BehaviorScript *behavior, f32 scale) {
+    struct Object *obj = spawn_object_at_origin(parent, 0, model, behavior);
 
-    obj = spawn_object_at_origin(parent, 0, model, behavior);
-    copy_object_pos_and_angle(obj, parent);
-    scale_object(obj, scale);
+    obj_copy_pos_and_angle(obj, parent);
+    obj_scale(obj, scale);
 
     return obj;
 }
 
-static void build_relative_object_transform(struct Object *obj) {
-    build_object_transform_from_pos_and_angle(obj, O_PARENT_RELATIVE_POS_INDEX, O_FACE_ANGLE_INDEX);
-    translate_object_local(obj, O_POS_INDEX, O_PARENT_RELATIVE_POS_INDEX);
+static void obj_build_relative_transform(struct Object *obj) {
+    obj_build_transform_from_pos_and_angle(obj, O_PARENT_RELATIVE_POS_INDEX, O_FACE_ANGLE_INDEX);
+    obj_translate_local(obj, O_POS_INDEX, O_PARENT_RELATIVE_POS_INDEX);
 }
 
-struct Object *spawn_object_relative(s16 behaviorParam, s16 relativePosX, s16 relativePosY,
-                                     s16 relativePosZ, struct Object *parent, s32 model,
-                                     const BehaviorScript *behavior) {
+struct Object *spawn_object_relative(s16 behaviorParam, s16 relativePosX, s16 relativePosY, s16 relativePosZ,
+                                     struct Object *parent, s32 model, const BehaviorScript *behavior) {
     struct Object *obj = spawn_object_at_origin(parent, 0, model, behavior);
 
-    copy_object_pos_and_angle(obj, parent);
-    set_object_parent_relative_pos(obj, relativePosX, relativePosY, relativePosZ);
-    build_relative_object_transform(obj);
+    obj_copy_pos_and_angle(obj, parent);
+    obj_set_parent_relative_pos(obj, relativePosX, relativePosY, relativePosZ);
+    obj_build_relative_transform(obj);
 
     obj->oBehParams2ndByte = behaviorParam;
     obj->oBehParams = (behaviorParam & 0xFF) << 16;
@@ -611,37 +598,25 @@ struct Object *spawn_object_relative(s16 behaviorParam, s16 relativePosX, s16 re
 struct Object *spawn_object_relative_with_scale(s16 behaviorParam, s16 relativePosX, s16 relativePosY,
                                                 s16 relativePosZ, f32 scale, struct Object *parent,
                                                 s32 model, const BehaviorScript *behavior) {
-    struct Object *obj;
-
-    obj = spawn_object_relative(behaviorParam, relativePosX, relativePosY, relativePosZ, parent, model,
-                                behavior);
-    scale_object(obj, scale);
+    struct Object *obj = spawn_object_relative(behaviorParam, relativePosX, relativePosY, relativePosZ,
+                                               parent, model, behavior);
+    obj_scale(obj, scale);
 
     return obj;
 }
 
-void obj_move_using_vel(void) {
+void cur_obj_move_using_vel(void) {
     o->oPosX += o->oVelX;
     o->oPosY += o->oVelY;
     o->oPosZ += o->oVelZ;
 }
 
-void copy_object_graph_y_offset(struct Object *dst, struct Object *src) {
+void obj_copy_graph_y_offset(struct Object *dst, struct Object *src) {
     dst->oGraphYOffset = src->oGraphYOffset;
 }
 
-void copy_object_pos_and_angle(struct Object *dst, struct Object *src) {
-    copy_object_pos(dst, src);
-    copy_object_angle(dst, src);
-}
 
-void copy_object_pos(struct Object *dst, struct Object *src) {
-    dst->oPosX = src->oPosX;
-    dst->oPosY = src->oPosY;
-    dst->oPosZ = src->oPosZ;
-}
-
-void copy_object_angle(struct Object *dst, struct Object *src) {
+void obj_copy_angle(struct Object *dst, struct Object *src) {
     dst->oMoveAnglePitch = src->oMoveAnglePitch;
     dst->oMoveAngleYaw = src->oMoveAngleYaw;
     dst->oMoveAngleRoll = src->oMoveAngleRoll;
@@ -651,17 +626,26 @@ void copy_object_angle(struct Object *dst, struct Object *src) {
     dst->oFaceAngleRoll = src->oFaceAngleRoll;
 }
 
-void func_8029EA0C(struct Object *a0) {
-    a0->header.gfx.pos[0] = a0->oPosX;
-    a0->header.gfx.pos[1] = a0->oPosY;
-    a0->header.gfx.pos[2] = a0->oPosZ;
+void obj_copy_pos_and_angle(struct Object *dst, struct Object *src) {
+    obj_copy_pos(dst, src);
+    obj_copy_angle(dst, src);
 }
 
-void Unknown8029EA34(struct Object *sp20, u32 sp24) {
-    struct Animation **sp1C;
+void obj_copy_pos(struct Object *dst, struct Object *src) {
+    dst->oPosX = src->oPosX;
+    dst->oPosY = src->oPosY;
+    dst->oPosZ = src->oPosZ;
+}
 
-    sp1C = o->oAnimations;
-    geo_obj_init_animation(&sp20->header.gfx, sp24 + sp1C);
+void obj_set_gfx_pos_from_pos(struct Object *obj) {
+    obj->header.gfx.pos[0] = obj->oPosX;
+    obj->header.gfx.pos[1] = obj->oPosY;
+    obj->header.gfx.pos[2] = obj->oPosZ;
+}
+
+void obj_init_animation(struct Object *obj, s32 animIndex) {
+    struct Animation **anims = o->oAnimations;
+    geo_obj_init_animation(&obj->header.gfx, &anims[animIndex]);
 }
 
 /**
@@ -694,12 +678,10 @@ void linear_mtxf_transpose_mul_vec3f(Mat4 m, Vec3f dst, Vec3f v) {
     }
 }
 
-void apply_scale_to_object_transform(struct Object *obj) {
-    f32 scaleX, scaleY, scaleZ;
-
-    scaleX = obj->header.gfx.scale[0];
-    scaleY = obj->header.gfx.scale[1];
-    scaleZ = obj->header.gfx.scale[2];
+void obj_apply_scale_to_transform(struct Object *obj) {
+    f32 scaleX = obj->header.gfx.scale[0];
+    f32 scaleY = obj->header.gfx.scale[1];
+    f32 scaleZ = obj->header.gfx.scale[2];
 
     obj->transform[0][0] *= scaleX;
     obj->transform[0][1] *= scaleX;
@@ -714,82 +696,93 @@ void apply_scale_to_object_transform(struct Object *obj) {
     obj->transform[2][2] *= scaleZ;
 }
 
-void copy_object_scale(struct Object *dst, struct Object *src) {
+void obj_copy_scale(struct Object *dst, struct Object *src) {
     dst->header.gfx.scale[0] = src->header.gfx.scale[0];
     dst->header.gfx.scale[1] = src->header.gfx.scale[1];
     dst->header.gfx.scale[2] = src->header.gfx.scale[2];
 }
 
-void scale_object_xyz(struct Object *obj, f32 xScale, f32 yScale, f32 zScale) {
+void obj_scale_xyz(struct Object *obj, f32 xScale, f32 yScale, f32 zScale) {
     obj->header.gfx.scale[0] = xScale;
     obj->header.gfx.scale[1] = yScale;
     obj->header.gfx.scale[2] = zScale;
 }
 
-void scale_object(struct Object *obj, f32 scale) {
+void obj_scale(struct Object *obj, f32 scale) {
     obj->header.gfx.scale[0] = scale;
     obj->header.gfx.scale[1] = scale;
     obj->header.gfx.scale[2] = scale;
 }
 
-void obj_scale(f32 scale) {
+void cur_obj_scale(f32 scale) {
     o->header.gfx.scale[0] = scale;
     o->header.gfx.scale[1] = scale;
     o->header.gfx.scale[2] = scale;
 }
 
-void SetObjAnimation(s32 arg0) {
-    struct Animation **sp1C = o->oAnimations;
-    geo_obj_init_animation(&o->header.gfx, sp1C + arg0);
+void cur_obj_init_animation(s32 animIndex) {
+    struct Animation **anims = o->oAnimations;
+    geo_obj_init_animation(&o->header.gfx, &anims[animIndex]);
 }
 
-void set_obj_animation_and_sound_state(s32 arg0) {
-    struct Animation **sp1C = o->oAnimations;
-    geo_obj_init_animation(&o->header.gfx, sp1C + arg0);
-    o->oSoundStateID = arg0;
+void cur_obj_init_animation_with_sound(s32 animIndex) {
+    struct Animation **anims = o->oAnimations;
+    geo_obj_init_animation(&o->header.gfx, &anims[animIndex]);
+    o->oSoundStateID = animIndex;
 }
 
-void func_8029ED98(u32 a0, f32 a1) {
-    struct Animation **sp1C = o->oAnimations;
-    s32 sp18 = (s32)(a1 * 65536.0f);
-    geo_obj_init_animation_accel(&o->header.gfx, sp1C + a0, sp18);
-    o->oSoundStateID = a0;
+void cur_obj_init_animation_with_accel_and_sound(s32 animIndex, f32 accel) {
+    struct Animation **anims = o->oAnimations;
+    s32 animAccel = (s32)(accel * 65536.0f);
+    geo_obj_init_animation_accel(&o->header.gfx, &anims[animIndex], animAccel);
+    o->oSoundStateID = animIndex;
 }
 
-void func_8029EE20(struct Object *a0, struct Animation **a1, u32 a2) {
-    struct Animation **sp1C = a1;
-    a0->oAnimations = a1;
-    geo_obj_init_animation(&a0->header.gfx, sp1C + a2);
-    a0->oSoundStateID = a2;
+void cur_obj_set_animation_accel(f32 accel) {
+    struct Animation *anim = o->header.gfx.animInfo.curAnim;
+    s32 animAccel = (s32)(accel * 65536.0f);
+
+    o->header.gfx.animInfo.animYTrans = 0;
+    o->header.gfx.animInfo.animFrameAccelAssist =
+        (anim->startFrame << 16) + ((anim->flags & ANIM_FLAG_FORWARD) ? animAccel : -animAccel);
+    // o->header.gfx.animInfo.animFrame = o->header.gfx.animInfo.animFrameAccelAssist >> 16;
+    o->header.gfx.animInfo.animAccel = animAccel;
 }
 
-void obj_enable_rendering_and_become_tangible(struct Object *a0) {
-    a0->header.gfx.node.flags |= GRAPH_RENDER_ACTIVE;
-    a0->oIntangibleTimer = 0;
+void obj_init_animation_with_sound(struct Object *obj, struct Animation **animations, s32 animIndex) {
+    struct Animation **anims = animations;
+    obj->oAnimations = animations;
+    geo_obj_init_animation(&obj->header.gfx, &anims[animIndex]);
+    obj->oSoundStateID = animIndex;
 }
 
-void obj_enable_rendering(void) {
+void cur_obj_enable_rendering_and_become_tangible(struct Object *obj) {
+    obj->header.gfx.node.flags |= GRAPH_RENDER_ACTIVE;
+    obj->oIntangibleTimer = 0;
+}
+
+void cur_obj_enable_rendering(void) {
     o->header.gfx.node.flags |= GRAPH_RENDER_ACTIVE;
 }
 
-void obj_disable_rendering_and_become_intangible(struct Object *a0) {
-    a0->header.gfx.node.flags &= ~GRAPH_RENDER_ACTIVE;
-    a0->oIntangibleTimer = -1;
+void cur_obj_disable_rendering_and_become_intangible(struct Object *obj) {
+    obj->header.gfx.node.flags &= ~GRAPH_RENDER_ACTIVE;
+    obj->oIntangibleTimer = -1;
 }
 
-void obj_disable_rendering(void) {
+void cur_obj_disable_rendering(void) {
     o->header.gfx.node.flags &= ~GRAPH_RENDER_ACTIVE;
 }
 
-void obj_unhide(void) {
+void cur_obj_unhide(void) {
     o->header.gfx.node.flags &= ~GRAPH_RENDER_INVISIBLE;
 }
 
-void obj_hide(void) {
+void cur_obj_hide(void) {
     o->header.gfx.node.flags |= GRAPH_RENDER_INVISIBLE;
 }
 
-void obj_set_pos_relative(struct Object *other, f32 dleft, f32 dy, f32 dforward) {
+void cur_obj_set_pos_relative(struct Object *other, f32 dleft, f32 dy, f32 dforward) {
     f32 facingZ = coss(other->oMoveAngleYaw);
     f32 facingX = sins(other->oMoveAngleYaw);
 
@@ -803,28 +796,28 @@ void obj_set_pos_relative(struct Object *other, f32 dleft, f32 dy, f32 dforward)
     o->oPosZ = other->oPosZ + dz;
 }
 
-void obj_set_pos_relative_to_parent(f32 dleft, f32 dy, f32 dforward) {
-    obj_set_pos_relative(o->parentObj, dleft, dy, dforward);
+void cur_obj_set_pos_relative_to_parent(f32 dleft, f32 dy, f32 dforward) {
+    cur_obj_set_pos_relative(o->parentObj, dleft, dy, dforward);
 }
 
-void obj_enable_rendering_2(void) {
-    obj_enable_rendering();
+void cur_obj_enable_rendering_2(void) {
+    cur_obj_enable_rendering();
 }
 
-void obj_unused_init_on_floor(void) {
-    obj_enable_rendering();
+void cur_obj_unused_init_on_floor(void) {
+    cur_obj_enable_rendering();
 
     o->oPosY = find_floor_height(o->oPosX, o->oPosY, o->oPosZ);
     if (o->oPosY < -10000.0f) {
-        obj_set_pos_relative_to_parent(0, 0, -70);
+        cur_obj_set_pos_relative_to_parent(0, 0, -70);
         o->oPosY = find_floor_height(o->oPosX, o->oPosY, o->oPosZ);
     }
 }
 
-void obj_set_facing_to_move_angles(struct Object *a0) {
-    a0->oFaceAnglePitch = a0->oMoveAnglePitch;
-    a0->oFaceAngleYaw = a0->oMoveAngleYaw;
-    a0->oFaceAngleRoll = a0->oMoveAngleRoll;
+void obj_set_face_angle_to_move_angle(struct Object *obj) {
+    obj->oFaceAnglePitch = obj->oMoveAnglePitch;
+    obj->oFaceAngleYaw = obj->oMoveAngleYaw;
+    obj->oFaceAngleRoll = obj->oMoveAngleRoll;
 }
 
 u32 get_object_list_from_behavior(const BehaviorScript *behavior) {
@@ -841,20 +834,20 @@ u32 get_object_list_from_behavior(const BehaviorScript *behavior) {
     return objectList;
 }
 
-struct Object *obj_nearest_object_with_behavior(const BehaviorScript *behavior) {
+struct Object *cur_obj_nearest_object_with_behavior(const BehaviorScript *behavior) {
     struct Object *obj;
     f32 dist;
 
-    obj = obj_find_nearest_object_with_behavior(behavior, &dist);
+    obj = cur_obj_find_nearest_object_with_behavior(behavior, &dist);
 
     return obj;
 }
 
-f32 obj_dist_to_nearest_object_with_behavior(const BehaviorScript *behavior) {
+f32 cur_obj_dist_to_nearest_object_with_behavior(const BehaviorScript *behavior) {
     struct Object *obj;
     f32 dist;
 
-    obj = obj_find_nearest_object_with_behavior(behavior, &dist);
+    obj = cur_obj_find_nearest_object_with_behavior(behavior, &dist);
     if (obj == NULL) {
         dist = 15000.0f;
     }
@@ -862,7 +855,7 @@ f32 obj_dist_to_nearest_object_with_behavior(const BehaviorScript *behavior) {
     return dist;
 }
 
-struct Object *obj_find_nearest_object_with_behavior(const BehaviorScript *behavior, f32 *dist) {
+struct Object *cur_obj_find_nearest_object_with_behavior(const BehaviorScript *behavior, f32 *dist) {
     uintptr_t *behaviorAddr = segmented_to_virtual(behavior);
     struct Object *closestObj = NULL;
     struct Object *obj;
@@ -874,7 +867,7 @@ struct Object *obj_find_nearest_object_with_behavior(const BehaviorScript *behav
 
     while (obj != (struct Object *) listHead) {
         if (obj->behavior == behaviorAddr) {
-            if (obj->activeFlags != ACTIVE_FLAGS_DEACTIVATED && obj != o) {
+            if (obj->activeFlags != ACTIVE_FLAG_DEACTIVATED && obj != o) {
                 f32 objDist = dist_between_objects(o, obj);
                 if (objDist < minDist) {
                     closestObj = obj;
@@ -930,7 +923,7 @@ s32 count_objects_with_behavior(const BehaviorScript *behavior) {
     return count;
 }
 
-struct Object *obj_find_nearby_held_actor(const BehaviorScript *behavior, f32 maxDist) {
+struct Object *cur_obj_find_nearby_held_actor(const BehaviorScript *behavior, f32 maxDist) {
     const BehaviorScript *behaviorAddr = segmented_to_virtual(behavior);
     struct ObjectNode *listHead;
     struct Object *obj;
@@ -942,10 +935,9 @@ struct Object *obj_find_nearby_held_actor(const BehaviorScript *behavior, f32 ma
 
     while ((struct Object *) listHead != obj) {
         if (obj->behavior == behaviorAddr) {
-            if (obj->activeFlags != ACTIVE_FLAGS_DEACTIVATED) {
-                // This includes the dropped and thrown states. By combining
-                // instant release, this allows us to activate mama penguin
-                // remotely
+            if (obj->activeFlags != ACTIVE_FLAG_DEACTIVATED) {
+                // This includes the dropped and thrown states. By combining instant
+                // release, this allows us to activate mama penguin remotely
                 if (obj->oHeldState != HELD_FREE) {
                     if (dist_between_objects(o, obj) < maxDist) {
                         foundObj = obj;
@@ -961,18 +953,18 @@ struct Object *obj_find_nearby_held_actor(const BehaviorScript *behavior, f32 ma
     return foundObj;
 }
 
-static void obj_reset_timer_and_subaction(void) {
+static void cur_obj_reset_timer_and_subaction(void) {
     o->oTimer = 0;
     o->oSubAction = 0;
 }
 
-void obj_change_action(s32 action) {
+void cur_obj_change_action(s32 action) {
     o->oAction = action;
     o->oPrevAction = action;
-    obj_reset_timer_and_subaction();
+    cur_obj_reset_timer_and_subaction();
 }
 
-void func_8029F684(f32 f12, f32 f14) {
+void cur_obj_set_vel_from_mario_vel(f32 f12, f32 f14) {
     f32 sp4 = gMarioStates[0].forwardVel;
     f32 sp0 = f12 * f14;
 
@@ -983,53 +975,49 @@ void func_8029F684(f32 f12, f32 f14) {
     }
 }
 
-void func_8029F6F0(void) {
-    if (o->header.gfx.unk38.animFrame >= 0) {
-        o->header.gfx.unk38.animFrame--;
+BAD_RETURN(s16) cur_obj_reverse_animation(void) {
+    if (o->header.gfx.animInfo.animFrame >= 0) {
+        o->header.gfx.animInfo.animFrame--;
     }
 }
 
-void func_8029F728(void) {
-    s32 sp4 = o->header.gfx.unk38.animFrame;
-    s32 sp0 = o->header.gfx.unk38.curAnim->unk08 - 2;
+BAD_RETURN(s32) cur_obj_extend_animation_if_at_end(void) {
+    s32 sp4 = o->header.gfx.animInfo.animFrame;
+    s32 sp0 = o->header.gfx.animInfo.curAnim->loopEnd - 2;
 
-    if (sp4 == sp0) {
-        o->header.gfx.unk38.animFrame--;
-    }
+    if (sp4 == sp0) o->header.gfx.animInfo.animFrame--;
 }
 
-s32 func_8029F788(void) {
-    u32 spC = (s32) o->header.gfx.unk38.curAnim->flags;
-    s32 sp8 = o->header.gfx.unk38.animFrame;
-    s32 sp4 = o->header.gfx.unk38.curAnim->unk08 - 2;
-    s32 sp0 = FALSE;
+s32 cur_obj_check_if_near_animation_end(void) {
+    u32 animFlags = (s32) o->header.gfx.animInfo.curAnim->flags;
+    s32 animFrame = o->header.gfx.animInfo.animFrame;
+    s32 nearLoopEnd = o->header.gfx.animInfo.curAnim->loopEnd - 2;
+    s32 isNearEnd = FALSE;
 
-    if (spC & 0x01) {
-        if (sp4 + 1 == sp8) {
-            sp0 = TRUE;
-        }
+    if (animFlags & ANIM_FLAG_NOLOOP && nearLoopEnd + 1 == animFrame) {
+        isNearEnd = TRUE;
     }
 
-    if (sp8 == sp4) {
-        sp0 = TRUE;
+    if (animFrame == nearLoopEnd) {
+        isNearEnd = TRUE;
     }
 
-    return sp0;
+    return isNearEnd;
 }
 
-s32 func_8029F828(void) {
-    s32 sp4 = o->header.gfx.unk38.animFrame;
-    s32 sp0 = o->header.gfx.unk38.curAnim->unk08 - 1;
+s32 cur_obj_check_if_at_animation_end(void) {
+    s32 animFrame = o->header.gfx.animInfo.animFrame;
+    s32 lastFrame = o->header.gfx.animInfo.curAnim->loopEnd - 1;
 
-    if (sp4 == sp0) {
+    if (animFrame == lastFrame) {
         return TRUE;
     } else {
         return FALSE;
     }
 }
 
-s32 obj_check_anim_frame(s32 frame) {
-    s32 animFrame = o->header.gfx.unk38.animFrame;
+s32 cur_obj_check_anim_frame(s32 frame) {
+    s32 animFrame = o->header.gfx.animInfo.animFrame;
 
     if (animFrame == frame) {
         return TRUE;
@@ -1038,8 +1026,8 @@ s32 obj_check_anim_frame(s32 frame) {
     }
 }
 
-s32 obj_check_anim_frame_in_range(s32 startFrame, s32 rangeLength) {
-    s32 animFrame = o->header.gfx.unk38.animFrame;
+s32 cur_obj_check_anim_frame_in_range(s32 startFrame, s32 rangeLength) {
+    s32 animFrame = o->header.gfx.animInfo.animFrame;
 
     if (animFrame >= startFrame && animFrame < startFrame + rangeLength) {
         return TRUE;
@@ -1048,8 +1036,8 @@ s32 obj_check_anim_frame_in_range(s32 startFrame, s32 rangeLength) {
     }
 }
 
-s32 Unknown8029F930(s16 *a0) {
-    s16 sp6 = o->header.gfx.unk38.animFrame;
+s32 cur_obj_check_frame_prior_current_frame(s16 *a0) {
+    s16 sp6 = o->header.gfx.animInfo.animFrame;
 
     while (*a0 != -1) {
         if (*a0 == sp6) {
@@ -1078,23 +1066,23 @@ s32 mario_is_dive_sliding(void) {
     }
 }
 
-void func_8029FA1C(f32 sp18, s32 sp1C) {
+void cur_obj_set_y_vel_and_animation(f32 sp18, s32 sp1C) {
     o->oVelY = sp18;
-    set_obj_animation_and_sound_state(sp1C);
+    cur_obj_init_animation_with_sound(sp1C);
 }
 
-void func_8029FA5C(s32 sp18, s32 sp1C) {
-    obj_become_intangible();
-    obj_disable_rendering();
+void cur_obj_unrender_and_reset_state(s32 sp18, s32 sp1C) {
+    cur_obj_become_intangible();
+    cur_obj_disable_rendering();
 
     if (sp18 >= 0) {
-        set_obj_animation_and_sound_state(sp18);
+        cur_obj_init_animation_with_sound(sp18);
     }
 
     o->oAction = sp1C;
 }
 
-static void obj_move_after_thrown_or_dropped(f32 forwardVel, f32 velY) {
+static void cur_obj_move_after_thrown_or_dropped(f32 forwardVel, f32 velY) {
     o->oMoveFlags = 0;
     o->oFloorHeight = find_floor_height(o->oPosX, o->oPosY + 160.0f, o->oPosZ);
 
@@ -1102,7 +1090,7 @@ static void obj_move_after_thrown_or_dropped(f32 forwardVel, f32 velY) {
         o->oPosY = o->oFloorHeight;
     } else if (o->oFloorHeight < -10000.0f) {
         //! OoB failsafe
-        copy_object_pos(o, gMarioObject);
+        obj_copy_pos(o, gMarioObject);
         o->oFloorHeight = find_floor_height(o->oPosX, o->oPosY, o->oPosZ);
     }
 
@@ -1110,48 +1098,48 @@ static void obj_move_after_thrown_or_dropped(f32 forwardVel, f32 velY) {
     o->oVelY = velY;
 
     if (o->oForwardVel != 0) {
-        obj_move_y(/*gravity*/ -4.0f, /*bounce*/ -0.1f, /*buoyancy*/ 2.0f);
+        cur_obj_move_y(/*gravity*/ -4.0f, /*bounciness*/ -0.1f, /*buoyancy*/ 2.0f);
     }
 }
 
-void obj_get_thrown_or_placed(f32 forwardVel, f32 velY, s32 thrownAction) {
+void cur_obj_get_thrown_or_placed(f32 forwardVel, f32 velY, s32 thrownAction) {
     if (o->behavior == segmented_to_virtual(bhvBowser)) {
         // Interestingly, when bowser is thrown, he is offset slightly to
-        // mario's right
-        obj_set_pos_relative_to_parent(-41.684f, 85.859f, 321.577f);
+        // Mario's right
+        cur_obj_set_pos_relative_to_parent(-41.684f, 85.859f, 321.577f);
     } else {
     }
 
-    obj_become_tangible();
-    obj_enable_rendering();
+    cur_obj_become_tangible();
+    cur_obj_enable_rendering();
 
     o->oHeldState = HELD_FREE;
 
     if ((o->oInteractionSubtype & INT_SUBTYPE_HOLDABLE_NPC) || forwardVel == 0.0f) {
-        obj_move_after_thrown_or_dropped(0.0f, 0.0f);
+        cur_obj_move_after_thrown_or_dropped(0.0f, 0.0f);
     } else {
         o->oAction = thrownAction;
-        obj_move_after_thrown_or_dropped(forwardVel, velY);
+        cur_obj_move_after_thrown_or_dropped(forwardVel, velY);
     }
 }
 
-void obj_get_dropped(void) {
-    obj_become_tangible();
-    obj_enable_rendering();
+void cur_obj_get_dropped(void) {
+    cur_obj_become_tangible();
+    cur_obj_enable_rendering();
 
     o->oHeldState = HELD_FREE;
-    obj_move_after_thrown_or_dropped(0.0f, 0.0f);
+    cur_obj_move_after_thrown_or_dropped(0.0f, 0.0f);
 }
 
-void obj_set_model(s32 a0) {
-    o->header.gfx.sharedChild = gLoadedGraphNodes[a0];
+void cur_obj_set_model(s32 modelID) {
+    o->header.gfx.sharedChild = gLoadedGraphNodes[modelID];
 }
 
 void mario_set_flag(s32 flag) {
     gMarioStates[0].flags |= flag;
 }
 
-s32 obj_clear_interact_status_flag(s32 flag) {
+s32 cur_obj_clear_interact_status_flag(s32 flag) {
     if (o->oInteractStatus & flag) {
         o->oInteractStatus &= flag ^ ~(0);
         return TRUE;
@@ -1162,40 +1150,40 @@ s32 obj_clear_interact_status_flag(s32 flag) {
 /**
  * Mark an object to be unloaded at the end of the frame.
  */
-void mark_object_for_deletion(struct Object *obj) {
+void obj_mark_for_deletion(struct Object *obj) {
     //! This clears all activeFlags. Since some of these flags disable behavior,
     //  setting it to 0 could potentially enable unexpected behavior. After an
     //  object is marked for deletion, it still updates on that frame (I think),
     //  so this is worth looking into.
-    obj->activeFlags = ACTIVE_FLAGS_DEACTIVATED;
+    obj->activeFlags = ACTIVE_FLAG_DEACTIVATED;
 }
 
-void obj_disable(void) {
-    obj_disable_rendering();
-    obj_hide();
-    obj_become_intangible();
+void cur_obj_disable(void) {
+    cur_obj_disable_rendering();
+    cur_obj_hide();
+    cur_obj_become_intangible();
 }
 
-void obj_become_intangible(void) {
+void cur_obj_become_intangible(void) {
     // When the timer is negative, the object is intangible and the timer
     // doesn't count down
     o->oIntangibleTimer = -1;
 }
 
-void obj_become_tangible(void) {
+void cur_obj_become_tangible(void) {
     o->oIntangibleTimer = 0;
 }
 
-void make_object_tangible(struct Object *obj) {
+void obj_become_tangible(struct Object *obj) {
     obj->oIntangibleTimer = 0;
 }
 
-void obj_update_floor_height(void) {
+void cur_obj_update_floor_height(void) {
     struct Surface *floor;
     o->oFloorHeight = find_floor(o->oPosX, o->oPosY, o->oPosZ, &floor);
 }
 
-struct Surface *obj_update_floor_height_and_get_floor(void) {
+struct Surface *cur_obj_update_floor_height_and_get_floor(void) {
     struct Surface *floor;
     o->oFloorHeight = find_floor(o->oPosX, o->oPosY, o->oPosZ, &floor);
     return floor;
@@ -1204,30 +1192,30 @@ struct Surface *obj_update_floor_height_and_get_floor(void) {
 static void apply_drag_to_value(f32 *value, f32 dragStrength) {
     f32 decel;
 
-    if (*value != 0.0f) {
+    if (*value != 0) {
         //! Can overshoot if |*value| > 1/(dragStrength * 0.0001)
         decel = (*value) * (*value) * (dragStrength * 0.0001L);
 
         if (*value > 0) {
             *value -= decel;
             if (*value < 0.001L) {
-                *value = 0.0f;
+                *value = 0;
             }
         } else {
             *value += decel;
             if (*value > -0.001L) {
-                *value = 0.0f;
+                *value = 0;
             }
         }
     }
 }
 
-void obj_apply_drag_xz(f32 dragStrength) {
+void cur_obj_apply_drag_xz(f32 dragStrength) {
     apply_drag_to_value(&o->oVelX, dragStrength);
     apply_drag_to_value(&o->oVelZ, dragStrength);
 }
 
-static s32 obj_move_xz(f32 steepSlopeNormalY, s32 careAboutEdgesAndSteepSlopes) {
+static s32 cur_obj_move_xz(f32 steepSlopeNormalY, s32 careAboutEdgesAndSteepSlopes) {
     struct Surface *intendedFloor;
 
     f32 intendedX = o->oPosX + o->oVelX;
@@ -1287,10 +1275,10 @@ static s32 obj_move_xz(f32 steepSlopeNormalY, s32 careAboutEdgesAndSteepSlopes) 
 }
 
 void obj_move_xz_2(f32 steepSlopeNormalY, s32 careAboutEdgesAndSteepSlopes) {
-    obj_move_xz(steepSlopeNormalY, careAboutEdgesAndSteepSlopes);
+    cur_obj_move_xz(steepSlopeNormalY, careAboutEdgesAndSteepSlopes);
 }
 
-static void obj_move_update_underwater_flags(void) {
+static void cur_obj_move_update_underwater_flags(void) {
     f32 decelY = (f32)(sqrtf(o->oVelY * o->oVelY) * (o->oDragStrength * 7.0f)) / 100.0L;
 
     if (o->oVelY > 0) {
@@ -1307,8 +1295,8 @@ static void obj_move_update_underwater_flags(void) {
     }
 }
 
-static void obj_move_update_ground_air_flags(UNUSED f32 gravity, f32 bounce) {
-    o->oMoveFlags &= ~OBJ_MOVE_13;
+static void cur_obj_move_update_ground_air_flags(UNUSED f32 gravity, f32 bounciness) {
+    o->oMoveFlags &= ~OBJ_MOVE_BOUNCE;
 
     if (o->oPosY < o->oFloorHeight) {
         // On the first frame that we touch the ground, set OBJ_MOVE_LANDED.
@@ -1324,13 +1312,13 @@ static void obj_move_update_ground_air_flags(UNUSED f32 gravity, f32 bounce) {
         o->oPosY = o->oFloorHeight;
 
         if (o->oVelY < 0.0f) {
-            o->oVelY *= bounce;
+            o->oVelY *= bounciness;
         }
 
         if (o->oVelY > 5.0f) {
-            //! If OBJ_MOVE_13 tracks bouncing, it overestimates, since velY
-            // could be > 5 here without bounce (e.g. jump into misa)
-            o->oMoveFlags |= OBJ_MOVE_13;
+            //! This overestimates since velY could be > 5 here
+            //! without bounce (e.g. jump into misa).
+            o->oMoveFlags |= OBJ_MOVE_BOUNCE;
         }
     } else {
         o->oMoveFlags &= ~OBJ_MOVE_LANDED;
@@ -1342,7 +1330,7 @@ static void obj_move_update_ground_air_flags(UNUSED f32 gravity, f32 bounce) {
     o->oMoveFlags &= ~OBJ_MOVE_MASK_IN_WATER;
 }
 
-static f32 obj_move_y_and_get_water_level(f32 gravity, f32 buoyancy) {
+static f32 cur_obj_move_y_and_get_water_level(f32 gravity, f32 buoyancy) {
     f32 waterLevel;
 
     o->oVelY += gravity + buoyancy;
@@ -1360,7 +1348,7 @@ static f32 obj_move_y_and_get_water_level(f32 gravity, f32 buoyancy) {
     return waterLevel;
 }
 
-void obj_move_y(f32 gravity, f32 bounce, f32 buoyancy) {
+void cur_obj_move_y(f32 gravity, f32 bounciness, f32 buoyancy) {
     f32 waterLevel;
 
     o->oMoveFlags &= ~OBJ_MOVE_LEFT_GROUND;
@@ -1373,12 +1361,12 @@ void obj_move_y(f32 gravity, f32 bounce, f32 buoyancy) {
     }
 
     if (!(o->oMoveFlags & OBJ_MOVE_MASK_IN_WATER)) {
-        waterLevel = obj_move_y_and_get_water_level(gravity, 0.0f);
+        waterLevel = cur_obj_move_y_and_get_water_level(gravity, 0.0f);
         if (o->oPosY > waterLevel) {
             //! We only handle floor collision if the object does not enter
             //  water. This allows e.g. coins to clip through floors if they
             //  enter water on the same frame.
-            obj_move_update_ground_air_flags(gravity, bounce);
+            cur_obj_move_update_ground_air_flags(gravity, bounciness);
         } else {
             o->oMoveFlags |= OBJ_MOVE_ENTERED_WATER;
             o->oMoveFlags &= ~OBJ_MOVE_MASK_ON_GROUND;
@@ -1386,9 +1374,9 @@ void obj_move_y(f32 gravity, f32 bounce, f32 buoyancy) {
     } else {
         o->oMoveFlags &= ~OBJ_MOVE_ENTERED_WATER;
 
-        waterLevel = obj_move_y_and_get_water_level(gravity, buoyancy);
+        waterLevel = cur_obj_move_y_and_get_water_level(gravity, buoyancy);
         if (o->oPosY < waterLevel) {
-            obj_move_update_underwater_flags();
+            cur_obj_move_update_underwater_flags();
         } else {
             if (o->oPosY < o->oFloorHeight) {
                 o->oPosY = o->oFloorHeight;
@@ -1402,14 +1390,15 @@ void obj_move_y(f32 gravity, f32 bounce, f32 buoyancy) {
         }
     }
 
-    if (o->oMoveFlags & OBJ_MOVE_MASK_33) {
+    if (o->oMoveFlags & (OBJ_MOVE_MASK_ON_GROUND | OBJ_MOVE_AT_WATER_SURFACE
+        | OBJ_MOVE_UNDERWATER_OFF_GROUND)) {
         o->oMoveFlags &= ~OBJ_MOVE_IN_AIR;
     } else {
         o->oMoveFlags |= OBJ_MOVE_IN_AIR;
     }
 }
 
-static void nop_802A0964(void) {
+static void stub_obj_helpers_1(void) {
 }
 
 static s32 clear_move_flag(u32 *bitSet, s32 flag) {
@@ -1421,7 +1410,7 @@ static s32 clear_move_flag(u32 *bitSet, s32 flag) {
     }
 }
 
-void obj_unused_resolve_wall_collisions(f32 offsetY, f32 radius) {
+void cur_obj_unused_resolve_wall_collisions(f32 offsetY, f32 radius) {
     if (radius > 0.1L) {
         f32_find_wall_collision(&o->oPosX, &o->oPosY, &o->oPosZ, offsetY, radius);
     }
@@ -1441,7 +1430,7 @@ s16 abs_angle_diff(s16 x0, s16 x1) {
     return diff;
 }
 
-void obj_move_xz_using_fvel_and_yaw(void) {
+void cur_obj_move_xz_using_fvel_and_yaw(void) {
     o->oVelX = o->oForwardVel * sins(o->oMoveAngleYaw);
     o->oVelZ = o->oForwardVel * coss(o->oMoveAngleYaw);
 
@@ -1449,7 +1438,7 @@ void obj_move_xz_using_fvel_and_yaw(void) {
     o->oPosZ += o->oVelZ;
 }
 
-void obj_move_y_with_terminal_vel(void) {
+void cur_obj_move_y_with_terminal_vel(void) {
     if (o->oVelY < -70.0f) {
         o->oVelY = -70.0f;
     }
@@ -1457,12 +1446,12 @@ void obj_move_y_with_terminal_vel(void) {
     o->oPosY += o->oVelY;
 }
 
-void obj_compute_vel_xz(void) {
+void cur_obj_compute_vel_xz(void) {
     o->oVelX = o->oForwardVel * sins(o->oMoveAngleYaw);
     o->oVelZ = o->oForwardVel * coss(o->oMoveAngleYaw);
 }
 
-f32 func_802A0BF4(f32 value, f32 center, f32 zeroThreshold, f32 increment) {
+f32 increment_velocity_toward_range(f32 value, f32 center, f32 zeroThreshold, f32 increment) {
     f32 relative;
     if ((relative = value - center) > 0) {
         if (relative < zeroThreshold) {
@@ -1479,7 +1468,7 @@ f32 func_802A0BF4(f32 value, f32 center, f32 zeroThreshold, f32 increment) {
     }
 }
 
-s32 are_objects_collided(struct Object *obj1, struct Object *obj2) {
+s32 obj_check_if_collided_with_object(struct Object *obj1, struct Object *obj2) {
     s32 i;
     for (i = 0; i < obj1->numCollidedObjs; i++) {
         if (obj1->collidedObjs[i] == obj2) {
@@ -1490,15 +1479,15 @@ s32 are_objects_collided(struct Object *obj1, struct Object *obj2) {
     return FALSE;
 }
 
-void obj_set_behavior(const BehaviorScript *behavior) {
+void cur_obj_set_behavior(const BehaviorScript *behavior) {
     o->behavior = segmented_to_virtual(behavior);
 }
 
-void set_object_behavior(struct Object *obj, const BehaviorScript *behavior) {
+void obj_set_behavior(struct Object *obj, const BehaviorScript *behavior) {
     obj->behavior = segmented_to_virtual(behavior);
 }
 
-s32 obj_has_behavior(const BehaviorScript *behavior) {
+s32 cur_obj_has_behavior(const BehaviorScript *behavior) {
     if (o->behavior == segmented_to_virtual(behavior)) {
         return TRUE;
     } else {
@@ -1506,7 +1495,7 @@ s32 obj_has_behavior(const BehaviorScript *behavior) {
     }
 }
 
-s32 object_has_behavior(struct Object *obj, const BehaviorScript *behavior) {
+s32 obj_has_behavior(struct Object *obj, const BehaviorScript *behavior) {
     if (obj->behavior == segmented_to_virtual(behavior)) {
         return TRUE;
     } else {
@@ -1514,7 +1503,7 @@ s32 object_has_behavior(struct Object *obj, const BehaviorScript *behavior) {
     }
 }
 
-f32 obj_lateral_dist_from_mario_to_home(void) {
+f32 cur_obj_lateral_dist_from_mario_to_home(void) {
     f32 dist;
     f32 dx = o->oHomeX - gMarioObject->oPosX;
     f32 dz = o->oHomeZ - gMarioObject->oPosZ;
@@ -1523,7 +1512,7 @@ f32 obj_lateral_dist_from_mario_to_home(void) {
     return dist;
 }
 
-f32 obj_lateral_dist_to_home(void) {
+f32 cur_obj_lateral_dist_to_home(void) {
     f32 dist;
     f32 dx = o->oHomeX - o->oPosX;
     f32 dz = o->oHomeZ - o->oPosZ;
@@ -1532,7 +1521,7 @@ f32 obj_lateral_dist_to_home(void) {
     return dist;
 }
 
-s32 obj_outside_home_square(f32 halfLength) {
+s32 cur_obj_outside_home_square(f32 halfLength) {
     if (o->oHomeX - halfLength > o->oPosX) {
         return TRUE;
     }
@@ -1549,10 +1538,10 @@ s32 obj_outside_home_square(f32 halfLength) {
         return TRUE;
     }
 
-    return 0;
+    return FALSE;
 }
 
-s32 obj_outside_home_rectangle(f32 minX, f32 maxX, f32 minZ, f32 maxZ) {
+s32 cur_obj_outside_home_rectangle(f32 minX, f32 maxX, f32 minZ, f32 maxZ) {
     if (o->oHomeX + minX > o->oPosX) {
         return TRUE;
     }
@@ -1572,20 +1561,20 @@ s32 obj_outside_home_rectangle(f32 minX, f32 maxX, f32 minZ, f32 maxZ) {
     return FALSE;
 }
 
-void obj_set_pos_to_home(void) {
+void cur_obj_set_pos_to_home(void) {
     o->oPosX = o->oHomeX;
     o->oPosY = o->oHomeY;
     o->oPosZ = o->oHomeZ;
 }
 
-void obj_set_pos_to_home_and_stop(void) {
-    obj_set_pos_to_home();
+void cur_obj_set_pos_to_home_and_stop(void) {
+    cur_obj_set_pos_to_home();
 
     o->oForwardVel = 0;
     o->oVelY = 0;
 }
 
-void obj_shake_y(f32 amount) {
+void cur_obj_shake_y(f32 amount) {
     //! Technically could cause a bit of drift, but not much
     if (o->oTimer % 2 == 0) {
         o->oPosY += amount;
@@ -1594,33 +1583,34 @@ void obj_shake_y(f32 amount) {
     }
 }
 
-void obj_start_cam_event(UNUSED struct Object *obj, s32 cameraEvent) {
+void cur_obj_start_cam_event(UNUSED struct Object *obj, s32 cameraEvent) {
     gPlayerCameraState->cameraEvent = (s16) cameraEvent;
     gSecondCameraFocus = o;
 }
 
-void Unknown802A11E4(UNUSED s32 sp0, UNUSED s32 sp4, f32 sp8) {
+void set_mario_interact_hoot_if_in_range(UNUSED s32 sp0, UNUSED s32 sp4, f32 sp8) {
     if (o->oDistanceToMario < sp8) {
-        gMarioObject->oInteractStatus = 1;
+        gMarioObject->oInteractStatus = INT_STATUS_HOOT_GRABBED_BY_MARIO;
     }
 }
 
-void obj_set_billboard(struct Object *a0) {
-    a0->header.gfx.node.flags |= GRAPH_RENDER_BILLBOARD;
+void obj_set_billboard(struct Object *obj) {
+    obj->header.gfx.node.flags |= GRAPH_RENDER_BILLBOARD;
 }
 
-void obj_set_hitbox_radius_and_height(f32 radius, f32 height) {
+void cur_obj_set_hitbox_radius_and_height(f32 radius, f32 height) {
     o->hitboxRadius = radius;
     o->hitboxHeight = height;
 }
 
-void obj_set_hurtbox_radius_and_height(f32 radius, f32 height) {
+void cur_obj_set_hurtbox_radius_and_height(f32 radius, f32 height) {
     o->hurtboxRadius = radius;
     o->hurtboxHeight = height;
 }
 
-static void spawn_object_loot_coins(struct Object *obj, s32 numCoins, f32 sp30,
-                                    const BehaviorScript *coinBehavior, s16 posJitter, s16 model) {
+static void obj_spawn_loot_coins(struct Object *obj, s32 numCoins, f32 sp30,
+                                    const BehaviorScript *coinBehavior,
+                                    s16 posJitter, s16 model) {
     s32 i;
     f32 spawnHeight;
     struct Surface *floor;
@@ -1639,21 +1629,21 @@ static void spawn_object_loot_coins(struct Object *obj, s32 numCoins, f32 sp30,
         obj->oNumLootCoins--;
 
         coin = spawn_object(obj, model, coinBehavior);
-        translate_object_xz_random(coin, posJitter);
+        obj_translate_xz_random(coin, posJitter);
         coin->oPosY = spawnHeight;
         coin->oCoinUnk110 = sp30;
     }
 }
 
-void spawn_object_loot_blue_coins(struct Object *obj, s32 numCoins, f32 sp28, s16 posJitter) {
-    spawn_object_loot_coins(obj, numCoins, sp28, bhvBlueCoinJumping, posJitter, MODEL_BLUE_COIN);
+void obj_spawn_loot_blue_coins(struct Object *obj, s32 numCoins, f32 sp28, s16 posJitter) {
+    obj_spawn_loot_coins(obj, numCoins, sp28, bhvBlueCoinJumping, posJitter, MODEL_BLUE_COIN);
 }
 
-void spawn_object_loot_yellow_coins(struct Object *obj, s32 numCoins, f32 sp28) {
-    spawn_object_loot_coins(obj, numCoins, sp28, bhvSingleCoinGetsSpawned, 0, MODEL_YELLOW_COIN);
+void obj_spawn_loot_yellow_coins(struct Object *obj, s32 numCoins, f32 sp28) {
+    obj_spawn_loot_coins(obj, numCoins, sp28, bhvSingleCoinGetsSpawned, 0, MODEL_YELLOW_COIN);
 }
 
-void obj_spawn_loot_coin_at_mario_pos(void) {
+void cur_obj_spawn_loot_coin_at_mario_pos(void) {
     struct Object *coin;
     if (o->oNumLootCoins <= 0) {
         return;
@@ -1664,10 +1654,10 @@ void obj_spawn_loot_coin_at_mario_pos(void) {
     coin = spawn_object(o, MODEL_YELLOW_COIN, bhvSingleCoinGetsSpawned);
     coin->oVelY = 30.0f;
 
-    copy_object_pos(coin, gMarioObject);
+    obj_copy_pos(coin, gMarioObject);
 }
 
-f32 obj_abs_y_dist_to_home(void) {
+f32 cur_obj_abs_y_dist_to_home(void) {
     f32 dist = o->oHomeY - o->oPosY;
 
     if (dist < 0) {
@@ -1677,31 +1667,31 @@ f32 obj_abs_y_dist_to_home(void) {
     return dist;
 }
 
-s32 Unknown802A1548() {
-    s32 spC = o->header.gfx.unk38.animFrame;
-    s32 sp8 = o->header.gfx.unk38.curAnim->unk08;
-    s32 sp4;
+s32 cur_obj_advance_looping_anim(void) {
+    s32 animFrame = o->header.gfx.animInfo.animFrame;
+    s32 loopEnd = o->header.gfx.animInfo.curAnim->loopEnd;
+    s32 result;
 
-    if (spC < 0) {
-        spC = 0;
-    } else if (sp8 - 1 == spC) {
-        spC = 0;
+    if (animFrame < 0) {
+        animFrame = 0;
+    } else if (loopEnd - 1 == animFrame) {
+        animFrame = 0;
     } else {
-        spC++;
+        animFrame++;
     }
 
-    sp4 = (spC << 16) / sp8;
+    result = (animFrame << 16) / loopEnd;
 
-    return sp4;
+    return result;
 }
 
-static s32 obj_detect_steep_floor(s16 steepAngleDegrees) {
+static s32 cur_obj_detect_steep_floor(s16 steepAngleDegrees) {
     struct Surface *intendedFloor;
     f32 intendedX, intendedFloorHeight, intendedZ;
     f32 deltaFloorHeight;
     f32 steepNormalY = coss((s16)(steepAngleDegrees * (0x10000 / 360)));
 
-    if (o->oForwardVel != 0) {
+    if (o->oForwardVel != 0.0f) {
         intendedX = o->oPosX + o->oVelX;
         intendedZ = o->oPosZ + o->oVelZ;
         intendedFloorHeight = find_floor(intendedX, o->oPosY, intendedZ, &intendedFloor);
@@ -1722,7 +1712,7 @@ static s32 obj_detect_steep_floor(s16 steepAngleDegrees) {
     return 0;
 }
 
-s32 obj_resolve_wall_collisions(void) {
+s32 cur_obj_resolve_wall_collisions(void) {
     s32 numCollisions;
     struct Surface *wall;
     struct WallCollisionData collisionData;
@@ -1746,18 +1736,18 @@ s32 obj_resolve_wall_collisions(void) {
 
             o->oWallAngle = atan2s(wall->normal.z, wall->normal.x);
             if (abs_angle_diff(o->oWallAngle, o->oMoveAngleYaw) > 0x4000) {
-                return 1;
+                return TRUE;
             } else {
-                return 0;
+                return FALSE;
             }
         }
     }
 
-    return 0;
+    return FALSE;
 }
 
-static void obj_update_floor(void) {
-    struct Surface *floor = obj_update_floor_height_and_get_floor();
+static void cur_obj_update_floor(void) {
+    struct Surface *floor = cur_obj_update_floor_height_and_get_floor();
     o->oFloor = floor;
 
     if (floor != NULL) {
@@ -1779,7 +1769,7 @@ static void obj_update_floor(void) {
     }
 }
 
-static void obj_update_floor_and_resolve_wall_collisions(s16 steepSlopeDegrees) {
+static void cur_obj_update_floor_and_resolve_wall_collisions(s16 steepSlopeDegrees) {
 #ifdef VERSION_JP
     o->oMoveFlags &= ~OBJ_MOVE_ABOVE_LAVA;
 #else
@@ -1787,37 +1777,37 @@ static void obj_update_floor_and_resolve_wall_collisions(s16 steepSlopeDegrees) 
 #endif
 
     if (o->activeFlags & (ACTIVE_FLAG_FAR_AWAY | ACTIVE_FLAG_IN_DIFFERENT_ROOM)) {
-        obj_update_floor();
-        o->oMoveFlags &= ~OBJ_MOVE_MASK_HIT_WALL_OR_IN_WATER;
+        cur_obj_update_floor();
+        o->oMoveFlags &= ~(OBJ_MOVE_HIT_WALL | OBJ_MOVE_MASK_IN_WATER);
 
         if (o->oPosY > o->oFloorHeight) {
             o->oMoveFlags |= OBJ_MOVE_IN_AIR;
         }
     } else {
         o->oMoveFlags &= ~OBJ_MOVE_HIT_WALL;
-        if (obj_resolve_wall_collisions()) {
+        if (cur_obj_resolve_wall_collisions()) {
             o->oMoveFlags |= OBJ_MOVE_HIT_WALL;
         }
 
-        obj_update_floor();
+        cur_obj_update_floor();
 
         if (o->oPosY > o->oFloorHeight) {
             o->oMoveFlags |= OBJ_MOVE_IN_AIR;
         }
 
-        if (obj_detect_steep_floor(steepSlopeDegrees)) {
+        if (cur_obj_detect_steep_floor(steepSlopeDegrees)) {
             o->oMoveFlags |= OBJ_MOVE_HIT_WALL;
         }
     }
 }
 
-void obj_update_floor_and_walls(void) {
-    obj_update_floor_and_resolve_wall_collisions(60);
+void cur_obj_update_floor_and_walls(void) {
+    cur_obj_update_floor_and_resolve_wall_collisions(60);
 }
 
-void obj_move_standard(s16 steepSlopeAngleDegrees) {
+void cur_obj_move_standard(s16 steepSlopeAngleDegrees) {
     f32 gravity = o->oGravity;
-    f32 bounce = o->oBounce;
+    f32 bounciness = o->oBounciness;
     f32 buoyancy = o->oBuoyancy;
     f32 dragStrength = o->oDragStrength;
     f32 steepSlopeNormalY;
@@ -1832,19 +1822,20 @@ void obj_move_standard(s16 steepSlopeAngleDegrees) {
     //  Objects that do this will be marked with //PARTIAL_UPDATE.
     if (!(o->activeFlags & (ACTIVE_FLAG_FAR_AWAY | ACTIVE_FLAG_IN_DIFFERENT_ROOM))) {
         if (steepSlopeAngleDegrees < 0) {
-            careAboutEdgesAndSteepSlopes = TRUE;
-            steepSlopeAngleDegrees = -steepSlopeAngleDegrees;
+            // clang-format off
+            careAboutEdgesAndSteepSlopes = TRUE; steepSlopeAngleDegrees = -steepSlopeAngleDegrees;
+            // clang-format on
         }
 
         steepSlopeNormalY = coss(steepSlopeAngleDegrees * (0x10000 / 360));
 
-        obj_compute_vel_xz();
-        obj_apply_drag_xz(dragStrength);
+        cur_obj_compute_vel_xz();
+        cur_obj_apply_drag_xz(dragStrength);
 
-        obj_move_xz(steepSlopeNormalY, careAboutEdgesAndSteepSlopes);
-        obj_move_y(gravity, bounce, buoyancy);
+        cur_obj_move_xz(steepSlopeNormalY, careAboutEdgesAndSteepSlopes);
+        cur_obj_move_y(gravity, bounciness, buoyancy);
 
-        if (o->oForwardVel < 0) {
+        if (o->oForwardVel < 0.0f) {
             negativeSpeed = TRUE;
         }
         o->oForwardVel = sqrtf(sqr(o->oVelX) + sqr(o->oVelZ));
@@ -1854,7 +1845,7 @@ void obj_move_standard(s16 steepSlopeAngleDegrees) {
     }
 }
 
-static s32 obj_within_12k_bounds(void) {
+static s32 cur_obj_within_12k_bounds(void) {
     if (o->oPosX < -12000.0f || 12000.0f < o->oPosX) {
         return FALSE;
     }
@@ -1870,8 +1861,8 @@ static s32 obj_within_12k_bounds(void) {
     return TRUE;
 }
 
-void obj_move_using_vel_and_gravity(void) {
-    // if (obj_within_12k_bounds()) {
+void cur_obj_move_using_vel_and_gravity(void) {
+    // if (cur_obj_within_12k_bounds()) {
     o->oPosX += o->oVelX;
     o->oPosZ += o->oVelZ;
     o->oVelY += o->oGravity; //! No terminal velocity
@@ -1879,12 +1870,12 @@ void obj_move_using_vel_and_gravity(void) {
     // }
 }
 
-void obj_move_using_fvel_and_gravity(void) {
-    obj_compute_vel_xz();
-    obj_move_using_vel_and_gravity(); //! No terminal velocity
+void cur_obj_move_using_fvel_and_gravity(void) {
+    cur_obj_compute_vel_xz();
+    cur_obj_move_using_vel_and_gravity(); //! No terminal velocity
 }
 
-void set_object_pos_relative(struct Object *obj, struct Object *other, f32 dleft, f32 dy,
+void obj_set_pos_relative(struct Object *obj, struct Object *other, f32 dleft, f32 dy,
                              f32 dforward) {
     f32 facingZ = coss(other->oMoveAngleYaw);
     f32 facingX = sins(other->oMoveAngleYaw);
@@ -1899,7 +1890,7 @@ void set_object_pos_relative(struct Object *obj, struct Object *other, f32 dleft
     obj->oPosZ = other->oPosZ + dz;
 }
 
-s16 obj_angle_to_home(void) {
+s16 cur_obj_angle_to_home(void) {
     s16 angle;
     f32 dx = o->oHomeX - o->oPosX;
     f32 dz = o->oHomeZ - o->oPosZ;
@@ -1908,21 +1899,21 @@ s16 obj_angle_to_home(void) {
     return angle;
 }
 
-void func_802A2008(struct Object *a0, struct Object *a1) {
-    a0->header.gfx.pos[0] = a1->oPosX;
-    a0->header.gfx.pos[1] = a1->oPosY + a1->oGraphYOffset;
-    a0->header.gfx.pos[2] = a1->oPosZ;
+void obj_set_gfx_pos_at_obj_pos(struct Object *obj1, struct Object *obj2) {
+    obj1->header.gfx.pos[0] = obj2->oPosX;
+    obj1->header.gfx.pos[1] = obj2->oPosY + obj2->oGraphYOffset;
+    obj1->header.gfx.pos[2] = obj2->oPosZ;
 
-    a0->header.gfx.angle[0] = a1->oMoveAnglePitch & 0xFFFF;
-    a0->header.gfx.angle[1] = a1->oMoveAngleYaw & 0xFFFF;
-    a0->header.gfx.angle[2] = a1->oMoveAngleRoll & 0xFFFF;
+    obj1->header.gfx.angle[0] = obj2->oMoveAnglePitch & 0xFFFF;
+    obj1->header.gfx.angle[1] = obj2->oMoveAngleYaw & 0xFFFF;
+    obj1->header.gfx.angle[2] = obj2->oMoveAngleRoll & 0xFFFF;
 }
 
 /**
  * Transform the vector at localTranslateIndex into the object's local
  * coordinates, and then add it to the vector at posIndex.
  */
-void translate_object_local(struct Object *obj, s16 posIndex, s16 localTranslateIndex) {
+void obj_translate_local(struct Object *obj, s16 posIndex, s16 localTranslateIndex) {
     f32 dx = obj->rawData.asF32[localTranslateIndex + 0];
     f32 dy = obj->rawData.asF32[localTranslateIndex + 1];
     f32 dz = obj->rawData.asF32[localTranslateIndex + 2];
@@ -1935,7 +1926,7 @@ void translate_object_local(struct Object *obj, s16 posIndex, s16 localTranslate
         obj->transform[0][2] * dx + obj->transform[1][2] * dy + obj->transform[2][2] * dz;
 }
 
-void build_object_transform_from_pos_and_angle(struct Object *obj, s16 posIndex, s16 angleIndex) {
+void obj_build_transform_from_pos_and_angle(struct Object *obj, s16 posIndex, s16 angleIndex) {
     f32 translate[3];
     s16 rotation[3];
 
@@ -1950,65 +1941,65 @@ void build_object_transform_from_pos_and_angle(struct Object *obj, s16 posIndex,
     mtxf_rotate_zxy_and_translate(obj->transform, translate, rotation);
 }
 
-void func_802A2270(struct Object *obj) {
+void obj_set_throw_matrix_from_transform(struct Object *obj) {
     if (obj->oFlags & OBJ_FLAG_0020) {
-        build_object_transform_from_pos_and_angle(obj, O_POS_INDEX, O_FACE_ANGLE_INDEX);
-        apply_scale_to_object_transform(obj);
+        obj_build_transform_from_pos_and_angle(obj, O_POS_INDEX, O_FACE_ANGLE_INDEX);
+        obj_apply_scale_to_transform(obj);
     }
 
-    obj->header.gfx.throwMatrix = obj->transform;
+    obj->header.gfx.throwMatrix = &obj->transform;
 
     //! Sets scale of gCurrentObject instead of obj. Not exploitable since this
     //  function is only called with obj = gCurrentObject
-    obj_scale(1.0f);
+    cur_obj_scale(1.0f);
 }
 
-void build_object_transform_relative_to_parent(struct Object *obj) {
+void obj_build_transform_relative_to_parent(struct Object *obj) {
     struct Object *parent = obj->parentObj;
 
-    build_object_transform_from_pos_and_angle(obj, O_PARENT_RELATIVE_POS_INDEX, O_FACE_ANGLE_INDEX);
-    apply_scale_to_object_transform(obj);
+    obj_build_transform_from_pos_and_angle(obj, O_PARENT_RELATIVE_POS_INDEX, O_FACE_ANGLE_INDEX);
+    obj_apply_scale_to_transform(obj);
     mtxf_mul(obj->transform, obj->transform, parent->transform);
 
     obj->oPosX = obj->transform[3][0];
     obj->oPosY = obj->transform[3][1];
     obj->oPosZ = obj->transform[3][2];
 
-    obj->header.gfx.throwMatrix = obj->transform;
+    obj->header.gfx.throwMatrix = &obj->transform;
 
     //! Sets scale of gCurrentObject instead of obj. Not exploitable since this
     //  function is only called with obj = gCurrentObject
-    obj_scale(1.0f);
+    cur_obj_scale(1.0f);
 }
 
-void Unknown802A2380(struct Object *a0) {
-    a0->oFlags &= ~OBJ_FLAG_TRANSFORM_RELATIVE_TO_PARENT;
-    a0->oFlags |= OBJ_FLAG_0800;
+void obj_create_transform_from_self(struct Object *obj) {
+    obj->oFlags &= ~OBJ_FLAG_TRANSFORM_RELATIVE_TO_PARENT;
+    obj->oFlags |= OBJ_FLAG_SET_THROW_MATRIX_FROM_TRANSFORM;
 
-    a0->transform[3][0] = a0->oPosX;
-    a0->transform[3][1] = a0->oPosY;
-    a0->transform[3][2] = a0->oPosZ;
+    obj->transform[3][0] = obj->oPosX;
+    obj->transform[3][1] = obj->oPosY;
+    obj->transform[3][2] = obj->oPosZ;
 }
 
-void obj_rotate_move_angle_using_vel(void) {
+void cur_obj_rotate_move_angle_using_vel(void) {
     o->oMoveAnglePitch += o->oAngleVelPitch;
     o->oMoveAngleYaw += o->oAngleVelYaw;
     o->oMoveAngleRoll += o->oAngleVelRoll;
 }
 
-void obj_rotate_face_angle_using_vel(void) {
+void cur_obj_rotate_face_angle_using_vel(void) {
     o->oFaceAnglePitch += o->oAngleVelPitch;
     o->oFaceAngleYaw += o->oAngleVelYaw;
     o->oFaceAngleRoll += o->oAngleVelRoll;
 }
 
-void obj_set_face_angle_to_move_angle(void) {
+void cur_obj_set_face_angle_to_move_angle(void) {
     o->oFaceAnglePitch = o->oMoveAnglePitch;
     o->oFaceAngleYaw = o->oMoveAngleYaw;
     o->oFaceAngleRoll = o->oMoveAngleRoll;
 }
 
-s32 obj_follow_path(UNUSED s32 unusedArg) {
+s32 cur_obj_follow_path(UNUSED s32 unusedArg) {
     struct Waypoint *startWaypoint;
     struct Waypoint *lastWaypoint;
     struct Waypoint *targetWaypoint;
@@ -2069,26 +2060,26 @@ void chain_segment_init(struct ChainSegment *segment) {
 }
 
 f32 random_f32_around_zero(f32 diameter) {
-    return RandomFloat() * diameter - diameter / 2.0f;
+    return random_float() * diameter - diameter / 2;
 }
 
-void scale_object_random(struct Object *obj, f32 rangeLength, f32 minScale) {
-    f32 scale = RandomFloat() * rangeLength + minScale;
-    scale_object_xyz(obj, scale, scale, scale);
+void obj_scale_random(struct Object *obj, f32 rangeLength, f32 minScale) {
+    f32 scale = random_float() * rangeLength + minScale;
+    obj_scale_xyz(obj, scale, scale, scale);
 }
 
-void translate_object_xyz_random(struct Object *obj, f32 rangeLength) {
-    obj->oPosX += RandomFloat() * rangeLength - rangeLength * 0.5f;
-    obj->oPosY += RandomFloat() * rangeLength - rangeLength * 0.5f;
-    obj->oPosZ += RandomFloat() * rangeLength - rangeLength * 0.5f;
+void obj_translate_xyz_random(struct Object *obj, f32 rangeLength) {
+    obj->oPosX += random_float() * rangeLength - rangeLength * 0.5f;
+    obj->oPosY += random_float() * rangeLength - rangeLength * 0.5f;
+    obj->oPosZ += random_float() * rangeLength - rangeLength * 0.5f;
 }
 
-void translate_object_xz_random(struct Object *obj, f32 rangeLength) {
-    obj->oPosX += RandomFloat() * rangeLength - rangeLength * 0.5f;
-    obj->oPosZ += RandomFloat() * rangeLength - rangeLength * 0.5f;
+void obj_translate_xz_random(struct Object *obj, f32 rangeLength) {
+    obj->oPosX += random_float() * rangeLength - rangeLength * 0.5f;
+    obj->oPosZ += random_float() * rangeLength - rangeLength * 0.5f;
 }
 
-static void func_802A297C(struct Object *a0) {
+static void obj_build_vel_from_transform(struct Object *a0) {
     f32 spC = a0->oUnkC0;
     f32 sp8 = a0->oUnkBC;
     f32 sp4 = a0->oForwardVel;
@@ -2098,20 +2089,20 @@ static void func_802A297C(struct Object *a0) {
     a0->oVelZ = a0->transform[0][2] * spC + a0->transform[1][2] * sp8 + a0->transform[2][2] * sp4;
 }
 
-void func_802A2A38(void) {
-    build_object_transform_from_pos_and_angle(o, O_PARENT_RELATIVE_POS_INDEX, O_MOVE_ANGLE_INDEX);
-    func_802A297C(o);
+void cur_obj_set_pos_via_transform(void) {
+    obj_build_transform_from_pos_and_angle(o, O_PARENT_RELATIVE_POS_INDEX, O_MOVE_ANGLE_INDEX);
+    obj_build_vel_from_transform(o);
     o->oPosX += o->oVelX;
     o->oPosY += o->oVelY;
     o->oPosZ += o->oVelZ;
 }
 
-s16 obj_reflect_move_angle_off_wall(void) {
+s16 cur_obj_reflect_move_angle_off_wall(void) {
     s16 angle = o->oWallAngle - ((s16) o->oMoveAngleYaw - (s16) o->oWallAngle) + 0x8000;
     return angle;
 }
 
-void obj_spawn_particles(struct SpawnParticlesInfo *info) {
+void cur_obj_spawn_particles(struct SpawnParticlesInfo *info) {
     struct Object *particle;
     s32 i;
     f32 scale;
@@ -2129,24 +2120,24 @@ void obj_spawn_particles(struct SpawnParticlesInfo *info) {
     }
 
     for (i = 0; i < numParticles; i++) {
-        scale = RandomFloat() * (info->sizeRange * 0.1f) + info->sizeBase * 0.1f;
+        scale = random_float() * (info->sizeRange * 0.1f) + info->sizeBase * 0.1f;
 
         particle = spawn_object(o, info->model, bhvWhitePuffExplosion);
 
         particle->oBehParams2ndByte = info->behParam;
-        particle->oMoveAngleYaw = RandomU16();
+        particle->oMoveAngleYaw = random_u16();
         particle->oGravity = info->gravity;
         particle->oDragStrength = info->dragStrength;
 
         particle->oPosY += info->offsetY;
-        particle->oForwardVel = RandomFloat() * info->forwardVelRange + info->forwardVelBase;
-        particle->oVelY = RandomFloat() * info->velYRange + info->velYBase;
+        particle->oForwardVel = random_float() * info->forwardVelRange + info->forwardVelBase;
+        particle->oVelY = random_float() * info->velYRange + info->velYBase;
 
-        scale_object_xyz(particle, scale, scale, scale);
+        obj_scale_xyz(particle, scale, scale, scale);
     }
 }
 
-void set_object_hitbox(struct Object *obj, struct ObjectHitbox *hitbox) {
+void obj_set_hitbox(struct Object *obj, struct ObjectHitbox *hitbox) {
     if (!(obj->oFlags & OBJ_FLAG_30)) {
         obj->oFlags |= OBJ_FLAG_30;
 
@@ -2155,7 +2146,7 @@ void set_object_hitbox(struct Object *obj, struct ObjectHitbox *hitbox) {
         obj->oHealth = hitbox->health;
         obj->oNumLootCoins = hitbox->numLootCoins;
 
-        obj_become_tangible();
+        cur_obj_become_tangible();
     }
 
     obj->hitboxRadius = obj->header.gfx.scale[0] * hitbox->radius;
@@ -2181,15 +2172,15 @@ f32 absf(f32 x) {
     }
 }
 
-s32 absi(s32 a0) {
-    if (a0 >= 0) {
-        return a0;
+s32 absi(s32 x) {
+    if (x >= 0) {
+        return x;
     } else {
-        return -a0;
+        return -x;
     }
 }
 
-s32 obj_wait_then_blink(s32 timeUntilBlinking, s32 numBlinks) {
+s32 cur_obj_wait_then_blink(s32 timeUntilBlinking, s32 numBlinks) {
     s32 done = FALSE;
     s32 timeBlinking;
 
@@ -2207,7 +2198,7 @@ s32 obj_wait_then_blink(s32 timeUntilBlinking, s32 numBlinks) {
     return done;
 }
 
-s32 obj_is_mario_ground_pounding_platform(void) {
+s32 cur_obj_is_mario_ground_pounding_platform(void) {
     if (gMarioObject->platform == o) {
         if (gMarioStates[0].action == ACT_GROUND_POUND_LAND) {
             return TRUE;
@@ -2217,82 +2208,82 @@ s32 obj_is_mario_ground_pounding_platform(void) {
     return FALSE;
 }
 
-void func_802A3004(void) {
-    func_802AA618(0, 0, 46.0f);
+void spawn_mist_particles(void) {
+    spawn_mist_particles_variable(0, 0, 46.0f);
 }
 
-void func_802A3034(s32 sp18) {
-    func_802AA618(0, 0, 46.0f);
+void spawn_mist_particles_with_sound(u32 sp18) {
+    spawn_mist_particles_variable(0, 0, 46.0f);
     create_sound_spawner(sp18);
 }
 
-void obj_push_mario_away(f32 radius) {
+void cur_obj_push_mario_away(f32 radius) {
     f32 marioRelX = gMarioObject->oPosX - o->oPosX;
     f32 marioRelZ = gMarioObject->oPosZ - o->oPosZ;
     f32 marioDist = sqrtf(sqr(marioRelX) + sqr(marioRelZ));
 
     if (marioDist < radius) {
-        //! If this function pushes mario out of bounds, it will trigger mario's
+        //! If this function pushes Mario out of bounds, it will trigger Mario's
         //  oob failsafe
         gMarioStates[0].pos[0] += (radius - marioDist) / radius * marioRelX;
         gMarioStates[0].pos[2] += (radius - marioDist) / radius * marioRelZ;
     }
 }
 
-void obj_push_mario_away_from_cylinder(f32 radius, f32 extentY) {
+void cur_obj_push_mario_away_from_cylinder(f32 radius, f32 extentY) {
     f32 marioRelY = gMarioObject->oPosY - o->oPosY;
 
-    if (marioRelY < 0) {
+    if (marioRelY < 0.0f) {
         marioRelY = -marioRelY;
     }
 
     if (marioRelY < extentY) {
-        obj_push_mario_away(radius);
+        cur_obj_push_mario_away(radius);
     }
 }
 
-void BehDustSmokeLoop(void) {
+void bhv_dust_smoke_loop(void) {
     o->oPosX += o->oVelX;
     o->oPosY += o->oVelY;
     o->oPosZ += o->oVelZ;
 
     if (o->oSmokeTimer == 10) {
-        mark_object_for_deletion(o);
+        obj_mark_for_deletion(o);
     }
 
     o->oSmokeTimer++;
 }
 
-static void nop_802A3294(void) {
+static void stub_obj_helpers_2(void) {
 }
 
-s32 func_802A32A4(s8 *a0) {
-    o->oToxBoxUnk1AC = a0;
-    o->oToxBoxUnk1B0 = 0;
+s32 cur_obj_set_direction_table(s8 *a0) {
+    o->oToxBoxMovementPattern = a0;
+    o->oToxBoxMovementStep = 0;
 
-    return *(s8 *) o->oToxBoxUnk1AC;
+    return *(s8 *) o->oToxBoxMovementPattern;
 }
 
-s32 func_802A32E0(void) {
+s32 cur_obj_progress_direction_table(void) {
     s8 spF;
-    s8 *sp8 = o->oToxBoxUnk1AC;
-    s32 sp4 = o->oToxBoxUnk1B0 + 1;
+    s8 *sp8 = o->oToxBoxMovementPattern;
+    s32 sp4 = o->oToxBoxMovementStep + 1;
 
     if (sp8[sp4] != -1) {
         spF = sp8[sp4];
-        o->oToxBoxUnk1B0++;
+        o->oToxBoxMovementStep++;
     } else {
         spF = sp8[0];
-        o->oToxBoxUnk1B0 = 0;
+        o->oToxBoxMovementStep = 0;
     }
 
     return spF;
 }
 
-static void nop_802A3380(UNUSED s32 sp0, UNUSED s32 sp4) {
+void stub_obj_helpers_3(UNUSED s32 sp0, UNUSED s32 sp4) {
 }
 
-void func_802A3398(s32 a0, s32 a1, f32 sp10, f32 sp14) {
+void cur_obj_scale_over_time(s32 a0, s32 a1, f32 sp10, f32 sp14) {
     f32 sp4 = sp14 - sp10;
     f32 sp0 = (f32) o->oTimer / a1;
 
@@ -2309,17 +2300,17 @@ void func_802A3398(s32 a0, s32 a1, f32 sp10, f32 sp14) {
     }
 }
 
-void func_802A3470(void) {
+void cur_obj_set_pos_to_home_with_debug(void) {
     o->oPosX = o->oHomeX + gDebugInfo[5][0];
     o->oPosY = o->oHomeY + gDebugInfo[5][1];
     o->oPosZ = o->oHomeZ + gDebugInfo[5][2];
-    obj_scale(gDebugInfo[5][3] / 100.0f + 1.0l);
+    cur_obj_scale(gDebugInfo[5][3] / 100.0f + 1.0l);
 }
 
-static void nop_802A3544(void) {
+void stub_obj_helpers_4(void) {
 }
 
-s32 obj_is_mario_on_platform(void) {
+s32 cur_obj_is_mario_on_platform(void) {
     if (gMarioObject->platform == o) {
         return TRUE;
     } else {
@@ -2327,7 +2318,7 @@ s32 obj_is_mario_on_platform(void) {
     }
 }
 
-s32 obj_shake_y_until(s32 cycles, s32 amount) {
+s32 cur_obj_shake_y_until(s32 cycles, s32 amount) {
     if (o->oTimer % 2 != 0) {
         o->oPosY -= amount;
     } else {
@@ -2341,21 +2332,21 @@ s32 obj_shake_y_until(s32 cycles, s32 amount) {
     }
 }
 
-s32 func_802A362C(s32 a0) {
+s32 cur_obj_move_up_and_down(s32 a0) {
     if (a0 >= 4 || a0 < 0) {
-        return 1;
+        return TRUE;
     }
 
     o->oPosY += D_8032F0A0[a0];
-    return 0;
+    return FALSE;
 }
 
-void obj_call_action_function(void (*actionFunctions[])(void)) {
+void cur_obj_call_action_function(void (*actionFunctions[])(void)) {
     void (*actionFunction)(void) = actionFunctions[o->oAction];
     actionFunction();
 }
 
-static struct Object *func_802A36D8(s32 sp20, s32 sp24) {
+static struct Object *spawn_star_with_no_lvl_exit(s32 sp20, s32 sp24) {
     struct Object *sp1C = spawn_object(o, MODEL_STAR, bhvSpawnedStarNoLevelExit);
     sp1C->oSparkleSpawnUnk1B0 = sp24;
     sp1C->oBehParams = o->oBehParams;
@@ -2365,17 +2356,16 @@ static struct Object *func_802A36D8(s32 sp20, s32 sp24) {
 }
 
 // old unused initializer for 2d star spawn behavior.
-// speculation: was 2d spawn handler from spaceworld 1995.
 // uses behavior parameters not used in the current sparkle code.
-void Unknown802A3750(void) {
-    func_802A36D8(0, 0);
+void spawn_base_star_with_no_lvl_exit(void) {
+    spawn_star_with_no_lvl_exit(0, 0);
 }
 
-s32 func_802A377C(s32 a0) {
+s32 bit_shift_left(s32 a0) {
     return D_8032F0A4[a0];
 }
 
-s32 obj_mario_far_away(void) {
+s32 cur_obj_mario_far_away(void) {
     f32 dx = o->oHomeX - gMarioObject->oPosX;
     f32 dy = o->oHomeY - gMarioObject->oPosY;
     f32 dz = o->oHomeZ - gMarioObject->oPosZ;
@@ -2388,7 +2378,7 @@ s32 obj_mario_far_away(void) {
     }
 }
 
-s32 obj_is_mario_moving_fast_or_in_air(s32 speedThreshold) {
+s32 is_mario_moving_fast_or_in_air(s32 speedThreshold) {
     if (gMarioStates[0].forwardVel > speedThreshold) {
         return TRUE;
     }
@@ -2400,7 +2390,7 @@ s32 obj_is_mario_moving_fast_or_in_air(s32 speedThreshold) {
     }
 }
 
-s32 item_in_array(s8 item, s8 *array) {
+s32 is_item_in_array(s8 item, s8 *array) {
     while (*array != -1) {
         if (*array == item) {
             return TRUE;
@@ -2412,14 +2402,14 @@ s32 item_in_array(s8 item, s8 *array) {
     return FALSE;
 }
 
-static void nop_802A3968(void) {
+static void stub_obj_helpers_5(void) {
 }
 
 void bhv_init_room(void) {
     struct Surface *floor;
     f32 floorHeight;
 
-    if (item_in_array(gCurrLevelNum, sLevelsWithRooms)) {
+    if (is_item_in_array(gCurrLevelNum, sLevelsWithRooms)) {
         floorHeight = find_floor(o->oPosX, o->oPosY, o->oPosZ, &floor);
 
         if (floor != NULL) {
@@ -2440,7 +2430,7 @@ void bhv_init_room(void) {
     }
 }
 
-void obj_enable_rendering_if_mario_in_room(void) {
+void cur_obj_enable_rendering_if_mario_in_room(void) {
     register s32 marioInRoom;
 
     if (o->oRoom != -1 && gMarioCurrentRoom != 0) {
@@ -2455,21 +2445,21 @@ void obj_enable_rendering_if_mario_in_room(void) {
         }
 
         if (marioInRoom) {
-            obj_enable_rendering();
+            cur_obj_enable_rendering();
             o->activeFlags &= ~ACTIVE_FLAG_IN_DIFFERENT_ROOM;
             gNumRoomedObjectsInMarioRoom++;
         } else {
-            obj_disable_rendering();
+            cur_obj_disable_rendering();
             o->activeFlags |= ACTIVE_FLAG_IN_DIFFERENT_ROOM;
             gNumRoomedObjectsNotInMarioRoom++;
         }
     }
 }
 
-s32 obj_set_hitbox_and_die_if_attacked(struct ObjectHitbox *hitbox, s32 deathSound, s32 noLootCoins) {
+s32 cur_obj_set_hitbox_and_die_if_attacked(struct ObjectHitbox *hitbox, s32 deathSound, s32 noLootCoins) {
     s32 interacted = FALSE;
 
-    set_object_hitbox(o, hitbox);
+    obj_set_hitbox(o, hitbox);
 
     if (noLootCoins) {
         o->oNumLootCoins = 0;
@@ -2477,9 +2467,9 @@ s32 obj_set_hitbox_and_die_if_attacked(struct ObjectHitbox *hitbox, s32 deathSou
 
     if (o->oInteractStatus & INT_STATUS_INTERACTED) {
         if (o->oInteractStatus & INT_STATUS_WAS_ATTACKED) {
-            func_802A3004();
-            spawn_object_loot_yellow_coins(o, o->oNumLootCoins, 20.0f);
-            mark_object_for_deletion(o);
+            spawn_mist_particles();
+            obj_spawn_loot_yellow_coins(o, o->oNumLootCoins, 20.0f);
+            obj_mark_for_deletion(o);
             create_sound_spawner(deathSound);
         } else {
             interacted = TRUE;
@@ -2490,40 +2480,41 @@ s32 obj_set_hitbox_and_die_if_attacked(struct ObjectHitbox *hitbox, s32 deathSou
     return interacted;
 }
 
-void func_802A3C98(f32 sp18, s32 sp1C) {
-    func_802AA618(0, 0, sp18);
+
+void obj_explode_and_spawn_coins(f32 sp18, s32 sp1C) {
+    spawn_mist_particles_variable(0, 0, sp18);
     spawn_triangle_break_particles(30, 138, 3.0f, 4);
-    mark_object_for_deletion(o);
+    obj_mark_for_deletion(o);
 
     if (sp1C == 1) {
-        spawn_object_loot_yellow_coins(o, o->oNumLootCoins, 20.0f);
+        obj_spawn_loot_yellow_coins(o, o->oNumLootCoins, 20.0f);
     } else if (sp1C == 2) {
-        spawn_object_loot_blue_coins(o, o->oNumLootCoins, 20.0f, 150);
+        obj_spawn_loot_blue_coins(o, o->oNumLootCoins, 20.0f, 150);
     }
 }
 
-void set_object_collision_data(struct Object *obj, const void *segAddr) {
+void obj_set_collision_data(struct Object *obj, const void *segAddr) {
     obj->collisionData = segmented_to_virtual(segAddr);
 }
 
-void obj_if_hit_wall_bounce_away(void) {
+void cur_obj_if_hit_wall_bounce_away(void) {
     if (o->oMoveFlags & OBJ_MOVE_HIT_WALL) {
         o->oMoveAngleYaw = o->oWallAngle;
     }
 }
 
-s32 obj_hide_if_mario_far_away_y(f32 distY) {
+s32 cur_obj_hide_if_mario_far_away_y(f32 distY) {
     if (absf(o->oPosY - gMarioObject->oPosY) < distY) {
-        obj_unhide();
+        cur_obj_unhide();
         return FALSE;
     } else {
-        obj_hide();
+        cur_obj_hide();
         return TRUE;
     }
 }
 
-Gfx *Geo18_802A45E4(s32 run, struct GraphNode *node, UNUSED f32 mtx[4][4]) {
-    if (run == TRUE) {
+Gfx *geo_offset_klepto_held_object(s32 callContext, struct GraphNode *node, UNUSED Mat4 mtx) {
+    if (callContext == GEO_CONTEXT_RENDER) {
         ((struct GraphNodeTranslationRotation *) node->next)->translation[0] = 300;
         ((struct GraphNodeTranslationRotation *) node->next)->translation[1] = 300;
         ((struct GraphNodeTranslationRotation *) node->next)->translation[2] = 0;
@@ -2532,8 +2523,8 @@ Gfx *Geo18_802A45E4(s32 run, struct GraphNode *node, UNUSED f32 mtx[4][4]) {
     return NULL;
 }
 
-s32 Unknown802A3E84(s32 a0, struct GraphNode *a1, UNUSED s32 sp8) {
-    if (a0 == 1) {
+s32 geo_offset_klepto_debug(s32 callContext, struct GraphNode *a1, UNUSED s32 sp8) {
+    if (callContext == GEO_CONTEXT_RENDER) {
         ((struct GraphNode_802A45E4 *) a1->next)->unk18 = gDebugInfo[4][0];
         ((struct GraphNode_802A45E4 *) a1->next)->unk1A = gDebugInfo[4][1];
         ((struct GraphNode_802A45E4 *) a1->next)->unk1C = gDebugInfo[4][2];
@@ -2545,8 +2536,8 @@ s32 Unknown802A3E84(s32 a0, struct GraphNode *a1, UNUSED s32 sp8) {
     return 0;
 }
 
-s32 obj_is_hidden(struct Object *a0) {
-    if (a0->header.gfx.node.flags & GRAPH_RENDER_INVISIBLE) {
+s32 obj_is_hidden(struct Object *obj) {
+    if (obj->header.gfx.node.flags & GRAPH_RENDER_INVISIBLE) {
         return TRUE;
     } else {
         return FALSE;
@@ -2561,21 +2552,18 @@ void disable_time_stop(void) {
     gTimeStopState &= ~TIME_STOP_ENABLED;
 }
 
-void set_time_stop_flags(s32 flag) {
-    gTimeStopState |= flag;
+void set_time_stop_flags(s32 flags) {
+    gTimeStopState |= flags;
 }
 
-void clear_time_stop_flags(s32 flag) {
-    gTimeStopState = gTimeStopState & (flag ^ 0xFFFFFFFF);
+void clear_time_stop_flags(s32 flags) {
+    gTimeStopState = gTimeStopState & (flags ^ 0xFFFFFFFF);
 }
 
-s32 func_802A3FF8(f32 radius, f32 height, UNUSED s32 unused) {
-    f32 latDistToMario;
-    UNUSED s16 angleFromMario;
-
+s32 cur_obj_can_mario_activate_textbox(f32 radius, f32 height, UNUSED s32 unused) {
     if (o->oDistanceToMario < 1500.0f) {
-        latDistToMario = lateral_dist_between_objects(o, gMarioObject);
-        angleFromMario = angle_to_object(gMarioObject, o);
+        f32 latDistToMario = lateral_dist_between_objects(o, gMarioObject);
+        UNUSED s16 angleFromMario = obj_angle_to_object(gMarioObject, o);
 
         if (latDistToMario < radius && o->oPosY < gMarioObject->oPosY + 160.0f
             && gMarioObject->oPosY < o->oPosY + height && !(gMarioStates[0].action & ACT_FLAG_AIR)
@@ -2587,11 +2575,12 @@ s32 func_802A3FF8(f32 radius, f32 height, UNUSED s32 unused) {
     return FALSE;
 }
 
-s32 obj_is_mario_in_range_and_ready_to_speak(f32 radius, f32 height) {
-    return func_802A3FF8(radius, height, 0x1000);
+s32 cur_obj_can_mario_activate_textbox_2(f32 radius, f32 height) {
+    // The last argument here is unused. When this function is called directly the argument is always set to 0x7FFF.
+    return cur_obj_can_mario_activate_textbox(radius, height, 0x1000);
 }
 
-static void obj_end_dialog(s32 dialogFlags, s32 dialogResult) {
+static void cur_obj_end_dialog(s32 dialogFlags, s32 dialogResult) {
     o->oDialogResponse = dialogResult;
     o->oDialogState++;
 
@@ -2600,15 +2589,15 @@ static void obj_end_dialog(s32 dialogFlags, s32 dialogResult) {
     }
 }
 
-s32 obj_update_dialog(s32 actionArg, s32 dialogFlags, s32 dialogID, UNUSED s32 unused) {
+s32 cur_obj_update_dialog(s32 actionArg, s32 dialogFlags, s32 dialogID, UNUSED s32 unused) {
     s32 dialogResponse = 0;
     UNUSED s32 doneTurning = TRUE;
 
     switch (o->oDialogState) {
 #ifdef VERSION_JP
         case DIALOG_UNK1_ENABLE_TIME_STOP:
-            //! We enable time stop even if mario is not ready to speak. This
-            //  allows us to move during time stop as long as mario never enters
+            //! We enable time stop even if Mario is not ready to speak. This
+            //  allows us to move during time stop as long as Mario never enters
             //  an action that can be interrupted with text.
             if (gMarioState->health >= 0x100) {
                 gTimeStopState |= TIME_STOP_ENABLED;
@@ -2619,7 +2608,7 @@ s32 obj_update_dialog(s32 actionArg, s32 dialogFlags, s32 dialogID, UNUSED s32 u
 #else
         case DIALOG_UNK1_ENABLE_TIME_STOP:
             // Patched :(
-            // Wait for mario to be ready to speak, and then enable time stop
+            // Wait for Mario to be ready to speak, and then enable time stop
             if (mario_ready_to_speak() || gMarioState->action == ACT_READING_NPC_DIALOG) {
                 gTimeStopState |= TIME_STOP_ENABLED;
                 o->activeFlags |= ACTIVE_FLAG_INITIATED_TIME_STOP;
@@ -2627,7 +2616,7 @@ s32 obj_update_dialog(s32 actionArg, s32 dialogFlags, s32 dialogID, UNUSED s32 u
             } else {
                 break;
             }
-            // Fall through so that mario's action is interrupted immediately
+            // Fall through so that Mario's action is interrupted immediately
             // after time is stopped
 #endif
 
@@ -2649,14 +2638,14 @@ s32 obj_update_dialog(s32 actionArg, s32 dialogFlags, s32 dialogID, UNUSED s32 u
         case DIALOG_UNK1_AWAIT_DIALOG:
             if (dialogFlags & DIALOG_UNK1_FLAG_RESPONSE) {
                 if (gDialogResponse != 0) {
-                    obj_end_dialog(dialogFlags, gDialogResponse);
+                    cur_obj_end_dialog(dialogFlags, gDialogResponse);
                 }
             } else if (dialogFlags & DIALOG_UNK1_FLAG_DEFAULT) {
                 if (get_dialog_id() == -1) {
-                    obj_end_dialog(dialogFlags, 3);
+                    cur_obj_end_dialog(dialogFlags, 3);
                 }
             } else {
-                obj_end_dialog(dialogFlags, 3);
+                cur_obj_end_dialog(dialogFlags, 3);
             }
             break;
 
@@ -2677,15 +2666,15 @@ s32 obj_update_dialog(s32 actionArg, s32 dialogFlags, s32 dialogID, UNUSED s32 u
     return dialogResponse;
 }
 
-s32 obj_update_dialog_with_cutscene(s32 actionArg, s32 dialogFlags, s32 cutsceneTable, s32 dialogID) {
+s32 cur_obj_update_dialog_with_cutscene(s32 actionArg, s32 dialogFlags, s32 cutsceneTable, s32 dialogID) {
     s32 dialogResponse = 0;
     s32 doneTurning = TRUE;
 
     switch (o->oDialogState) {
 #ifdef VERSION_JP
         case DIALOG_UNK2_ENABLE_TIME_STOP:
-            //! We enable time stop even if mario is not ready to speak. This
-            //  allows us to move during time stop as long as mario never enters
+            //! We enable time stop even if Mario is not ready to speak. This
+            //  allows us to move during time stop as long as Mario never enters
             //  an action that can be interrupted with text.
             if (gMarioState->health >= 0x0100) {
                 gTimeStopState |= TIME_STOP_ENABLED;
@@ -2696,7 +2685,7 @@ s32 obj_update_dialog_with_cutscene(s32 actionArg, s32 dialogFlags, s32 cutscene
             break;
 #else
         case DIALOG_UNK2_ENABLE_TIME_STOP:
-            // Wait for mario to be ready to speak, and then enable time stop
+            // Wait for Mario to be ready to speak, and then enable time stop
             if (mario_ready_to_speak() || gMarioState->action == ACT_READING_NPC_DIALOG) {
                 gTimeStopState |= TIME_STOP_ENABLED;
                 o->activeFlags |= ACTIVE_FLAG_INITIATED_TIME_STOP;
@@ -2705,14 +2694,14 @@ s32 obj_update_dialog_with_cutscene(s32 actionArg, s32 dialogFlags, s32 cutscene
             } else {
                 break;
             }
-            // Fall through so that mario's action is interrupted immediately
+            // Fall through so that Mario's action is interrupted immediately
             // after time is stopped
 #endif
 
         case DIALOG_UNK2_TURN_AND_INTERRUPT_MARIO_ACTION:
             if (dialogFlags & DIALOG_UNK2_FLAG_0) {
-                doneTurning = obj_rotate_yaw_toward(angle_to_object(o, gMarioObject), 0x800);
-                if (o->oDialogResponse >= 0x21) {
+                doneTurning = cur_obj_rotate_yaw_toward(obj_angle_to_object(o, gMarioObject), 0x800);
+                if (o->oDialogResponse >= 33) {
                     doneTurning = TRUE;
                 }
             }
@@ -2731,8 +2720,7 @@ s32 obj_update_dialog_with_cutscene(s32 actionArg, s32 dialogFlags, s32 cutscene
                     o->oDialogState++;
                 }
             } else {
-                if ((o->oDialogResponse = cutscene_object_with_dialog(cutsceneTable, o, dialogID))
-                    != 0) {
+                if ((o->oDialogResponse = cutscene_object_with_dialog(cutsceneTable, o, dialogID)) != 0) {
                     o->oDialogState++;
                 }
             }
@@ -2756,15 +2744,15 @@ s32 obj_update_dialog_with_cutscene(s32 actionArg, s32 dialogFlags, s32 cutscene
     return dialogResponse;
 }
 
-s32 obj_has_model(u16 a0) {
-    if (o->header.gfx.sharedChild == gLoadedGraphNodes[a0]) {
+s32 cur_obj_has_model(u16 modelID) {
+    if (o->header.gfx.sharedChild == gLoadedGraphNodes[modelID]) {
         return TRUE;
     } else {
         return FALSE;
     }
 }
 
-void obj_align_gfx_with_floor(void) {
+void cur_obj_align_gfx_with_floor(void) {
     struct Surface *floor;
     Vec3f floorNormal;
     Vec3f position;
@@ -2780,7 +2768,7 @@ void obj_align_gfx_with_floor(void) {
         floorNormal[2] = floor->normal.z;
 
         mtxf_align_terrain_normal(o->transform, floorNormal, position, o->oFaceAngleYaw);
-        o->header.gfx.throwMatrix = o->transform;
+        o->header.gfx.throwMatrix = &o->transform;
     }
 }
 
@@ -2796,11 +2784,11 @@ s32 mario_is_within_rectangle(s16 minX, s16 maxX, s16 minZ, s16 maxZ) {
     return TRUE;
 }
 
-void ShakeScreen(s32 shake) {
+void cur_obj_shake_screen(s32 shake) {
     set_camera_shake_from_point(shake, o->oPosX, o->oPosY, o->oPosZ);
 }
 
-s32 attack_collided_non_mario_object(struct Object *obj) {
+s32 obj_attack_collided_from_other_object(struct Object *obj) {
     s32 numCollidedObjs;
     struct Object *other;
     s32 touchedOtherObject = FALSE;
@@ -2819,7 +2807,7 @@ s32 attack_collided_non_mario_object(struct Object *obj) {
     return touchedOtherObject;
 }
 
-s32 obj_was_attacked_or_ground_pounded(void) {
+s32 cur_obj_was_attacked_or_ground_pounded(void) {
     s32 attacked = FALSE;
 
     if ((o->oInteractStatus & INT_STATUS_INTERACTED)
@@ -2827,7 +2815,7 @@ s32 obj_was_attacked_or_ground_pounded(void) {
         attacked = TRUE;
     }
 
-    if (obj_is_mario_ground_pounding_platform()) {
+    if (cur_obj_is_mario_ground_pounding_platform()) {
         attacked = TRUE;
     }
 
@@ -2835,30 +2823,30 @@ s32 obj_was_attacked_or_ground_pounded(void) {
     return attacked;
 }
 
-void copy_object_behavior_params(struct Object *dst, struct Object *src) {
+void obj_copy_behavior_params(struct Object *dst, struct Object *src) {
     dst->oBehParams = src->oBehParams;
     dst->oBehParams2ndByte = src->oBehParams2ndByte;
 }
 
-void func_802A4A70(s32 sp18, s32 sp1C) {
-    set_obj_animation_and_sound_state(sp18);
-    o->header.gfx.unk38.animFrame = sp1C;
+void cur_obj_init_animation_and_anim_frame(s32 animIndex, s32 animFrame) {
+    cur_obj_init_animation_with_sound(animIndex);
+    o->header.gfx.animInfo.animFrame = animFrame;
 }
 
-s32 func_802A4AB0(s32 sp18) {
-    set_obj_animation_and_sound_state(sp18);
-    return func_8029F788();
+s32 cur_obj_init_animation_and_check_if_near_end(s32 animIndex) {
+    cur_obj_init_animation_with_sound(animIndex);
+    return cur_obj_check_if_near_animation_end();
 }
 
-void func_802A4AEC(s32 sp18) {
-    set_obj_animation_and_sound_state(sp18);
-    func_8029F728();
+void cur_obj_init_animation_and_extend_if_at_end(s32 animIndex) {
+    cur_obj_init_animation_with_sound(animIndex);
+    cur_obj_extend_animation_if_at_end();
 }
 
-s32 obj_check_grabbed_mario(void) {
+s32 cur_obj_check_grabbed_mario(void) {
     if (o->oInteractStatus & INT_STATUS_GRABBED_MARIO) {
         o->oKingBobombUnk88 = 1;
-        obj_become_intangible();
+        cur_obj_become_intangible();
         return TRUE;
     }
 
@@ -2866,14 +2854,15 @@ s32 obj_check_grabbed_mario(void) {
 }
 
 s32 player_performed_grab_escape_action(void) {
+    static s32 grabReleaseState;
     s32 result = FALSE;
 
     if (gPlayer1Controller->stickMag < 30.0f) {
-        sGrabReleaseState = 0;
+        grabReleaseState = 0;
     }
 
-    if (sGrabReleaseState == 0 && gPlayer1Controller->stickMag > 40.0f) {
-        sGrabReleaseState = 1;
+    if (grabReleaseState == 0 && gPlayer1Controller->stickMag > 40.0f) {
+        grabReleaseState = 1;
         result = TRUE;
     }
 
@@ -2884,9 +2873,9 @@ s32 player_performed_grab_escape_action(void) {
     return result;
 }
 
-void obj_unused_play_footstep_sound(s32 animFrame1, s32 animFrame2, s32 sound) {
-    if (obj_check_anim_frame(animFrame1) || obj_check_anim_frame(animFrame2)) {
-        PlaySound2(sound);
+void cur_obj_unused_play_footstep_sound(s32 animFrame1, s32 animFrame2, s32 sound) {
+    if (cur_obj_check_anim_frame(animFrame1) || cur_obj_check_anim_frame(animFrame2)) {
+        cur_obj_play_sound_2(sound);
     }
 }
 
@@ -2900,7 +2889,7 @@ void disable_time_stop_including_mario(void) {
     o->activeFlags &= ~ACTIVE_FLAG_INITIATED_TIME_STOP;
 }
 
-s32 obj_check_interacted(void) {
+s32 cur_obj_check_interacted(void) {
     if (o->oInteractStatus & INT_STATUS_INTERACTED) {
         o->oInteractStatus = 0;
         return TRUE;
@@ -2909,18 +2898,33 @@ s32 obj_check_interacted(void) {
     }
 }
 
-void obj_spawn_loot_blue_coin(void) {
+void cur_obj_spawn_loot_blue_coin(void) {
     if (o->oNumLootCoins >= 5) {
         spawn_object(o, MODEL_BLUE_COIN, bhvMrIBlueCoin);
         o->oNumLootCoins -= 5;
     }
 }
 
+void cur_obj_force_mario_interaction(void) {
+    gMarioState->marioObj->collidedObjs[gMarioState->marioObj->numCollidedObjs] = o;
+    o->collidedObjs[o->numCollidedObjs] = gMarioState->marioObj;
+
+    gMarioState->marioObj->collidedObjInteractTypes |= o->oInteractType;
+    o->collidedObjInteractTypes |= gMarioState->marioObj->oInteractType;
+
+    gMarioState->marioObj->numCollidedObjs++;
+    o->numCollidedObjs++;
+}
+
+s32 is_button_down(s32 button) {
+    return gMarioState->controller->buttonDown & button;
+}
+
 #ifndef VERSION_JP
-void obj_spawn_star_at_y_offset(f32 targetX, f32 targetY, f32 targetZ, f32 offsetY) {
+void cur_obj_spawn_star_at_y_offset(f32 targetX, f32 targetY, f32 targetZ, f32 offsetY) {
     f32 objectPosY = o->oPosY;
     o->oPosY += offsetY + gDebugInfo[5][0];
-    create_star(targetX, targetY, targetZ);
+    spawn_default_star(targetX, targetY, targetZ);
     o->oPosY = objectPosY;
 }
 #endif

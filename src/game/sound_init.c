@@ -1,19 +1,20 @@
 #include <ultra64.h>
 
-#include "sm64.h"
-#include "seq_ids.h"
+#include "area.h"
+#include "audio/external.h"
+#include "engine/graph_node.h"
+#include "engine/math_util.h"
+#include "level_table.h"
 #include "level_update.h"
 #include "main.h"
-#include "engine/math_util.h"
-#include "area.h"
-#include "profiler.h"
-#include "audio/external.h"
-#include "print.h"
-#include "save_file.h"
-#include "sound_init.h"
-#include "engine/graph_node.h"
 #include "paintings.h"
-#include "level_table.h"
+#include "print.h"
+#include "profiler.h"
+#include "save_file.h"
+#include "seq_ids.h"
+#include "sm64.h"
+#include "sound_init.h"
+#include "thread6.h"
 
 #define MUSIC_NONE 0xFFFF
 
@@ -31,7 +32,7 @@ static u8 sPlayingInfiniteStairs = FALSE;
 static u8 unused8032C6D8[16] = { 0 };
 static s16 sSoundMenuModeToSoundMode[] = { SOUND_MODE_STEREO, SOUND_MODE_MONO, SOUND_MODE_HEADSET };
 // Only the 20th array element is used.
-static u32 menuSoundsExtra[] = {
+static u32 sMenuSoundsExtra[] = {
     SOUND_MOVING_TERRAIN_SLIDE + (0 << 16),
     SOUND_MOVING_TERRAIN_SLIDE + (1 << 16),
     SOUND_MOVING_TERRAIN_SLIDE + (2 << 16),
@@ -69,48 +70,48 @@ static u32 menuSoundsExtra[] = {
     SOUND_AIR_BLOW_FIRE,
     SOUND_ENV_ELEVATOR4,
 };
-static s8 paintingEjectSoundPlayed = FALSE;
+static s8 sPaintingEjectSoundPlayed = FALSE;
 
-static void play_menu_sounds_extra(int a, void *b);
+void play_menu_sounds_extra(s32 a, void *b);
 
-void func_80248C10(void) {
+void reset_volume(void) {
     D_8032C6C0 = 0;
 }
 
-void func_80248C28(s32 a) // Soften volume
+void lower_background_noise(s32 a) // Soften volume
 {
     switch (a) {
         case 1:
             set_sound_disabled(TRUE);
             break;
         case 2:
-            func_8031FFB4(0, 60, 40); // soften music
+            func_8031FFB4(SEQ_PLAYER_LEVEL, 60, 40); // soften music
             break;
     }
     D_8032C6C0 |= a;
 }
 
-void func_80248CB8(s32 a) // harden volume
+void raise_background_noise(s32 a) // harden volume
 {
     switch (a) {
         case 1:
             set_sound_disabled(FALSE);
             break;
         case 2:
-            sequence_player_unlower(0, 60);
+            sequence_player_unlower(SEQ_PLAYER_LEVEL, 60);
             break;
     }
     D_8032C6C0 &= ~a;
 }
 
-void func_80248D48(void) {
+void disable_background_sound(void) {
     if (D_8032C6C4 == 0) {
         D_8032C6C4 = 1;
         sound_banks_disable(2, 0x037A);
     }
 }
 
-void func_80248D90(void) {
+void enable_background_sound(void) {
     if (D_8032C6C4 == 1) {
         D_8032C6C4 = 0;
         sound_banks_enable(2, 0x037A);
@@ -151,22 +152,26 @@ void play_menu_sounds(s16 soundMenuFlags) {
     if (soundMenuFlags & 0x100) {
         play_menu_sounds_extra(20, NULL);
     }
+#ifdef VERSION_SH
+    if ((soundMenuFlags & 0x20) != 0) {
+        queue_rumble_data(10, 60);
+    }
+#endif
 }
 
 /**
  * Plays the painting eject sound effect if it has not already been played
  */
 void play_painting_eject_sound(void) {
-    if (ripplingPainting != NULL
-        && ripplingPainting->rippleStatus == 2) // ripple when Mario enters painting
-    {
-        if (paintingEjectSoundPlayed == FALSE) {
+    if (gRipplingPainting != NULL && gRipplingPainting->state == PAINTING_ENTERED) {
+        // ripple when Mario enters painting
+        if (!sPaintingEjectSoundPlayed) {
             play_sound(SOUND_GENERAL_PAINTING_EJECT,
                        gMarioStates[0].marioObj->header.gfx.cameraToObject);
         }
-        paintingEjectSoundPlayed = TRUE;
+        sPaintingEjectSoundPlayed = TRUE;
     } else {
-        paintingEjectSoundPlayed = FALSE;
+        sPaintingEjectSoundPlayed = FALSE;
     }
 }
 
@@ -194,27 +199,27 @@ void play_infinite_stairs_music(void) {
 
 void set_background_music(u16 a, u16 seqArgs, s16 fadeTimer) {
     if (gResetTimer == 0 && seqArgs != sCurrentMusic) {
-        if (gCurrCreditsEntry != 0) {
+        if (gCurrCreditsEntry != NULL) {
             sound_reset(7);
         } else {
             sound_reset(a);
         }
 
-        if (!(gShouldNotPlayCastleMusic && seqArgs == SEQ_LEVEL_INSIDE_CASTLE)) {
-            play_music(0, seqArgs, fadeTimer);
+        if (!gNeverEnteredCastle || seqArgs != SEQ_LEVEL_INSIDE_CASTLE) {
+            play_music(SEQ_PLAYER_LEVEL, seqArgs, fadeTimer);
             sCurrentMusic = seqArgs;
         }
     }
 }
 
-void func_802491FC(s16 fadeOutTime) {
+void fadeout_music(s16 fadeOutTime) {
     func_803210D4(fadeOutTime);
     sCurrentMusic = MUSIC_NONE;
     sCurrentShellMusic = MUSIC_NONE;
     sCurrentCapMusic = MUSIC_NONE;
 }
 
-void func_8024924C(s16 fadeTimer) {
+void fadeout_level_music(s16 fadeTimer) {
     sequence_player_fade_out(0, fadeTimer);
     sCurrentMusic = MUSIC_NONE;
     sCurrentShellMusic = MUSIC_NONE;
@@ -222,12 +227,12 @@ void func_8024924C(s16 fadeTimer) {
 }
 
 void play_cutscene_music(u16 seqArgs) {
-    play_music(0, seqArgs, 0);
+    play_music(SEQ_PLAYER_LEVEL, seqArgs, 0);
     sCurrentMusic = seqArgs;
 }
 
 void play_shell_music(void) {
-    play_music(0, SEQUENCE_ARGS(4, SEQ_EVENT_POWERUP | SEQ_VARIATION), 0);
+    play_music(SEQ_PLAYER_LEVEL, SEQUENCE_ARGS(4, SEQ_EVENT_POWERUP | SEQ_VARIATION), 0);
     sCurrentShellMusic = SEQUENCE_ARGS(4, SEQ_EVENT_POWERUP | SEQ_VARIATION);
 }
 
@@ -239,7 +244,7 @@ void stop_shell_music(void) {
 }
 
 void play_cap_music(u16 seqArgs) {
-    play_music(0, seqArgs, 0);
+    play_music(SEQ_PLAYER_LEVEL, seqArgs, 0);
     if (sCurrentCapMusic != MUSIC_NONE && sCurrentCapMusic != seqArgs) {
         stop_background_music(sCurrentCapMusic);
     }
@@ -260,7 +265,7 @@ void stop_cap_music(void) {
 }
 
 void play_menu_sounds_extra(s32 a, void *b) {
-    play_sound(menuSoundsExtra[a], b);
+    play_sound(sMenuSoundsExtra[a], b);
 }
 
 void audio_game_loop_tick(void) {

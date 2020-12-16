@@ -1,35 +1,36 @@
-#include <ultra64.h>
+#include <PR/ultratypes.h>
 
 #include "sm64.h"
-#include "obj_behaviors.h"
-#include "rendering_graph_node.h"
-#include "memory.h"
-#include "engine/behavior_script.h"
-#include "engine/surface_collision.h"
-#include "engine/math_util.h"
-#include "display.h"
-#include "object_helpers.h"
-#include "behavior_data.h"
-#include "mario.h"
-#include "game.h"
-#include "camera.h"
-#include "mario_actions_cutscene.h"
-#include "object_list_processor.h"
-#include "save_file.h"
 #include "area.h"
-#include "mario_misc.h"
-#include "level_update.h"
 #include "audio/external.h"
 #include "behavior_actions.h"
-#include "spawn_object.h"
-#include "spawn_sound.h"
-#include "room.h"
+#include "behavior_data.h"
+#include "camera.h"
+#include "course_table.h"
+#include "dialog_ids.h"
+#include "engine/behavior_script.h"
+#include "engine/math_util.h"
+#include "engine/surface_collision.h"
 #include "envfx_bubbles.h"
+#include "game_init.h"
 #include "ingame_menu.h"
 #include "interaction.h"
+#include "level_misc_macros.h"
 #include "level_table.h"
-#include "dialog_ids.h"
-#include "course_table.h"
+#include "level_update.h"
+#include "levels/bob/header.h"
+#include "levels/ttm/header.h"
+#include "mario.h"
+#include "mario_actions_cutscene.h"
+#include "mario_misc.h"
+#include "memory.h"
+#include "obj_behaviors.h"
+#include "object_helpers.h"
+#include "object_list_processor.h"
+#include "rendering_graph_node.h"
+#include "save_file.h"
+#include "spawn_object.h"
+#include "spawn_sound.h"
 
 /**
  * @file obj_behaviors.c
@@ -39,11 +40,11 @@
 
 #define o gCurrentObject
 
-#define OBJ_COL_FLAG_GROUNDED (1 << 0)
-#define OBJ_COL_FLAG_HIT_WALL (1 << 1)
+#define OBJ_COL_FLAG_GROUNDED   (1 << 0)
+#define OBJ_COL_FLAG_HIT_WALL   (1 << 1)
 #define OBJ_COL_FLAG_UNDERWATER (1 << 2)
-#define OBJ_COL_FLAG_NO_Y_VEL (1 << 3)
-#define OBJ_COL_FLAGS_LANDED (OBJ_COL_FLAG_GROUNDED | OBJ_COL_FLAG_NO_Y_VEL)
+#define OBJ_COL_FLAG_NO_Y_VEL   (1 << 3)
+#define OBJ_COL_FLAGS_LANDED    (OBJ_COL_FLAG_GROUNDED | OBJ_COL_FLAG_NO_Y_VEL)
 
 /**
  * Current object floor as defined in object_step.
@@ -79,7 +80,7 @@ void set_yoshi_as_not_dead(void) {
 }
 
 /**
- * An unused geo function. Bears strong similarity to Geo18_802B7D44, and relates something
+ * An unused geo function. Bears strong similarity to geo_bits_bowser_coloring, and relates something
  * of the opacity of an object to something else. Perhaps like, giving a parent object the same
  * opacity?
  */
@@ -104,9 +105,8 @@ Gfx UNUSED *geo_obj_transparency_something(s32 callContext, struct GraphNode *no
 
         gfxHead = alloc_display_list(3 * sizeof(Gfx));
         gfx = gfxHead;
-        obj->header.gfx.node.flags = (obj->header.gfx.node.flags & 0xFF)
-                                     | (GRAPH_NODE_TYPE_FUNCTIONAL
-                                        | GRAPH_NODE_TYPE_400); // sets bits 8, 10 and zeros upper byte
+        obj->header.gfx.node.flags =
+            (obj->header.gfx.node.flags & 0xFF) | (GRAPH_NODE_TYPE_FUNCTIONAL | GRAPH_NODE_TYPE_400);
 
         gDPSetEnvColor(gfx++, 255, 255, 255, heldObject->oOpacity);
 
@@ -130,12 +130,12 @@ f32 absf_2(f32 f) {
  * Turns an object away from floors/walls that it runs into.
  */
 void turn_obj_away_from_surface(f32 velX, f32 velZ, f32 nX, UNUSED f32 nY, f32 nZ, f32 *objYawX,
-                                f32 *objYawZ) {
-    *objYawX =
-        (nZ * nZ - nX * nX) * velX / (nX * nX + nZ * nZ) - 2 * velZ * (nX * nZ) / (nX * nX + nZ * nZ);
+                            f32 *objYawZ) {
+    *objYawX = (nZ * nZ - nX * nX) * velX / (nX * nX + nZ * nZ)
+               - 2 * velZ * (nX * nZ) / (nX * nX + nZ * nZ);
 
-    *objYawZ =
-        (nX * nX - nZ * nZ) * velZ / (nX * nX + nZ * nZ) - 2 * velX * (nX * nZ) / (nX * nX + nZ * nZ);
+    *objYawZ = (nX * nX - nZ * nZ) * velZ / (nX * nX + nZ * nZ)
+               - 2 * velX * (nX * nZ) / (nX * nX + nZ * nZ);
 }
 
 /**
@@ -148,7 +148,7 @@ s32 obj_find_wall(f32 objNewX, f32 objY, f32 objNewZ, f32 objVelX, f32 objVelZ) 
     hitbox.x = objNewX;
     hitbox.y = objY;
     hitbox.z = objNewZ;
-    hitbox.offsetY = o->hitboxHeight / 2.0f;
+    hitbox.offsetY = o->hitboxHeight / 2;
     hitbox.radius = o->hitboxRadius;
 
     if (find_wall_collisions(&hitbox) != 0) {
@@ -164,8 +164,7 @@ s32 obj_find_wall(f32 objNewX, f32 objY, f32 objNewZ, f32 objVelX, f32 objVelZ) 
         objVelZCopy = objVelZ;
 
         // Turns away from the first wall only.
-        turn_obj_away_from_surface(objVelXCopy, objVelZCopy, wall_nX, wall_nY, wall_nZ, &objYawX,
-                                   &objYawZ);
+        turn_obj_away_from_surface(objVelXCopy, objVelZCopy, wall_nX, wall_nY, wall_nZ, &objYawX, &objYawZ);
 
         o->oMoveAngleYaw = atan2s(objYawZ, objYawX);
         return FALSE;
@@ -195,7 +194,7 @@ s32 turn_obj_away_from_steep_floor(struct Surface *objFloor, f32 floorY, f32 obj
         objVelXCopy = objVelX;
         objVelZCopy = objVelZ;
         turn_obj_away_from_surface(objVelXCopy, objVelZCopy, floor_nX, floor_nY, floor_nZ, &objYawX,
-                                   &objYawZ);
+                               &objYawZ);
         o->oMoveAngleYaw = atan2s(objYawZ, objYawX);
         return FALSE;
     }
@@ -212,12 +211,12 @@ void obj_orient_graph(struct Object *obj, f32 normalX, f32 normalY, f32 normalZ)
     Mat4 *throwMatrix;
 
     // Passes on orienting certain objects that shouldn't be oriented, like boulders.
-    if (sOrientObjWithFloor == FALSE) {
+    if (!sOrientObjWithFloor) {
         return;
     }
 
     // Passes on orienting billboard objects, i.e. coins, trees, etc.
-    if ((obj->header.gfx.node.flags & GRAPH_RENDER_BILLBOARD) != 0) {
+    if (obj->header.gfx.node.flags & GRAPH_RENDER_BILLBOARD) {
         return;
     }
 
@@ -236,7 +235,7 @@ void obj_orient_graph(struct Object *obj, f32 normalX, f32 normalY, f32 normalZ)
     surfaceNormals[2] = normalZ;
 
     mtxf_align_terrain_normal(*throwMatrix, surfaceNormals, objVisualPosition, obj->oFaceAngleYaw);
-    obj->header.gfx.throwMatrix = (void *) throwMatrix;
+    obj->header.gfx.throwMatrix = throwMatrix;
 }
 
 /**
@@ -276,7 +275,7 @@ void calc_new_obj_vel_and_pos_y(struct Surface *objFloor, f32 objFloorY, f32 obj
 
         // Bounces an object if the ground is hit fast enough.
         if (o->oVelY < -17.5) {
-            o->oVelY = -(o->oVelY / 2.0f);
+            o->oVelY = -(o->oVelY / 2);
         } else {
             o->oVelY = 0;
         }
@@ -310,8 +309,8 @@ void calc_new_obj_vel_and_pos_y(struct Surface *objFloor, f32 objFloorY, f32 obj
     }
 }
 
-void calc_new_obj_vel_and_pos_y_underwater(struct Surface *objFloor, f32 floorY, f32 objVelX,
-                                           f32 objVelZ, f32 waterY) {
+void calc_new_obj_vel_and_pos_y_underwater(struct Surface *objFloor, f32 floorY, f32 objVelX, f32 objVelZ,
+                                    f32 waterY) {
     f32 floor_nX = objFloor->normal.x;
     f32 floor_nY = objFloor->normal.y;
     f32 floor_nZ = objFloor->normal.z;
@@ -397,10 +396,10 @@ void obj_splash(s32 waterY, s32 objY) {
 
     // Spawns waves if near surface of water and plays a noise if entering.
     if ((f32)(waterY + 30) > o->oPosY && o->oPosY > (f32)(waterY - 30)) {
-        spawn_object(o, MODEL_WATER_WAVES_SURF, bhvObjectWaterWave);
+        spawn_object(o, MODEL_IDLE_WATER_WAVE, bhvObjectWaterWave);
 
         if (o->oVelY < -20.0f) {
-            PlaySound2(SOUND_OBJ_DIVING_INTO_WATER);
+            cur_obj_play_sound_2(SOUND_OBJ_DIVING_INTO_WATER);
         }
     }
 
@@ -414,7 +413,7 @@ void obj_splash(s32 waterY, s32 objY) {
  * Generic object move function. Handles walls, water, floors, and gravity.
  * Returns flags for certain interactions.
  */
-s32 object_step(void) {
+s16 object_step(void) {
     f32 objX = o->oPosX;
     f32 objY = o->oPosY;
     f32 objZ = o->oPosZ;
@@ -443,7 +442,8 @@ s32 object_step(void) {
         }
     } else {
         // Treat any awkward floors similar to a wall.
-        collisionFlags += ((collisionFlags & OBJ_COL_FLAG_HIT_WALL) ^ OBJ_COL_FLAG_HIT_WALL);
+        collisionFlags +=
+            ((collisionFlags & OBJ_COL_FLAG_HIT_WALL) ^ OBJ_COL_FLAG_HIT_WALL);
     }
 
     obj_update_pos_vel_xz();
@@ -463,15 +463,9 @@ s32 object_step(void) {
 /**
  * Takes an object step but does not orient with the object's floor.
  * Used for boulders, falling pillars, and the rolling snowman body.
- *
- * TODO: Fix fake EU matching.
  */
-s32 object_step_without_floor_orient(void) {
-#ifdef VERSION_EU
-    s32 collisionFlags = 0;
-#else
+s16 object_step_without_floor_orient(void) {
     s16 collisionFlags = 0;
-#endif
     sOrientObjWithFloor = FALSE;
     collisionFlags = object_step();
     sOrientObjWithFloor = TRUE;
@@ -562,14 +556,13 @@ s32 obj_return_home_if_safe(struct Object *obj, f32 homeX, f32 y, f32 homeZ, s32
 /**
  * Randomly displaces an objects home if RNG says to, and turns the object towards its home.
  */
-void obj_return_and_displace_home(struct Object *obj, f32 homeX, UNUSED f32 homeY, f32 homeZ,
-                                  s32 baseDisp) {
+void obj_return_and_displace_home(struct Object *obj, f32 homeX, UNUSED f32 homeY, f32 homeZ, s32 baseDisp) {
     s16 angleToNewHome;
     f32 homeDistX, homeDistZ;
 
-    if ((s32)(RandomFloat() * 50.0f) == 0) {
-        obj->oHomeX = (f32)(baseDisp * 2) * RandomFloat() - (f32) baseDisp + homeX;
-        obj->oHomeZ = (f32)(baseDisp * 2) * RandomFloat() - (f32) baseDisp + homeZ;
+    if ((s32)(random_float() * 50.0f) == 0) {
+        obj->oHomeX = (f32)(baseDisp * 2) * random_float() - (f32) baseDisp + homeX;
+        obj->oHomeZ = (f32)(baseDisp * 2) * random_float() - (f32) baseDisp + homeZ;
     }
 
     homeDistX = obj->oHomeX - obj->oPosX;
@@ -626,9 +619,9 @@ void obj_spawn_yellow_coins(struct Object *obj, s8 nCoins) {
 
     for (count = 0; count < nCoins; count++) {
         coin = spawn_object(obj, MODEL_YELLOW_COIN, bhvMovingYellowCoin);
-        coin->oForwardVel = RandomFloat() * 20;
-        coin->oVelY = RandomFloat() * 40 + 20;
-        coin->oMoveAngleYaw = RandomU16();
+        coin->oForwardVel = random_float() * 20;
+        coin->oVelY = random_float() * 40 + 20;
+        coin->oMoveAngleYaw = random_u16();
     }
 }
 
@@ -647,7 +640,7 @@ s32 obj_flicker_and_disappear(struct Object *obj, s16 lifeSpan) {
             obj->header.gfx.node.flags &= ~GRAPH_RENDER_INVISIBLE;
         }
     } else {
-        obj->activeFlags = 0;
+        obj->activeFlags = ACTIVE_FLAG_DEACTIVATED;
         return TRUE;
     }
 
@@ -687,15 +680,13 @@ s8 current_mario_room_check(s16 room) {
 s16 trigger_obj_dialog_when_facing(s32 *inDialog, s16 dialogID, f32 dist, s32 actionArg) {
     s16 dialogueResponse;
 
-    if ((is_point_within_radius_of_mario(o->oPosX, o->oPosY, o->oPosZ, (s32) dist) == 1
-         && obj_check_if_facing_toward_angle(o->oFaceAngleYaw,
-                                             gMarioObject->header.gfx.angle[1] + 0x8000, 0x1000)
-                == 1
-         && obj_check_if_facing_toward_angle(o->oMoveAngleYaw, o->oAngleToMario, 0x1000) == 1)
+    if ((is_point_within_radius_of_mario(o->oPosX, o->oPosY, o->oPosZ, (s32) dist) == TRUE
+         && obj_check_if_facing_toward_angle(o->oFaceAngleYaw, gMarioObject->header.gfx.angle[1] + 0x8000, 0x1000) == TRUE
+         && obj_check_if_facing_toward_angle(o->oMoveAngleYaw, o->oAngleToMario, 0x1000) == TRUE)
         || (*inDialog == 1)) {
         *inDialog = 1;
 
-        if (set_mario_npc_dialog(actionArg) == 2) { // If Mario is speaking.
+        if (set_mario_npc_dialog(actionArg) == 2) { //If Mario is speaking.
             dialogueResponse = cutscene_object_with_dialog(CUTSCENE_DIALOG, o, dialogID);
             if (dialogueResponse != 0) {
                 set_mario_npc_dialog(0);
@@ -717,7 +708,7 @@ void obj_check_floor_death(s16 collisionFlags, struct Surface *floor) {
         return;
     }
 
-    if ((collisionFlags & OBJ_COL_FLAG_GROUNDED) == 1) {
+    if ((collisionFlags & OBJ_COL_FLAG_GROUNDED) == OBJ_COL_FLAG_GROUNDED) {
         switch (floor->type) {
             case SURFACE_BURNING:
                 o->oAction = OBJ_ACT_LAVA_DEATH;
@@ -740,7 +731,7 @@ s32 obj_lava_death(void) {
     struct Object *deathSmoke;
 
     if (o->oTimer >= 31) {
-        o->activeFlags = 0;
+        o->activeFlags = ACTIVE_FLAG_DEACTIVATED;
         return TRUE;
     } else {
         // Sinking effect
@@ -748,12 +739,12 @@ s32 obj_lava_death(void) {
     }
 
     if ((o->oTimer % 8) == 0) {
-        PlaySound2(SOUND_OBJ_BULLY_EXPLODE_2);
+        cur_obj_play_sound_2(SOUND_OBJ_BULLY_EXPLODE_2);
         deathSmoke = spawn_object(o, MODEL_SMOKE, bhvBobombBullyDeathSmoke);
-        deathSmoke->oPosX += RandomFloat() * 20.0f;
-        deathSmoke->oPosY += RandomFloat() * 20.0f;
-        deathSmoke->oPosZ += RandomFloat() * 20.0f;
-        deathSmoke->oForwardVel = RandomFloat() * 10.0f;
+        deathSmoke->oPosX += random_float() * 20.0f;
+        deathSmoke->oPosY += random_float() * 20.0f;
+        deathSmoke->oPosZ += random_float() * 20.0f;
+        deathSmoke->oForwardVel = random_float() * 10.0f;
     }
 
     return FALSE;
@@ -780,8 +771,7 @@ s8 sDebugSequenceTracker = 0;
 s8 sDebugTimer = 0;
 
 /**
- * Unused presumably debug function that tracks for a sequence of inputs,
- * perhaps for the Konami code sequence of inputs.
+ * Unused presumably debug function that tracks for a sequence of inputs.
  */
 s32 UNUSED debug_sequence_tracker(s16 debugInputSequence[]) {
     // If end of sequence reached, return true.
@@ -790,12 +780,11 @@ s32 UNUSED debug_sequence_tracker(s16 debugInputSequence[]) {
         return TRUE;
     }
 
-    // If the third controller button pressed is next in sequence, reset timer and progress to next
-    // value.
-    if ((debugInputSequence[sDebugSequenceTracker] & gPlayer3Controller->buttonPressed) != 0) {
+    // If the third controller button pressed is next in sequence, reset timer and progress to next value.
+    if (debugInputSequence[sDebugSequenceTracker] & gPlayer3Controller->buttonPressed) {
         sDebugSequenceTracker++;
         sDebugTimer = 0;
-        // If wrong input or timer reaches 10, reset sequence progress.
+    // If wrong input or timer reaches 10, reset sequence progress.
     } else if (sDebugTimer == 10 || gPlayer3Controller->buttonPressed != 0) {
         sDebugSequenceTracker = 0;
         sDebugTimer = 0;
@@ -822,7 +811,7 @@ s32 UNUSED debug_sequence_tracker(s16 debugInputSequence[]) {
 #include "behaviors/bully.inc.c"
 #include "behaviors/water_ring.inc.c"
 #include "behaviors/bowser_bomb.inc.c"
-#include "behaviors/celebration_star.inc.c"
+// #include "behaviors/celebration_star.inc.c"
 #include "behaviors/drawbridge.inc.c"
 #include "behaviors/bomp.inc.c"
 #include "behaviors/sliding_platform.inc.c"
@@ -861,3 +850,4 @@ s32 UNUSED debug_sequence_tracker(s16 debugInputSequence[]) {
 #include "behaviors/treasure_chest.inc.c"
 #include "behaviors/mips.inc.c"
 #include "behaviors/yoshi.inc.c"
+// #include "behaviors/fruit.inc.c"

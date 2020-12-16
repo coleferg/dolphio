@@ -1,5 +1,6 @@
-#ifndef _MODEL_IDS_H
-#define _MODEL_IDS_H
+#ifndef MODEL_IDS_H
+#define MODEL_IDS_H
+
 #define ACT_1 (1 << 0)
 #define ACT_2 (1 << 1)
 #define ACT_3 (1 << 2)
@@ -360,7 +361,7 @@
 // group 5
 #define MODEL_POKEY_HEAD                  0x54        // pokey_head_geo
 #define MODEL_POKEY_BODY_PART             0x55        // pokey_body_part_geo
-#define MODEL_TORNADO                     0x56        // tornado_seg5_geo_05014630
+#define MODEL_TWEESTER                    0x56        // tweester_geo
 #define MODEL_KLEPTO                      0x57        // klepto_geo
 #define MODEL_EYEROK_LEFT_HAND            0x58        // eyerok_left_hand_geo
 #define MODEL_EYEROK_RIGHT_HAND           0x59        // eyerok_right_hand_geo
@@ -438,6 +439,9 @@
 #define MODEL_BOO_CASTLE                  0x65        // boo_castle_geo
 #define MODEL_LAKITU                      0x66        // lakitu_geo
 #define MODEL_WATER_RING                  0x67        // water_ring_geo
+#define MODEL_SLOTH_BASIC                 0x68        // sloth_geo
+#define MODEL_MONKAT                      0x69        // monkat_geo
+#define MODEL_LIZARD                      0x70        // lizard_geo
 
 // group 16
 #define MODEL_CHILL_BULLY                 0x64        // chilly_chief_geo
@@ -461,7 +465,8 @@
 #define MODEL_STAR                        0x7A        // star_geo
 #define MODEL_TTM_SLIDE_EXIT_PODIUM       0x7B        // ttm_geo_000DF4
 #define MODEL_WOODEN_SIGNPOST             0x7C        // wooden_signpost_geo
-#define MODEL_UNKNOWN_7D                  0x7D        // referenced in macro presets. Unknown usage
+#define MODEL_FRUIT                       0x7D        // fruit_geo
+#define MODEL_COLLECTED_FRUIT             0x7E        // fruit_geo???
 // find me
 #define MODEL_CANNON_BARREL               0x7F        // cannon_barrel_geo
 #define MODEL_CANNON_BASE                 0x80        // cannon_base_geo
@@ -499,10 +504,10 @@
 #define MODEL_WHITE_PARTICLE              0xA0        // white_particle_dl
 #define MODEL_PEBBLE                      0xA1        // pebble_seg3_dl_0301CB00
 #define MODEL_LEAVES                      0xA2        // leaves_geo
-#define MODEL_WATER_WAVES                 0xA3        // water_waves_geo
+#define MODEL_WAVE_TRAIL                  0xA3        // wave_trail_geo
 #define MODEL_WHITE_PARTICLE_SMALL        0xA4        // white_particle_small_dl
-#define MODEL_SPOT_ON_GROUND              0xA5        // spot_on_ground_geo
-#define MODEL_WATER_WAVES_SURF            0xA6        // water_waves_surface_geo
+#define MODEL_SMALL_WATER_SPLASH          0xA5        // small_water_splash_geo
+#define MODEL_IDLE_WATER_WAVE             0xA6        // idle_water_wave_geo
 #define MODEL_WATER_SPLASH                0xA7        // water_splash_geo
 #define MODEL_BUBBLE                      0xA8        // bubble_geo
 // find me
@@ -563,6 +568,8 @@
 #define MODEL_CHUCKYA                     0xDF        // chuckya_geo
 #define MODEL_WHITE_PUFF                  0xE0        // white_puff_geo
 #define MODEL_TRAJECTORY_MARKER_BALL          0xE1        // bowling_ball_track_geo - duplicate used in SSL Pyramid small sized and as a track ball
+#define MODEL_SLIDING_DOOR                0xE2        // bowling_ball_track_geo - duplicate used in SSL Pyramid small sized and as a track ball
+#define MODEL_JELLYCUBE                   0xE3        // jellycube_geo
 
 // Menu Models (overwrites Level Geometry IDs)
 #define MODEL_MAIN_MENU_MARIO_SAVE_BUTTON         MODEL_LEVEL_GEOMETRY_03   // main_menu_geo_0001D0
@@ -586,4 +593,4 @@
 #define MODEL_VCUTM_WARP_PIPE                     MODEL_LEVEL_GEOMETRY_16   // warp_pipe_geo
 #define MODEL_CASTLE_GROUNDS_WARP_PIPE            MODEL_LEVEL_GEOMETRY_16   // warp_pipe_geo
 
-#endif
+#endif // MODEL_IDS_H

@@ -1,6 +1,9 @@
 #ifndef FILE_SELECT_H
 #define FILE_SELECT_H
 
+#include <PR/ultratypes.h>
+#include <PR/gbi.h>
+
 #include "types.h"
 
 #define MENU_LAYER_MAIN 1
@@ -68,12 +71,23 @@ enum MenuButtonTypes {
     MENU_BUTTON_ERASE_MAX,
 
     // Sound Mode Menu (SOUND SELECT)
+    // This menu includes language settings on EU
     MENU_BUTTON_SOUND_MODE = MENU_BUTTON_ERASE_MAX,
-    MENU_BUTTON_SOUND_MIN,
-    MENU_BUTTON_STEREO = MENU_BUTTON_SOUND_MIN,
+    MENU_BUTTON_OPTION_MIN,
+    MENU_BUTTON_STEREO = MENU_BUTTON_OPTION_MIN,
     MENU_BUTTON_MONO,
     MENU_BUTTON_HEADSET,
-    MENU_BUTTON_SOUND_MAX
+
+#ifdef VERSION_EU
+    // Language Menu
+    MENU_BUTTON_LANGUAGE_MIN,
+    MENU_BUTTON_LANGUAGE_ENGLISH = MENU_BUTTON_LANGUAGE_MIN,
+    MENU_BUTTON_LANGUAGE_FRENCH,
+    MENU_BUTTON_LANGUAGE_GERMAN,
+    MENU_BUTTON_LANGUAGE_RETURN,
+#endif
+
+    MENU_BUTTON_OPTION_MAX
 };
 
 enum ScoreMenuMessageID {
@@ -113,17 +127,14 @@ enum SoundModeMenuActionPhase {
     SOUND_MODE_PHASE_MAIN
 };
 
-extern u32 gGlobalTimer;
+void beh_yellow_background_menu_init(void);
+void beh_yellow_background_menu_loop(void);
+void bhv_menu_button_init(void);
+void bhv_menu_button_loop(void);
+void bhv_menu_button_manager_init(void);
+void bhv_menu_button_manager_loop(void);
+Gfx *geo_file_select_strings_and_menu_cursor(s32 callContext, UNUSED struct GraphNode *node, UNUSED Mat4 mtx);
+s32 lvl_init_menu_values_and_cursor_pos(UNUSED s32 arg, UNUSED s32 unused);
+s32 lvl_update_obj_and_load_file_selected(UNUSED s32 arg, UNUSED s32 unused);
 
-extern void beh_yellow_background_menu_init(void);
-extern void beh_yellow_background_menu_loop(void);
-extern void bhv_menu_button_init(void);
-extern void bhv_menu_button_loop(void);
-extern void bhv_menu_button_manager_init(void);
-extern void bhv_menu_button_manager_loop(void);
-extern Gfx *geo_file_select_strings_and_menu_cursor(s32 callContext, struct GraphNode *node,
-                                                    f32 mtx[4][4]);
-extern s32 lvl_init_menu_values_and_cursor_pos(s32 arg, s32 unused);
-extern s32 lvl_update_obj_and_load_file_selected(s32 arg, s32 unused);
-
-#endif /* FILE_SELECT_H */
+#endif // FILE_SELECT_H

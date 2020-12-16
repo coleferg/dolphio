@@ -1,7 +1,11 @@
-#ifndef _AREA_H
-#define _AREA_H
+#ifndef AREA_H
+#define AREA_H
+
+#include <PR/ultratypes.h>
 
 #include "types.h"
+#include "camera.h"
+#include "engine/graph_node.h"
 
 struct WarpNode
 {
@@ -61,7 +65,7 @@ struct Area
     /*0x00*/ s8 index;
     /*0x01*/ s8 flags; // Only has 1 flag: 0x01 = Is this the active area?
     /*0x02*/ u16 terrainType; // default terrain of the level (set from level script cmd 0x31)
-    /*0x04*/ struct GraphNode *unk04; // geometry layout data
+    /*0x04*/ struct GraphNodeRoot *unk04; // geometry layout data
     /*0x08*/ s16 *terrainData; // collision data (set from level script cmd 0x2E)
     /*0x0C*/ s8 *surfaceRooms; // (set from level script cmd 0x2F)
     /*0x10*/ s16 *macroObjects; // Macro Objects Ptr (set from level script cmd 0x39)
@@ -114,6 +118,7 @@ struct WarpTransition
     /*0x04*/ struct WarpTransitionData data;
 };
 
+extern struct GraphNode **gLoadedGraphNodes;
 extern struct SpawnInfo gPlayerSpawnInfos[];
 extern struct GraphNode *D_8033A160[];
 extern struct Area gAreaData[];
@@ -134,21 +139,20 @@ extern s16 gCurrSaveFileNum;
 extern s16 gCurrLevelNum;
 
 
-void func_8027A220(Vp *a, Vp *b, u8 c, u8 d, u8 e);
+void override_viewport_and_clip(Vp *a, Vp *b, u8 c, u8 d, u8 e);
 void print_intro_text(void);
 u32 get_mario_spawn_type(struct Object *o);
 struct ObjectWarpNode *area_get_warp_node(u8 id);
 void clear_areas(void);
-void func_8027A7C4(void);
+void clear_area_graph_nodes(void);
 void load_area(s32 index);
-void func_8027A998(void);
+void unload_area(void);
 void load_mario_area(void);
-void func_8027AA88(void);
+void unload_mario_area(void);
 void change_area(s32 index);
 void area_update_objects(void);
 void play_transition(s16 transType, s16 time, u8 red, u8 green, u8 blue);
 void play_transition_after_delay(s16 transType, s16 time, u8 red, u8 green, u8 blue, s16 delay);
 void render_game(void);
 
-
-#endif
+#endif // AREA_H

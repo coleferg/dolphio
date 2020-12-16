@@ -1,10 +1,10 @@
-#ifndef _PRINT_H
-#define _PRINT_H
+#ifndef PRINT_H
+#define PRINT_H
 
-#include "types.h"
+#include <PR/ultratypes.h>
 
 #define TEXRECT_MIN_X 10
-#define TEXRECT_MAX_X 410
+#define TEXRECT_MAX_X 300
 #define TEXRECT_MIN_Y 5
 #define TEXRECT_MAX_Y 220
 
@@ -26,9 +26,9 @@
 #define GLYPH_UMLAUT          58
 
 extern void print_text_fmt_int(s32 x, s32 y, const char *str, s32 n);
-extern void print_text_fmt_int_no_relocate(s32 x, s32 y, const char *str, s32 n);
+// extern void print_text_fmt_int_no_relocate(s32 x, s32 y, const char *str, s32 n);
 extern void print_text(s32 x, s32 y, const char *str);
 extern void print_text_centered(s32 x, s32 y, const char *str);
 extern void render_text_labels(void);
 
-#endif /* _PRINT_H */
+#endif // PRINT_H

@@ -1,9 +1,13 @@
-#ifndef _LEVEL_SCRIPT_H
-#define _LEVEL_SCRIPT_H
+#ifndef LEVEL_SCRIPT_H
+#define LEVEL_SCRIPT_H
 
-struct LevelCommand *level_script_execute(struct LevelCommand *cmd);
+#include <PR/ultratypes.h>
+
+struct LevelCommand;
 
 extern u8 level_script_entry[];
 extern u8 level_script_entry_error_screen[];
 
-#endif /* _LEVEL_SCRIPT_H */
+struct LevelCommand *level_script_execute(struct LevelCommand *cmd);
+
+#endif // LEVEL_SCRIPT_H

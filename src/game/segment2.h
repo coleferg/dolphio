@@ -1,10 +1,8 @@
 #ifndef SEGMENT2_H
 #define SEGMENT2_H
 
-#include "types.h"
-
-extern u8 _segment2_mio0SegmentRomStart[];
-extern u8 _segment2_mio0SegmentRomEnd[];
+#include <PR/ultratypes.h>
+#include <PR/gbi.h>
 
 extern u8 seg2_course_name_table[];
 extern u8 seg2_act_name_table[];
@@ -41,8 +39,8 @@ extern Gfx dl_paintings_rippling_begin[];
 extern Gfx dl_paintings_rippling_end[];
 extern Gfx dl_paintings_env_mapped_begin[];
 extern Gfx dl_paintings_env_mapped_end[];
-extern u8 seg2_triangle_mesh[];
-extern u8 seg2_mesh_order[];
+extern u8 seg2_painting_triangle_mesh[];
+extern u8 seg2_painting_mesh_neighbor_tris[];
 extern u8* main_hud_lut[58];
 extern Gfx dl_hud_img_load_tex_block[];
 extern Gfx dl_hud_img_begin[];
@@ -66,4 +64,4 @@ extern Gfx dl_billboard_num_7[];
 extern Gfx dl_billboard_num_8[];
 extern Gfx dl_billboard_num_9[];
 
-#endif /* SEGMENT2_H */
+#endif // SEGMENT2_H

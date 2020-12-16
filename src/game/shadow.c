@@ -1,22 +1,26 @@
-#include <ultra64.h>
+#include <PR/ultratypes.h>
+#include <PR/gbi.h>
 #include <math.h>
 
-#include "sm64.h"
-#include "shadow.h"
-
-#include "area.h"
-#include "engine/graph_node.h"
 #include "engine/math_util.h"
 #include "engine/surface_collision.h"
-#include "mario_animation_ids.h"
-#include "mario.h"
+#include "geo_misc.h"
+#include "level_table.h"
 #include "memory.h"
+#include "object_list_processor.h"
 #include "rendering_graph_node.h"
-#include "room.h"
 #include "segment2.h"
 #include "save_file.h"
 #include "geo_misc.h"
 #include "level_table.h"
+#include "print.h"
+#include "shadow.h"
+#include "sm64.h"
+
+#ifndef TARGET_N64
+// Avoid Z-fighting
+#define find_floor_height_and_data 0.4 + find_floor_height_and_data
+#endif
 
 /**
  * @file shadow.c
@@ -106,10 +110,11 @@ shadowRectangle rectangles[2] = {
 };
 
 // See shadow.h for documentation.
+s8 gShadowAboveWaterOrLava;
+s8 gShadowAboveCustomWater;
+s8 gMarioOnIceOrCarpet;
 s8 sMarioOnFlyingCarpet;
 s16 sSurfaceTypeBelowShadow;
-s8 gShadowAboveWaterOrLava;
-s8 gMarioOnIceOrCarpet;
 
 /**
  * Let (oldZ, oldX) be the relative coordinates of a point on a rectangle,
@@ -182,14 +187,15 @@ u8 dim_shadow_with_distance(u8 solidity, f32 distFromFloor) {
  * Return the water level below a shadow, or 0 if the water level is below
  * -10,000.
  */
-f32 get_water_level_below_shadow(struct Shadow *s) {
-    f32 waterLevel = find_water_level(s->parentX, s->parentZ);
+f32 get_water_level_below_shadow(struct Shadow *s, struct Surface **waterFloor) {
+    f32 waterLevel = find_water_level_and_floor(s->parentX, s->parentZ, waterFloor);
     if (waterLevel < -10000.0) {
         return 0;
     } else if (s->parentY >= waterLevel && s->floorHeight <= waterLevel) {
         gShadowAboveWaterOrLava = TRUE;
         return waterLevel;
     }
+    return waterLevel;
     //! @bug Missing return statement. This compiles to return `waterLevel`
     //! incidentally.
 }
@@ -206,6 +212,7 @@ s8 init_shadow(struct Shadow *s, f32 xPos, f32 yPos, f32 zPos, s16 shadowScale, 
     f32 waterLevel;
     f32 floorSteepness;
     struct FloorGeometry *floorGeometry;
+    struct Surface *waterFloor = NULL;
 
     s->parentX = xPos;
     s->parentY = yPos;
@@ -213,18 +220,30 @@ s8 init_shadow(struct Shadow *s, f32 xPos, f32 yPos, f32 zPos, s16 shadowScale, 
 
     s->floorHeight = find_floor_height_and_data(s->parentX, s->parentY, s->parentZ, &floorGeometry);
 
-    if (gEnvironmentRegions != 0) {
-        waterLevel = get_water_level_below_shadow(s);
-    }
+    waterLevel = get_water_level_below_shadow(s, &waterFloor);
+    // if (gEnvironmentRegions != 0) {
+    // }
     if (gShadowAboveWaterOrLava) {
         //! @bug Use of potentially undefined variable `waterLevel`
         s->floorHeight = waterLevel;
 
-        // Assume that the water is flat.
-        s->floorNormalX = 0;
-        s->floorNormalY = 1.0;
-        s->floorNormalZ = 0;
-        s->floorOriginOffset = -waterLevel;
+        if (waterFloor != NULL) {
+            s->floorNormalX = waterFloor->normal.x;
+            s->floorNormalY = waterFloor->normal.y;
+            s->floorNormalZ = waterFloor->normal.z;
+            s->floorOriginOffset = waterFloor->originOffset;
+            gShadowAboveWaterOrLava = FALSE;
+            gShadowAboveCustomWater = TRUE;
+            s->solidity = 200;
+        } else {
+            gShadowAboveCustomWater = FALSE;
+            // Assume that the water is flat.
+            s->floorNormalX = 0;
+            s->floorNormalY = 1.0;
+            s->floorNormalZ = 0;
+            s->floorOriginOffset = -waterLevel;
+        }
+
     } else {
         // Don't draw a shadow if the floor is lower than expected possible,
         // or if the y-normal is negative (an unexpected result).
@@ -254,6 +273,7 @@ s8 init_shadow(struct Shadow *s, f32 xPos, f32 yPos, f32 zPos, s16 shadowScale, 
     } else {
         s->floorTilt = 90.0 - atan2_deg(floorSteepness, s->floorNormalY);
     }
+
     return 0;
 }
 
@@ -429,7 +449,7 @@ void make_shadow_vertex(Vtx *vertices, s8 index, struct Shadow s, s8 shadowVerte
     f32 relX, relY, relZ;
 
     u8 solidity = s.solidity;
-    if (gShadowAboveWaterOrLava != 0) {
+    if (gShadowAboveWaterOrLava) {
         solidity = 200;
     }
 
@@ -545,8 +565,8 @@ s8 correct_shadow_solidity_for_animations(s32 isLuigi, u8 initialSolidity, struc
             break;
     }
 
-    animFrame = player->header.gfx.unk38.animFrame;
-    switch (player->header.gfx.unk38.animID) {
+    animFrame = player->header.gfx.animInfo.animFrame;
+    switch (player->header.gfx.animInfo.animID) {
         case MARIO_ANIM_IDLE_ON_LEDGE:
             ret = SHADOW_SOLIDITY_NO_SHADOW;
             break;
@@ -638,7 +658,10 @@ Gfx *create_shadow_player(f32 xPos, f32 yPos, f32 zPos, s16 shadowScale, u8 soli
     for (i = 0; i < 9; i++) {
         make_shadow_vertex(verts, i, shadow, SHADOW_WITH_9_VERTS);
     }
+
     add_shadow_to_display_list(displayList, verts, SHADOW_WITH_9_VERTS, SHADOW_SHAPE_CIRCLE);
+    
+
     return displayList;
 }
 
@@ -858,6 +881,7 @@ Gfx *create_shadow_below_xyz(f32 xPos, f32 yPos, f32 zPos, s16 shadowScale, u8 s
     find_floor(xPos, yPos, zPos, &pfloor);
 
     gShadowAboveWaterOrLava = FALSE;
+    gShadowAboveCustomWater = FALSE;
     gMarioOnIceOrCarpet = 0;
     sMarioOnFlyingCarpet = 0;
     if (pfloor != NULL) {

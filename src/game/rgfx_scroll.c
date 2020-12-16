@@ -2,7 +2,7 @@
 #include "game/level_update.h"
 #include "game/area.h"
 #include "game/memory.h"
-#include "game/display.h"
+#include "game/game_init.h"
 #include "level_table.h"
 
 #define PACK_TILESIZE(w, d) ((w << 2) + d)
@@ -68,34 +68,34 @@ static void shift_t(Gfx *dl, u32 cmd, u16 t) {
  */
 
 void rgfx_update_scroll() {
-    switch(gCurrLevelNum) {
-        case LEVEL_CASTLE_GROUNDS:
-        if (gCurrAreaIndex == 1) {
-            shift_t(&mat_castle_grounds_mainWaterFallMat, 11, PACK_TILESIZE(1, 1));
-            shift_s(&mat_castle_grounds_riverWaterMat, 11, PACK_TILESIZE(0, 1));
-            shift_s(&mat_castle_grounds_headWaterMat, 11, PACK_TILESIZE(0, 1));
-            shift_t(&mat_castle_grounds_headWaterFallMat, 11, PACK_TILESIZE(0, 2));
-            shift_s(&mat_castle_grounds_lakeWaterMat, 11, PACK_TILESIZE(0, 1));
-        }
-        break;
-        case LEVEL_BOWSER_1:
-        if (gCurrAreaIndex == 1) {
-            shift_s(&mat_bowser_1_waterMaterial, 11, PACK_TILESIZE(0, 1));
-            shift_t(&mat_bowser_1_waterfallMaterial, 18, PACK_TILESIZE(0, 3));
-            shift_t(&mat_bowser_1_slideWaterMat, 11, PACK_TILESIZE(0, 3));
-            shift_t(&mat_bowser_1_waterCenterMat, 11, PACK_TILESIZE(0, 2));
-            shift_t(&mat_bowser_1_deathPlaneMaterial, 11, PACK_TILESIZE(0, 1));
-            shift_t(&mat_bowser_1_warpMaterial, 11, PACK_TILESIZE(0, 1));
-        }
-        break;
-        case LEVEL_BITDW:
-        if (gCurrAreaIndex == 1) {
-            shift_t(&mat_world_waterMaterial, 12, PACK_TILESIZE(0, 1));
-            shift_s(&mat_world_waterfallMaterial, 12, PACK_TILESIZE(0, 4));
-        }
-        case LEVEL_BITFS:
-        if (gCurrAreaIndex == 1) {
-            shift_s(&mat_bitfs_riverMaterial, 18, PACK_TILESIZE(0, 3));
-        }
-    }
+    // switch(gCurrLevelNum) {
+    //     case LEVEL_CASTLE_GROUNDS:
+    //     if (gCurrAreaIndex == 1) {
+    //         shift_t(&mat_castle_grounds_mainWaterFallMat, 11, PACK_TILESIZE(1, 1));
+    //         shift_s(&mat_castle_grounds_riverWaterMat, 11, PACK_TILESIZE(0, 1));
+    //         shift_s(&mat_castle_grounds_headWaterMat, 11, PACK_TILESIZE(0, 1));
+    //         shift_t(&mat_castle_grounds_headWaterFallMat, 11, PACK_TILESIZE(0, 2));
+    //         shift_s(&mat_castle_grounds_lakeWaterMat, 11, PACK_TILESIZE(0, 1));
+    //     }
+    //     break;
+    //     case LEVEL_BOWSER_1:
+    //     if (gCurrAreaIndex == 1) {
+    //         shift_s(&mat_bowser_1_waterMaterial, 11, PACK_TILESIZE(0, 1));
+    //         shift_t(&mat_bowser_1_waterfallMaterial, 18, PACK_TILESIZE(0, 3));
+    //         shift_t(&mat_bowser_1_slideWaterMat, 11, PACK_TILESIZE(0, 3));
+    //         shift_t(&mat_bowser_1_waterCenterMat, 11, PACK_TILESIZE(0, 2));
+    //         shift_t(&mat_bowser_1_deathPlaneMaterial, 11, PACK_TILESIZE(0, 1));
+    //         shift_t(&mat_bowser_1_warpMaterial, 11, PACK_TILESIZE(0, 1));
+    //     }
+    //     break;
+    //     case LEVEL_BITDW:
+    //     if (gCurrAreaIndex == 1) {
+    //         shift_t(&mat_world_waterMaterial, 12, PACK_TILESIZE(0, 1));
+    //         shift_s(&mat_world_waterfallMaterial, 12, PACK_TILESIZE(0, 4));
+    //     }
+    //     case LEVEL_BITFS:
+    //     if (gCurrAreaIndex == 1) {
+    //         shift_s(&mat_bitfs_riverMaterial, 18, PACK_TILESIZE(0, 3));
+    //     }
+    // }
 }

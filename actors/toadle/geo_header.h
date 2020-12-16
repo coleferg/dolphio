@@ -1,0 +1,31 @@
+extern const GeoLayout toadle_geo[];
+extern Vtx toadle_toadle_head_mesh_vtx_0[77];
+extern Gfx toadle_toadle_head_mesh_tri_0[];
+extern Vtx toadle_toadle_head_mesh_vtx_1[8];
+extern Gfx toadle_toadle_head_mesh_tri_1[];
+extern Vtx toadle_toadle_foot_l_mesh_vtx_0[49];
+extern Gfx toadle_toadle_foot_l_mesh_tri_0[];
+extern Vtx toadle_toadle_foot_r_mesh_vtx_0[49];
+extern Gfx toadle_toadle_foot_r_mesh_tri_0[];
+extern Vtx toadle_toadle_arm_l_mesh_vtx_0[47];
+extern Gfx toadle_toadle_arm_l_mesh_tri_0[];
+extern Vtx toadle_toadle_arm_r_mesh_vtx_0[46];
+extern Gfx toadle_toadle_arm_r_mesh_tri_0[];
+extern Vtx toadle_toadle_body_mesh_vtx_0[19];
+extern Gfx toadle_toadle_body_mesh_tri_0[];
+extern Vtx toadle_toadle_body_mesh_vtx_1[29];
+extern Gfx toadle_toadle_body_mesh_tri_1[];
+extern Vtx toadle_toadle_body_mesh_vtx_2[26];
+extern Gfx toadle_toadle_body_mesh_tri_2[];
+extern Vtx toadle_toadle_vest_mesh_vtx_0[16];
+extern Gfx toadle_toadle_vest_mesh_tri_0[];
+
+extern Gfx toadle_toadle_head_mesh[];
+extern Gfx toadle_toadle_foot_l_mesh[];
+extern Gfx toadle_toadle_foot_r_mesh[];
+extern Gfx toadle_toadle_arm_l_mesh[];
+extern Gfx toadle_toadle_arm_r_mesh[];
+extern Gfx toadle_toadle_body_mesh[];
+extern Gfx toadle_toadle_vest_mesh[];
+extern Gfx toadle_material_revert_render_settings[];
+

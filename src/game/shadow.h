@@ -1,8 +1,8 @@
-#ifndef _SHADOW_H
-#define _SHADOW_H
+#ifndef SHADOW_H
+#define SHADOW_H
 
-#include <ultra64.h>
-#include "types.h"
+#include <PR/ultratypes.h>
+#include <PR/gbi.h>
 
 /**
  * Shadow types. Shadows are circles, squares, or hardcoded rectangles, and
@@ -38,6 +38,7 @@ extern s16 sSurfaceTypeBelowShadow;
  * Flag for if the current shadow is above water or lava.
  */
 extern s8 gShadowAboveWaterOrLava;
+extern s8 gShadowAboveCustomWater;
 
 /**
  * Flag for if Mario is on ice or a flying carpet.
@@ -48,7 +49,6 @@ extern s8 gMarioOnIceOrCarpet;
  * Given the (x, y, z) location of an object, create a shadow below that object
  * with the given initial solidity and "shadowType" (described above).
  */
-extern Gfx *create_shadow_below_xyz(
-    f32 xPos, f32 yPos, f32 zPos, s16 shadowScale, u8 shadowSolidity, s8 shadowType);
+Gfx *create_shadow_below_xyz(f32 xPos, f32 yPos, f32 zPos, s16 shadowScale, u8 shadowSolidity, s8 shadowType);
 
-#endif /* _SHADOW_H */
+#endif // SHADOW_H

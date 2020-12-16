@@ -1,16 +1,15 @@
-#ifndef _MARIO_H
-#define _MARIO_H
+#ifndef MARIO_H
+#define MARIO_H
 
+#include <PR/ultratypes.h>
+
+#include "macros.h"
 #include "types.h"
-
-extern u32 gAudioRandom;
-
-extern struct Object *gMarioObject;
-extern struct Object *gLuigiObject;
-
+extern s32 gCheckingWaterLevelForMario;
 extern s32 is_anim_at_end(struct MarioState *m);
 extern s32 is_anim_past_end(struct MarioState *m);
 extern s16 set_mario_animation(struct MarioState *m, s32 targetAnimID);
+extern s16 set_spin_loop_animation(struct MarioState *m, s32 targetAnimID);
 extern s16 set_mario_anim_with_accel(struct MarioState *m, s32 targetAnimID, s32 accel);
 extern void set_anim_to_frame(struct MarioState *m, s16 animFrame);
 extern s32 is_anim_past_frame(struct MarioState *m, s16 animFrame);
@@ -48,9 +47,11 @@ extern s32 hurt_and_set_mario_action(struct MarioState *m, u32 action, u32 actio
 extern s32 check_common_action_exits(struct MarioState *m);
 extern s32 check_common_hold_action_exits(struct MarioState *m);
 extern s32 transition_submerged_to_walking(struct MarioState *m);
+extern s32 transition_submerged_to_airborne(struct MarioState *m);
 extern s32 set_water_plunge_action(struct MarioState *m);
 extern s32 execute_mario_action(struct Object *o);
 extern void init_mario(void);
 extern void init_mario_from_save_file(void);
+extern void set_last_safe_pos(struct MarioState *m); // CUSTOM local warp
 
-#endif /* _MARIO_H */
+#endif // MARIO_H

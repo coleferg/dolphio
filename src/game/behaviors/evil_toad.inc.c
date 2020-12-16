@@ -20,7 +20,18 @@
 
 #define EVIL_TOAD_HEALTH 2
 
+
+// #define CULT_DISTANCE 850.0f
+// #define CULT_DISTANCE_VARIANCE 350.0f
+// #define NUM_TOADS_IN_CULT 25
+
+#define CULT_DISTANCE 700.0f
+#define CULT_DISTANCE_VARIANCE 250.0f
 #define NUM_TOADS_IN_CULT 10
+
+
+// #define CULT_DISTANCE 700.0f
+// #define CULT_DISTANCE_VARIANCE 250.0f
 // #define NUM_TOADS_IN_CULT 4
 
 enum ToadEvilStates {
@@ -70,13 +81,13 @@ s32 checkIsToadAvoiding(void) {
 
 static void playSoundByToadType(s16 isAvoiding, s16 isEvil, u32 evilSound, u32 avoidSound, u32 normalSound) {
     if (o->oTimer < 7) {}
-    else if (isAvoiding) PlaySound2(avoidSound);
-    else if (isEvil) PlaySound2(evilSound);
-    else PlaySound2(normalSound);
+    else if (isAvoiding) cur_obj_play_sound_2(avoidSound);
+    else if (isEvil) cur_obj_play_sound_2(evilSound);
+    else cur_obj_play_sound_2(normalSound);
 }
 
 static void toad_near_mario(s16 isEvil) {
-    s16 isHopping = obj_check_anim_frame_in_range(9, 8);
+    s16 isHopping = cur_obj_check_anim_frame_in_range(9, 8);
     s16 isCloseToMario = o->oDistanceToMario < 1000.0f;
     s16 isAvoiding = checkIsToadAvoiding();
     s16 isCultToad = o->oBehParams == 0x2;
@@ -89,31 +100,31 @@ static void toad_near_mario(s16 isEvil) {
             ? 3.5f 
             : 3.0f;
         s16 targetAngle = isAvoiding 
-            ? angle_to_object(gMarioObject, o)
-            : angle_to_object(o, gMarioObject);
+            ? obj_angle_to_object(gMarioObject, o)
+            : obj_angle_to_object(o, gMarioObject);
         s16 rotSpeed = isCultToad ? 0x800 : 0x600;
         f32 fVelInc = 0.2f;
         if (o->oForwardVel > 10.0f) fVelInc = 1.0f;
 
-        if (o->header.gfx.unk38.animFrame == 9) PlaySound2(SOUND_OBJ_TOADLE_HOP);
+        if (o->header.gfx.animInfo.animFrame == 9) cur_obj_play_sound_2(SOUND_OBJ_TOADLE_HOP);
         if (isEvil) targetVel = 4.0f;
         if (!isEvil && o->oDistanceToMario < 150.0f) targetVel = 0.0f;
 
-        obj_rotate_yaw_toward(targetAngle, rotSpeed);
+        cur_obj_rotate_yaw_toward(targetAngle, rotSpeed);
         if (targetVel > 0.0f) {
             o->oForwardVel = approach_f32(o->oForwardVel, targetVel, fVelInc, fVelInc);
-            obj_update_floor_and_walls();
+            cur_obj_update_floor_and_walls();
             obj_resolve_object_collisions(NULL);
-            obj_move_standard(-30);
+            cur_obj_move_standard(-30);
         }
-    } else if (isCultToad && o->oTimer > 30 + (RandomFloat() * 10)) {
+    } else if (isCultToad && o->oTimer > 30 + (random_float() * 10)) {
         o->oAction = TOAD_EVIL_POUNCE;
     }
-    if (isCultToad && o->header.gfx.unk38.animFrame == 20) o->header.gfx.unk38.animFrame = (s16) RandomFloat() * 5;
+    if (isCultToad && o->header.gfx.animInfo.animFrame == 20) o->header.gfx.animInfo.animFrame = (s16) random_float() * 5;
 }
 
 static void toad_going_home(s16 isEvil) {
-    s16 isHopping = obj_check_anim_frame_in_range(9, 8);
+    s16 isHopping = cur_obj_check_anim_frame_in_range(9, 8);
     s16 isCloseToMario = o->oDistanceToMario < 1000.0f;
     s16 isAvoiding = checkIsToadAvoiding();
 
@@ -122,12 +133,12 @@ static void toad_going_home(s16 isEvil) {
         playSoundByToadType(isAvoiding, isEvil, SOUND_OBJ_TOADLE_ATTACK, SOUND_OBJ_TOADLE_SCARED, SOUND_OBJ_TOADLE_EXCITE);
     } else if (isHopping) {
         f32 targetVel;
-        s16 targetAngle = obj_angle_to_home();
+        s16 targetAngle = cur_obj_angle_to_home();
         s16 rotSpeed = 0x600;
         f32 fVelInc = 0.1;
-        f32 distFromHome = obj_lateral_dist_to_home();
+        f32 distFromHome = cur_obj_lateral_dist_to_home();
 
-        if (o->header.gfx.unk38.animFrame == 9) PlaySound2(SOUND_OBJ_TOADLE_HOP);
+        if (o->header.gfx.animInfo.animFrame == 9) cur_obj_play_sound_2(SOUND_OBJ_TOADLE_HOP);
 
         if (distFromHome > 50.0f) targetVel = 2.6f;
         else if (distFromHome > 10.0f) targetVel = 1.5f;
@@ -137,50 +148,50 @@ static void toad_going_home(s16 isEvil) {
             o->oAction = TOAD_IDLE;
         }
 
-        obj_rotate_yaw_toward(targetAngle, rotSpeed);
+        cur_obj_rotate_yaw_toward(targetAngle, rotSpeed);
         if (targetVel > 0.0f) {
             o->oForwardVel = approach_f32(o->oForwardVel, targetVel, fVelInc, fVelInc);
-            obj_update_floor_and_walls();
+            cur_obj_update_floor_and_walls();
             obj_resolve_object_collisions(NULL);
-            obj_move_standard(-30);
+            cur_obj_move_standard(-30);
         }
     }
 }
 
 static void toad_evil_fire_dance(s16 isSemiCloseToMario) {
-    s16 isHopping = obj_check_anim_frame_in_range(9, 8);
+    s16 isHopping = cur_obj_check_anim_frame_in_range(9, 8);
     struct Object *cultSpawner = o->parentObj;
 
-    if (isSemiCloseToMario && o->header.gfx.unk38.animFrame == 9) PlaySound2(SOUND_OBJ_TOADLE_HOP);
+    if (isSemiCloseToMario && o->header.gfx.animInfo.animFrame == 9) cur_obj_play_sound_2(SOUND_OBJ_TOADLE_HOP);
 
     if (cultSpawner->oAction == TOAD_CULT_NOTICE_MARIO && cultSpawner->oTimer > o->oBehParams2ndByte) {
-        s16 targetAngle = angle_to_object(o, gMarioObject);
+        s16 targetAngle = obj_angle_to_object(o, gMarioObject);
         s16 rotSpeed = 0x100;
 
-        if (o->header.gfx.unk38.animFrame == 1) o->header.gfx.unk38.animFrame = 0;
-        if (o->header.gfx.unk38.animFrame == 0) {
+        if (o->header.gfx.animInfo.animFrame == 1) o->header.gfx.animInfo.animFrame = 0;
+        if (o->header.gfx.animInfo.animFrame == 0) {
             o->oForwardVel = 0.0f;
-            obj_rotate_yaw_toward(targetAngle, rotSpeed);
+            cur_obj_rotate_yaw_toward(targetAngle, rotSpeed);
         };
 
-        if (cultSpawner->oTimer > (290 + (9.0f * RandomFloat() * RandomSign()))) o->oAction = TOAD_EVIL_POUNCE;
+        if (cultSpawner->oTimer > (290 + (9.0f * random_float() * random_sign()))) o->oAction = TOAD_EVIL_POUNCE;
     } else if (isHopping) {
         f32 targetVel = 6.0f;
         s32 toadRight;
 
-        if (o->header.gfx.unk38.animFrame == 9) PlaySound2(SOUND_OBJ_TOADLE_HOP);
+        if (o->header.gfx.animInfo.animFrame == 9) cur_obj_play_sound_2(SOUND_OBJ_TOADLE_HOP);
 
-        o->oMoveAngleYaw = angle_to_object(o, cultSpawner);
+        o->oMoveAngleYaw = obj_angle_to_object(o, cultSpawner);
         o->oForwardVel = 0.0f;
 
         toadRight = 0x4000 + o->oMoveAngleYaw;
         o->oVelX = targetVel * sins(toadRight);
         o->oVelZ = targetVel * coss(toadRight);
 
-        obj_update_floor_and_walls();
+        cur_obj_update_floor_and_walls();
         obj_move_xz_2(0, FALSE);
-        obj_move_y(o->oGravity, o->oBounce, o->oBuoyancy);
-    } else if (o->header.gfx.unk38.animFrame == 20) o->header.gfx.unk38.animFrame = 5;
+        cur_obj_move_y(o->oGravity, o->oBounciness, o->oBuoyancy);
+    } else if (o->header.gfx.animInfo.animFrame == 20) o->header.gfx.animInfo.animFrame = 5;
 }
 
 static void toad_idle(s16 isEvil) {
@@ -198,51 +209,51 @@ static void toad_idle(s16 isEvil) {
         return;
     }
 
-    if (isSemiCloseToMario && o->header.gfx.unk38.animFrame == 9) PlaySound2(SOUND_OBJ_TOADLE_HOP);
+    if (isSemiCloseToMario && o->header.gfx.animInfo.animFrame == 9) cur_obj_play_sound_2(SOUND_OBJ_TOADLE_HOP);
 
     if (isCloseToMario) {
         o->oAction = TOAD_NEAR_MARIO;
         playSoundByToadType(isAvoiding, isEvil, SOUND_OBJ_TOADLE_ATTACK, SOUND_OBJ_TOADLE_SCARED, SOUND_OBJ_TOADLE_EXCITE);
         if (isEvil && isWaitingToPounce) {
             o->oAction = TOAD_EVIL_POUNCE;
-            o->oMoveAngleYaw = angle_to_object(o, gMarioObject);
+            o->oMoveAngleYaw = obj_angle_to_object(o, gMarioObject);
         }
     } else if (isSemiCloseToMario) {
         s16 targetAngle = isAvoiding 
-            ? angle_to_object(gMarioObject, o)
-            : angle_to_object(o, gMarioObject);
+            ? obj_angle_to_object(gMarioObject, o)
+            : obj_angle_to_object(o, gMarioObject);
         s16 rotSpeed = isWaitingToPounce ? 0x800 : 0x400;
         
-        obj_rotate_yaw_toward(targetAngle, rotSpeed);
+        cur_obj_rotate_yaw_toward(targetAngle, rotSpeed);
     }
 }
 
 static void toad_evil_attacked_mario(void) {
-    PlaySound2(SOUND_OBJ_TOADLE_ATTACK);
-    o->header.gfx.unk38.animFrame = 7;
+    cur_obj_play_sound_2(SOUND_OBJ_TOADLE_ATTACK);
+    o->header.gfx.animInfo.animFrame = 7;
     o->oForwardVel = -5.0f;
     o->oVelY = 12.0f;
     o->oAction = TOAD_EVIL_JUMP;
-    obj_move_standard(-30);
+    cur_obj_move_standard(-30);
 }
 
 static void toad_evil_pounce(void) {
-    o->header.gfx.unk38.animFrame = 7;
+    o->header.gfx.animInfo.animFrame = 7;
     o->oForwardVel = 50.0f;
     o->oVelY = 20.0f;
     o->oAction = TOAD_EVIL_JUMP;
-    obj_move_standard(0);
+    cur_obj_move_standard(0);
 }
 
 static void toad_evil_jump(void) {
-    obj_update_floor_and_walls();
+    cur_obj_update_floor_and_walls();
 
-    if (obj_check_anim_frame_in_range(9, 8) || !(o->oMoveFlags & OBJ_MOVE_MASK_ON_GROUND)) {
-        s16 targetAngle = angle_to_object(o, gMarioObject);
+    if (cur_obj_check_anim_frame_in_range(9, 8) || !(o->oMoveFlags & OBJ_MOVE_MASK_ON_GROUND)) {
+        s16 targetAngle = obj_angle_to_object(o, gMarioObject);
         s16 rotSpeed = 0x200;
-        obj_rotate_yaw_toward(targetAngle, rotSpeed);
+        cur_obj_rotate_yaw_toward(targetAngle, rotSpeed);
         obj_resolve_object_collisions(NULL);
-        obj_move_standard(-30);
+        cur_obj_move_standard(-30);
     }
 
     if (!(o->oMoveFlags & OBJ_MOVE_MASK_ON_GROUND)) {
@@ -290,7 +301,7 @@ void bhvToadEvil_loop(void) {
     )) {
         s16 isCultToad = o->oBehParams == 0x2;
 
-        if (o->oHealth -= 1 > 0) PlaySound2(SOUND_OBJ_TOADLE_HURT);
+        if (o->oHealth -= 1 > 0) cur_obj_play_sound_2(SOUND_OBJ_TOADLE_HURT);
         obj_die_if_health_non_positive();
 
         if (o->oHealth == 0 && isCultToad) {
@@ -299,7 +310,7 @@ void bhvToadEvil_loop(void) {
             o->oHealth = -1;
             // if (cultSpawner->oCultMembersKilled == NUM_TOADS_IN_CULT) {
             //     o->oBehParams |= 18 << 24;
-            //     create_star(cultSpawner->oPosX, cultSpawner->oPosY + 100, cultSpawner->oPosZ);
+            //     spawn_default_star(cultSpawner->oPosX, cultSpawner->oPosY + 100, cultSpawner->oPosZ);
             // }
         }
     };
@@ -311,12 +322,12 @@ void bhvToadEvil_init(void) {
     o->oAction = TOAD_IDLE;
     o->oOpacity = 255;
     o->oDeathSound = SOUND_OBJ_TOADLE_DEFEAT;
-    set_object_hitbox(o, &sToadEvilHitbox);
+    obj_set_hitbox(o, &sToadEvilHitbox);
 }
 
 
 static void toad_talking(void) {
-    if (obj_update_dialog_with_cutscene(3, 1, CUTSCENE_DIALOG, o->oToadMessageDialogId)
+    if (cur_obj_update_dialog_with_cutscene(3, 1, CUTSCENE_DIALOG, o->oToadMessageDialogId)
         != 0) {
         o->oToadMessageRecentlyTalked = 0;
         o->oAction = TOAD_IDLE;
@@ -360,7 +371,7 @@ void bhvToadBasic_loop(void) {
             if (o->oInteractStatus & INT_STATUS_INTERACTED) {
                 o->oInteractStatus = 0;
                 o->oAction = TOAD_TALKING;
-                PlaySound2(SOUND_OBJ_TOADLE_SPEAK);
+                cur_obj_play_sound_2(SOUND_OBJ_TOADLE_SPEAK);
             }
         } else if (o->oDistanceToMario > 700.0f) o->oToadMessageRecentlyTalked = 0;
     }
@@ -398,7 +409,7 @@ void bhvToadBasic_init(void) {
         o->oAction = TOAD_IDLE;
         o->oOpacity = 255;
     } else {
-        mark_object_for_deletion(o);
+        obj_mark_for_deletion(o);
     }
 }
 
@@ -412,8 +423,8 @@ static void toad_cult_chanting(void) {
 
 static void toad_cult_notice_mario(void) {
     if (o->oTimer == 0) {
-        PlaySound2(SOUND_OBJ_BOO_LAUGH_LONG);
-        cutscene_object(CUTSCENE_POV_TO_OBJECT, o);
+        cur_obj_play_sound_2(SOUND_OBJ_BOO_LAUGH_LONG);
+        cutscene_object_without_dialog(CUTSCENE_POV_TO_OBJECT, o);
         gMarioState->paralyzed = TRUE;
     } else if (o->oTimer > 302) {
         o->oAction = TOAD_CULT_ATTACKING_MARIO;
@@ -426,19 +437,19 @@ static void toad_cult_attacking_mario(void) {
         spawn_object_relative(0x0, 0, 250, 0, o, MODEL_BLUE_FLAME, bhvBlueBowserFlame);
     }
     if (o->oCultMembersKilled == NUM_TOADS_IN_CULT) {
-        struct Object *newStar;
+        struct Object *newFruit;
         gObjCutsceneDone = TRUE;
 
-        newStar = spawn_object_abs_with_rot(o, 0, MODEL_STAR, bhvStarSpawnCoordinates, o->oPosX, o->oPosY + 1500,
+        newFruit = spawn_object_abs_with_rot(o, 0, MODEL_FRUIT, bhvStarSpawnCoordinates, o->oPosX, o->oPosY + 1500,
                                      o->oPosZ, 0, 0, 0);
-        newStar->oBehParams = 1 << 24;
-        newStar->oHomeX = gMarioState->pos[0];
-        newStar->oHomeY = gMarioState->pos[1] + 500;
-        newStar->oHomeZ = gMarioState->pos[2];
-        newStar->oFaceAnglePitch = 0;
-        newStar->oFaceAngleRoll = 0;
-        newStar->oBehParams2ndByte = 1;
-        // newStar->oInteractionSubtype |= INT_SUBTYPE_NO_EXIT;
+        newFruit->oBehParams = 1 << 24;
+        newFruit->oHomeX = gMarioState->pos[0];
+        newFruit->oHomeY = gMarioState->pos[1] + 500;
+        newFruit->oHomeZ = gMarioState->pos[2];
+        newFruit->oFaceAnglePitch = 0;
+        newFruit->oFaceAngleRoll = 0;
+        newFruit->oBehParams2ndByte = 1;
+        // newFruit->oInteractionSubtype |= INT_SUBTYPE_NO_EXIT;
 
         // func_802F1BD4(o->oPosX, o->oPosY + 100, o->oPosZ);
         o->oCultMembersKilled = (NUM_TOADS_IN_CULT + 1);
@@ -463,7 +474,6 @@ void bhvToadCultSpawner_loop(void) {
 
 void bhvToadCultSpawner_init(void) {
     s32 angleInc = 0xFFFF / NUM_TOADS_IN_CULT;
-    f32 toadDistance = 700.0f;
     s32 curToad = 0;
     s32 curAngle = 0;
     Vec3f relativePos;
@@ -476,15 +486,15 @@ void bhvToadCultSpawner_init(void) {
     while (curToad < NUM_TOADS_IN_CULT) {
         struct Object *toad;
         Vec3f toadPos;
-        f32 thisToadDistance = toadDistance + (RandomFloat() * (f32) RandomSign() * 250.0f);
+        f32 thisToadDistance = CULT_DISTANCE + (random_float() * (f32) random_sign() * CULT_DISTANCE_VARIANCE);
         vec3f_set_dist_and_angle(relativePos, toadPos, thisToadDistance, 0, curAngle);
 
         toad = spawn_object_relative(0x2, toadPos[0], toadPos[1], toadPos[2], o, MODEL_TOAD, bhvToadEvil);
-        toad->oMoveAngleYaw = angle_to_object(toad, o);
+        toad->oMoveAngleYaw = obj_angle_to_object(toad, o);
         toad->parentObj = o;
         toad->oBehParams = 0x2;
-        toad->oBehParams2ndByte = 0x65 + (s32) (45.0f * RandomFloat());
-        toad->header.gfx.unk38.animFrame = 5;
+        toad->oBehParams2ndByte = 0x65 + (s32) (45.0f * random_float());
+        toad->header.gfx.animInfo.animFrame = 5;
 
         curToad++;
         curAngle += angleInc;

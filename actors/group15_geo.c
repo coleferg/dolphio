@@ -12,3 +12,8 @@
 #include "mips/geo.inc.c"
 #include "boo_castle/geo.inc.c"
 #include "water_ring/geo.inc.c"
+
+#include "toadle/geo.inc.c"
+#include "sloth/geo.inc.c"
+#include "monkat/geo.inc.c"
+#include "lizard/geo.inc.c"

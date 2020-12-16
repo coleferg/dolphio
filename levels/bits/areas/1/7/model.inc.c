@@ -43,7 +43,7 @@ static const Gfx bits_seg7_dl_07007E18[] = {
 
 // 0x07007E60 - 0x07007EC8
 static const Gfx bits_seg7_dl_07007E60[] = {
-    gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, bits_seg7_texture_07001000),
+    // gsDPSetTextureImage(G_IM_FMT_RGBA, G_IM_SIZ_16b, 1, bits_seg7_texture_07001000),
     gsDPLoadSync(),
     gsDPLoadBlock(G_TX_LOADTILE, 0, 0, 64 * 32 - 1, CALC_DXT(64, G_IM_SIZ_16b_BYTES)),
     gsSPVertex(bits_seg7_vertex_07007D18, 16, 0),

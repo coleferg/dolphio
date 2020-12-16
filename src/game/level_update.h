@@ -1,5 +1,7 @@
-#ifndef _LEVEL_UPDATE_H
-#define _LEVEL_UPDATE_H
+#ifndef LEVEL_UPDATE_H
+#define LEVEL_UPDATE_H
+
+#include <PR/ultratypes.h>
 
 #include "types.h"
 
@@ -24,29 +26,29 @@
 #define WARP_OP_CREDITS_START 0x17
 #define WARP_OP_CREDITS_NEXT  0x18
 #define WARP_OP_DEMO_END      0x19
-#define WARP_OP_INSTANT_LOCAL 0x20
 
 #define WARP_OP_TRIGGERS_LEVEL_SELECT 0x10
+#define WARP_OP_INSTANT_LOCAL 0x20
 
-#define MARIO_SPAWN_DOOR_WARP 0x01
-#define MARIO_SPAWN_UNKNOWN_02 0x02
-#define MARIO_SPAWN_UNKNOWN_03 0x03
-#define MARIO_SPAWN_TELEPORT 0x04
-#define MARIO_SPAWN_INSTANT_ACTIVE 0x10
-#define MARIO_SPAWN_SWIMMING 0x11
-#define MARIO_SPAWN_AIRBORNE 0x12
-#define MARIO_SPAWN_HARD_AIR_KB 0x13
-#define MARIO_SPAWN_SPIN_AIRBORNE_CIRCLE 0x14
-#define MARIO_SPAWN_DEATH 0x15
-#define MARIO_SPAWN_SPIN_AIRBORNE 0x16
-#define MARIO_SPAWN_FLYING 0x17
+#define MARIO_SPAWN_DOOR_WARP             0x01
+#define MARIO_SPAWN_UNKNOWN_02            0x02
+#define MARIO_SPAWN_UNKNOWN_03            0x03
+#define MARIO_SPAWN_TELEPORT              0x04
+#define MARIO_SPAWN_INSTANT_ACTIVE        0x10
+#define MARIO_SPAWN_SWIMMING              0x11
+#define MARIO_SPAWN_AIRBORNE              0x12
+#define MARIO_SPAWN_HARD_AIR_KNOCKBACK    0x13
+#define MARIO_SPAWN_SPIN_AIRBORNE_CIRCLE  0x14
+#define MARIO_SPAWN_DEATH                 0x15
+#define MARIO_SPAWN_SPIN_AIRBORNE         0x16
+#define MARIO_SPAWN_FLYING                0x17
 #define MARIO_SPAWN_PAINTING_STAR_COLLECT 0x20
-#define MARIO_SPAWN_PAINTING_DEATH 0x21
+#define MARIO_SPAWN_PAINTING_DEATH        0x21
 #define MARIO_SPAWN_AIRBORNE_STAR_COLLECT 0x22
-#define MARIO_SPAWN_AIRBORNE_DEATH 0x23
-#define MARIO_SPAWN_LAUNCH_STAR_COLLECT 0x24
-#define MARIO_SPAWN_LAUNCH_DEATH 0x25
-#define MARIO_SPAWN_UNKNOWN_27 0x27
+#define MARIO_SPAWN_AIRBORNE_DEATH        0x23
+#define MARIO_SPAWN_LAUNCH_STAR_COLLECT   0x24
+#define MARIO_SPAWN_LAUNCH_DEATH          0x25
+#define MARIO_SPAWN_UNKNOWN_27            0x27
 
 
 struct CreditsEntry
@@ -92,6 +94,7 @@ struct HudDisplay {
     /*0x00*/ s16 lives;
     /*0x02*/ s16 coins;
     /*0x04*/ s16 stars;
+    /*0x04*/ s16 fruit;
     /*0x06*/ s16 wedges;
     /*0x08*/ s16 extraJump;
     /*0x0A*/ s16 flags;
@@ -99,7 +102,7 @@ struct HudDisplay {
 };
 
 extern struct HudDisplay gHudDisplay;
-extern s8 gShouldNotPlayCastleMusic;
+extern s8 gNeverEnteredCastle;
 
 enum HUDDisplayFlag {
     HUD_DISPLAY_FLAG_LIVES = 0x0001,
@@ -117,15 +120,28 @@ enum HUDDisplayFlag {
 
 
 u16 level_control_timer(s32 timerOp);
-void func_80249788(u32 arg, u32 color);
-void func_8024980C(u32 arg);
+void fade_into_special_warp(u32 arg, u32 color);
+void load_level_init_text(u32 arg);
 s16 level_trigger_warp(struct MarioState *m, s32 warpOp);
 void level_set_transition(s16 length, void (*updateFunction)(s16 *));
+
+void set_clock_mode(s16 clockMode);
+void wait_for_next_cycle();
 
 s32 lvl_init_or_update(s16 initOrUpdate, s32);
 s32 lvl_init_from_save_file(s16, s32 levelNum);
 s32 lvl_set_current_level(s16, s32 levelNum);
 s32 lvl_play_the_end_screen_sound(s16, s32);
 
+extern u32 gGlobalClock;
+extern u32 gClockMode;
+extern s8 gIsNight;
+extern s8 gGameLagged;
 
-#endif
+#define CLOCK_MODE_NORMAL      0
+#define CLOCK_MODE_STOPPED     (0x1 << 0x0)
+#define CLOCK_MODE_FAST        (0x1 << 0x1)
+#define CLOCK_MODE_NEXT_CYCLE  (0x1 << 0x2)
+void basic_update(UNUSED s16 *arg);
+
+#endif // LEVEL_UPDATE_H

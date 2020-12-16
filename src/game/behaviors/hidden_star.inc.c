@@ -9,7 +9,7 @@ void bhv_hidden_star_init(void) {
         sp30 =
             spawn_object_abs_with_rot(o, 0, MODEL_STAR, bhvStar, o->oPosX, o->oPosY, o->oPosZ, 0, 0, 0);
         sp30->oBehParams = o->oBehParams;
-        o->activeFlags = 0;
+        o->activeFlags = ACTIVE_FLAG_DEACTIVATED;
     }
 
     o->oHiddenStarTriggerCounter = 5 - sp36;
@@ -24,9 +24,9 @@ void bhv_hidden_star_loop(void) {
 
         case 1:
             if (o->oTimer > 2) {
-                func_802F1B84(o->oPosX, o->oPosY, o->oPosZ);
-                func_802A3004();
-                o->activeFlags = 0;
+                spawn_red_coin_cutscene_star(o->oPosX, o->oPosY, o->oPosZ);
+                spawn_mist_particles();
+                o->activeFlags = ACTIVE_FLAG_DEACTIVATED;
             }
             break;
     }
@@ -35,8 +35,8 @@ void bhv_hidden_star_loop(void) {
 /* TODO: this is likely not a checkpoint but a Secret */
 void bhv_hidden_star_trigger_loop(void) {
     struct Object *hiddenStar;
-    if (are_objects_collided(o, gMarioObject) == 1) {
-        hiddenStar = obj_nearest_object_with_behavior(bhvHiddenStar);
+    if (obj_check_if_collided_with_object(o, gMarioObject) == 1) {
+        hiddenStar = cur_obj_nearest_object_with_behavior(bhvHiddenStar);
         if (hiddenStar != NULL) {
             hiddenStar->oHiddenStarTriggerCounter++;
             if (hiddenStar->oHiddenStarTriggerCounter != 5) {
@@ -52,7 +52,7 @@ void bhv_hidden_star_trigger_loop(void) {
 #endif
         }
 
-        o->activeFlags = 0;
+        o->activeFlags = ACTIVE_FLAG_DEACTIVATED;
     }
 }
 
@@ -66,9 +66,9 @@ void bhv_bowser_course_red_coin_star_loop(void) {
 
         case 1:
             if (o->oTimer > 2) {
-                func_802F1BD4(o->oPosX, o->oPosY, o->oPosZ);
-                func_802A3004();
-                o->activeFlags = 0;
+                spawn_no_exit_star(o->oPosX, o->oPosY, o->oPosZ);
+                spawn_mist_particles();
+                o->activeFlags = ACTIVE_FLAG_DEACTIVATED;
             }
             break;
     }
@@ -86,8 +86,8 @@ void bhv_gold_ring_star_loop(void) {
                 struct Object *newKey;
                 newKey = spawn_object(o, MODEL_BOWSER_KEY, bhvBowserKey);
                 newKey->oKeyNum = 1;
-                // func_802F1B84(o->oPosX, o->oPosY, o->oPosZ);
-                func_802A3004();
+                // spawn_no_exit_star(o->oPosX, o->oPosY, o->oPosZ);
+                spawn_mist_particles();
                 o->activeFlags = 0;
             }
             break;

@@ -1,15 +1,11 @@
-#include <ultra64.h>
+#include <PR/ultratypes.h>
+#include <PR/gbi.h>
 
-#include "sm64.h"
-#include "game.h"
-#include "mario.h"
+#include "config.h"
+#include "game_init.h"
 #include "memory.h"
-#include "save_file.h"
-#include "main.h"
-#include "engine/surface_collision.h"
-#include "geo_misc.h"
-#include "segment2.h"
 #include "print.h"
+#include "segment2.h"
 
 /**
  * This file handles printing and formatting the colorful text that
@@ -71,7 +67,7 @@ void format_integer(s32 n, s32 base, char *dest, s32 *totalLength, u8 width, s8 
         }
 
         // Increments the number of digits until length is long enough.
-        while (1) {
+        while (TRUE) {
             powBase = int_pow(base, numDigits);
 
             if (powBase > (u32) n) {
@@ -83,9 +79,7 @@ void format_integer(s32 n, s32 base, char *dest, s32 *totalLength, u8 width, s8 
 
         // Add leading pad to fit width.
         if (width > numDigits) {
-            for (len = 0; len < width - numDigits; len++) {
-                dest[len] = pad;
-            }
+            for (len = 0; len < width - numDigits; len++) dest[len] = pad;
 
             // Needs 1 length to print negative prefix.
             if (negative == TRUE) {
@@ -117,9 +111,7 @@ void format_integer(s32 n, s32 base, char *dest, s32 *totalLength, u8 width, s8 
     {
         numDigits = 1;
         if (width > numDigits) {
-            for (len = 0; len < width - numDigits; len++) {
-                dest[len] = pad;
-            }
+            for (len = 0; len < width - numDigits; len++) dest[len] = pad;
         }
         dest[len] = '0';
     }
@@ -190,57 +182,6 @@ void print_text_fmt_int(s32 x, s32 y, const char *str, s32 n) {
         return;
     }
 
-    sTextLabels[sTextLabelsCount]->x = x > (SCREEN_WIDTH / 3) ? x + 125 : x - 10;
-    sTextLabels[sTextLabelsCount]->y = y;
-
-    c = str[srcIndex];
-
-    while (c != 0) {
-        if (c == '%') {
-            srcIndex++;
-
-            parse_width_field(str, &srcIndex, &width, &zeroPad);
-
-            if (str[srcIndex] != 'd' && str[srcIndex] != 'x') {
-                break;
-            }
-            if (str[srcIndex] == 'd') {
-                base = 10;
-            }
-            if (str[srcIndex] == 'x') {
-                base = 16;
-            }
-
-            srcIndex++;
-
-            format_integer(n, base, sTextLabels[sTextLabelsCount]->buffer + len, &len, width, zeroPad);
-        } else // straight copy
-        {
-            sTextLabels[sTextLabelsCount]->buffer[len] = c;
-            len++;
-            srcIndex++;
-        }
-        c = str[srcIndex];
-    }
-
-    sTextLabels[sTextLabelsCount]->length = len;
-    sTextLabelsCount++;
-}
-
-void print_text_fmt_int_no_relocate(s32 x, s32 y, const char *str, s32 n) {
-    char c = 0;
-    s8 zeroPad = FALSE;
-    u8 width = 0;
-    s32 base = 0;
-    s32 len = 0;
-    s32 srcIndex = 0;
-
-    // Don't continue if there is no memory to do so.
-    if ((sTextLabels[sTextLabelsCount] = mem_pool_alloc(gEffectsMemoryPool,
-                                                        sizeof(struct TextLabel))) == NULL) {
-        return;
-    }
-
     sTextLabels[sTextLabelsCount]->x = x;
     sTextLabels[sTextLabelsCount]->y = y;
 
@@ -292,7 +233,7 @@ void print_text(s32 x, s32 y, const char *str) {
         return;
     }
 
-    sTextLabels[sTextLabelsCount]->x = x > (SCREEN_WIDTH / 3) ? x + 125 : x - 10;
+    sTextLabels[sTextLabelsCount]->x = x;
     sTextLabels[sTextLabelsCount]->y = y;
 
     c = str[srcIndex];
@@ -310,8 +251,7 @@ void print_text(s32 x, s32 y, const char *str) {
 }
 
 /**
- * Prints text in the colorful lettering centered
- * at given X, Y coordinates.
+ * Prints text in the colorful lettering centered at given X, Y coordinates.
  */
 void print_text_centered(s32 x, s32 y, const char *str) {
     char c = 0;
@@ -420,6 +360,7 @@ void add_glyph_texture(s8 glyphIndex) {
     gSPDisplayList(gDisplayListHead++, dl_hud_img_load_tex_block);
 }
 
+#ifndef WIDESCREEN
 /**
  * Clips textrect into the boundaries defined.
  */
@@ -440,6 +381,7 @@ void clip_to_bounds(s32 *x, s32 *y) {
         *y = TEXRECT_MAX_Y;
     }
 }
+#endif
 
 /**
  * Renders the glyph that's set at the given position.
@@ -450,7 +392,10 @@ void render_textrect(s32 x, s32 y, s32 pos) {
     s32 rectX;
     s32 rectY;
 
+#ifndef TRUE
+    // For widescreen we must allow drawing outside the usual area
     clip_to_bounds(&rectBaseX, &rectBaseY);
+#endif
     rectX = rectBaseX;
     rectY = rectBaseY;
     gSPTextureRectangle(gDisplayListHead++, rectX << 2, rectY << 2, (rectX + 15) << 2,

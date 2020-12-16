@@ -44,6 +44,7 @@ GeoLayoutCommandProc GeoLayoutJumpTable[] = {
     geo_layout_cmd_node_culling_radius,
 };
 
+struct GraphNode gObjParentGraphNode;
 struct AllocOnlyPool *gGraphNodePool;
 struct GraphNode *gCurRootGraphNode;
 
@@ -98,7 +99,6 @@ s16 gGeoLayoutStackIndex; // similar to SP register in MIPS
 UNUSED s16 D_8038BD7C;
 s16 gGeoLayoutReturnIndex; // similar to RA register in MIPS
 u8 *gGeoLayoutCommand;
-struct GraphNode gObjParentGraphNode;
 
 u32 unused_8038B894[3] = { 0 };
 
@@ -210,7 +210,7 @@ void geo_layout_cmd_node_root(void) {
 
     // number of entries to allocate for gGeoViews array
     // at least 2 are allocated by default
-    // cmd+0x02 = 0x00: mario face, 0x0A: all other levels
+    // cmd+0x02 = 0x00: Mario face, 0x0A: all other levels
     gGeoNumViews = cur_geo_cmd_s16(0x02) + 2;
 
     graphNode = init_graph_node_root(gGraphNodePool, NULL, 0, x, y, width, height);

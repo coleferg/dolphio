@@ -1,7 +1,11 @@
-#ifndef _MACROS_H_
-#define _MACROS_H_
+#ifndef MACROS_H
+#define MACROS_H
 
 #include "platform_info.h"
+
+#ifndef __sgi
+#define GLOBAL_ASM(...)
+#endif
 
 #if !defined(__sgi) && (!defined(NON_MATCHING) || !defined(AVOID_UB))
 // asm-process isn't supported outside of IDO, and undefined behavior causes
@@ -19,6 +23,13 @@
 #define UNUSED __attribute__((unused))
 #else
 #define UNUSED
+#endif
+
+// Avoid undefined behaviour for non-returning functions
+#ifdef __GNUC__
+#define NORETURN __attribute__((noreturn))
+#else
+#define NORETURN
 #endif
 
 // Static assertions
@@ -42,6 +53,7 @@
 #define ALIGNED16
 #endif
 
+#ifndef NO_SEGMENTED_MEMORY
 // convert a virtual address to physical.
 #define VIRTUAL_TO_PHYSICAL(addr)   ((uintptr_t)(addr) & 0x1FFFFFFF)
 
@@ -50,5 +62,11 @@
 
 // another way of converting virtual to physical
 #define VIRTUAL_TO_PHYSICAL2(addr)  ((u8 *)(addr) - 0x80000000U)
-
+#else
+// no conversion needed other than cast
+#define VIRTUAL_TO_PHYSICAL(addr)   ((uintptr_t)(addr))
+#define PHYSICAL_TO_VIRTUAL(addr)   ((uintptr_t)(addr))
+#define VIRTUAL_TO_PHYSICAL2(addr)  ((void *)(addr))
 #endif
+
+#endif // MACROS_H

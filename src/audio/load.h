@@ -1,6 +1,8 @@
 #ifndef AUDIO_LOAD_H
 #define AUDIO_LOAD_H
 
+#include <PR/ultratypes.h>
+
 #include "internal.h"
 
 #define AUDIO_FRAME_DMA_QUEUE_SIZE 0x40
@@ -18,13 +20,8 @@ extern struct Note *gNotes;
 // gSequencePlayers[2] is sound
 extern struct SequencePlayer gSequencePlayers[SEQUENCE_PLAYERS];
 
-extern struct SequenceChannel gSequenceChannels[32];
-
-#ifdef VERSION_JP
-extern struct SequenceChannelLayer gSequenceLayers[48];
-#else
-extern struct SequenceChannelLayer gSequenceLayers[52];
-#endif
+extern struct SequenceChannel gSequenceChannels[SEQUENCE_CHANNELS];
+extern struct SequenceChannelLayer gSequenceLayers[SEQUENCE_LAYERS];
 
 extern struct SequenceChannel gSequenceChannelNone;
 
@@ -34,7 +31,23 @@ extern struct NotePool gNoteFreeLists;
 extern OSMesgQueue gCurrAudioFrameDmaQueue;
 extern u32 gSampleDmaNumListItems;
 extern ALSeqFile *gAlTbl;
+extern ALSeqFile *gSeqFileHeader;
 extern u8 *gAlBankSets;
+
+extern struct CtlEntry *gCtlEntries;
+#ifdef VERSION_EU
+extern struct AudioBufferParametersEU gAudioBufferParameters;
+#endif
+extern s32 gAiFrequency;
+extern u32 D_80226D68;
+extern s32 gMaxAudioCmds;
+
+extern s32 gMaxSimultaneousNotes;
+extern s32 gSamplesPerFrameTarget;
+extern s32 gMinAiBufferLength;
+extern s16 gTempoInternalToExternal;
+extern s8 gAudioUpdatesPerFrame; // = 4
+extern s8 gSoundMode;
 
 void audio_dma_partial_copy_async(uintptr_t *devAddr, u8 **vAddr, ssize_t *remaining, OSMesgQueue *queue, OSIoMesg *mesg);
 void decrease_sample_dma_ttls(void);
@@ -44,4 +57,4 @@ void patch_audio_bank(struct AudioBank *mem, u8 *offset, u32 numInstruments, u32
 void preload_sequence(u32 seqId, u8 preloadMask);
 void load_sequence(u32 player, u32 seqId, s32 loadAsync);
 
-#endif /* AUDIO_LOAD_H */
+#endif // AUDIO_LOAD_H

@@ -16,7 +16,7 @@
 
 #include "stomp_smoke/model.inc.c"
 
-#include "water_waves/model.inc.c"
+#include "water_wave/model.inc.c"
 
 #include "sparkle/model.inc.c"
 
@@ -25,3 +25,11 @@
 #include "white_particle_small/model.inc.c"
 
 #include "sparkle_animation/model.inc.c"
+
+#include "sliding_door/model.inc.c"
+#include "sliding_door/collision.inc.c"
+#include "mario/anims/data.inc.c"
+#include "mario/anims/table.inc.c"
+#include "jellycube/model.inc.c"
+#include "jellycube/anims/data.inc.c"
+#include "jellycube/anims/table.inc.c"

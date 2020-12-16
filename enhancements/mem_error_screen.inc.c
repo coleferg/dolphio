@@ -105,7 +105,7 @@
 
 #include <types.h>
 // #include <text_strings.h>
-#include "../src/game/display.h"
+#include "../src/game/game_init.h"
 #include "../src/game/print.h"
 #include "../src/game/ingame_menu.h"
 #include "../src/game/segment2.h"

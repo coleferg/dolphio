@@ -2,17 +2,16 @@
 #include <stdio.h>
 
 #include "sm64.h"
-#include "prevent_bss_reordering.h"
 #include "audio/external.h"
-#include "game.h"
+#include "game_init.h"
 #include "memory.h"
 #include "sound_init.h"
 #include "profiler.h"
-#include "game.h"
 #include "buffers/buffers.h"
 #include "segments.h"
 #include "main.h"
-#include "../enhancements/mem_error_screen.inc.c"
+#include "thread6.h"
+// #include "../enhancements/mem_error_screen.inc.c"
 
 // Message IDs
 #define MESG_SP_COMPLETE 100
@@ -26,19 +25,35 @@ OSThread gIdleThread;
 OSThread gMainThread;
 OSThread gGameLoopThread;
 OSThread gSoundThread;
+#ifdef VERSION_SH
+OSThread gRumblePakThread;
+
+s32 gRumblePakPfs; // Actually an OSPfs but we don't have that header yet
+#endif
+
+OSIoMesg gDmaIoMesg;
+OSMesg D_80339BEC;
+OSMesgQueue gDmaMesgQueue;
+OSMesgQueue gSIEventMesgQueue;
 OSMesgQueue gPIMesgQueue;
 OSMesgQueue gIntrMesgQueue;
 OSMesgQueue gSPTaskMesgQueue;
+#ifdef VERSION_SH
+OSMesgQueue gRumblePakSchedulerMesgQueue;
+OSMesgQueue gRumbleThreadVIMesgQueue;
+#endif
 OSMesg gDmaMesgBuf[1];
 OSMesg gPIMesgBuf[32];
 OSMesg gSIEventMesgBuf[1];
 OSMesg gIntrMesgBuf[16];
 OSMesg gUnknownMesgBuf[16];
-OSIoMesg gDmaIoMesg;
-OSMesg D_80339BEC;
-OSMesgQueue gDmaMesgQueue;
-OSMesgQueue gSIEventMesgQueue;
-OSViMode VI;
+#ifdef VERSION_SH
+OSMesg gRumblePakSchedulerMesgBuf[1];
+OSMesg gRumbleThreadVIMesgBuf[1];
+
+struct RumbleData gRumbleDataQueue[3];
+struct StructSH8031D9B0 gCurrRumbleSettings;
+#endif
 
 struct VblankHandler *gVblankHandler1 = NULL;
 struct VblankHandler *gVblankHandler2 = NULL;
@@ -47,15 +62,17 @@ struct SPTask *sCurrentAudioSPTask = NULL;
 struct SPTask *sCurrentDisplaySPTask = NULL;
 struct SPTask *sNextAudioSPTask = NULL;
 struct SPTask *sNextDisplaySPTask = NULL;
-s8 sAudioEnabled = 1;
+s8 sAudioEnabled = TRUE;
 u32 sNumVblanks = 0;
 s8 gResetTimer = 0;
 s8 D_8032C648 = 0;
-s8 gDebugLevelSelect = 0;
+s8 gDebugLevelSelect = FALSE;
 s8 D_8032C650 = 0;
 
 s8 gShowProfiler = FALSE;
 s8 gShowDebugText = FALSE;
+
+OSViMode VI;
 
 // unused
 void handle_debug_key_sequences(void) {
@@ -85,7 +102,7 @@ void handle_debug_key_sequences(void) {
     }
 }
 
-void Unknown80246170(void) {
+void unknown_main_func(void) {
     // uninitialized
     OSTime time;
     u32 b;
@@ -100,13 +117,13 @@ void Unknown80246170(void) {
 #pragma GCC diagnostic pop
 }
 
-void Dummy802461CC(void) {
+void stub_main_1(void) {
 }
 
-void Dummy802461DC(void) {
+void stub_main_2(void) {
 }
 
-void Dummy802461EC(void) {
+void stub_main_3(void) {
 }
 
 void setup_mesg_queues(void) {
@@ -123,14 +140,14 @@ void setup_mesg_queues(void) {
     osSetEventMesg(OS_EVENT_PRENMI, &gIntrMesgQueue, (OSMesg) MESG_NMI_REQUEST);
 }
 
-void AllocPool(void) {
+void alloc_pool(void) {
     void *start = (void *) SEG_POOL_START;
-    void *end = (void *) SEG_POOL_END;
+    void *end = (void *) (SEG_POOL_START + POOL_SIZE);
 
-    if(does_pool_end_lie_out_of_bounds(end))
-    {
-        end = (void *)SEG_POOL_END_4MB;
-    }
+    // if(does_pool_end_lie_out_of_bounds(end))
+    // {
+    //     end = (void *)SEG_POOL_END_4MB;
+    // }
 
     main_pool_init(start, end);
     gEffectsMemoryPool = mem_pool_init(0x4000, MEMORY_POOL_LEFT);
@@ -142,12 +159,19 @@ void create_thread(OSThread *thread, OSId id, void (*entry)(void *), void *arg, 
     osCreateThread(thread, id, entry, arg, sp, pri);
 }
 
+#ifdef VERSION_SH
+extern void func_sh_802F69CC(void);
+#endif
+
 void handle_nmi_request(void) {
     gResetTimer = 1;
     D_8032C648 = 0;
     func_80320890();
     sound_banks_disable(2, 0x037A);
-    func_802491FC(90);
+    fadeout_music(90);
+#ifdef VERSION_SH
+    func_sh_802F69CC();
+#endif
 }
 
 void receive_new_tasks(void) {
@@ -214,16 +238,22 @@ void pretend_audio_sptask_done(void) {
 void handle_vblank(void) {
     UNUSED s32 pad; // needed to pad the stack
 
-    Dummy802461EC();
+    stub_main_3();
     sNumVblanks++;
+#ifdef VERSION_SH
+    if (gResetTimer > 0 && gResetTimer < 100) {
+        gResetTimer++;
+    }
+#else
     if (gResetTimer > 0) {
         gResetTimer++;
     }
+#endif
 
     receive_new_tasks();
 
     // First try to kick off an audio task. If the gfx task is currently
-    // running, we need to asychronously interrupt it -- handle_sp_complete
+    // running, we need to asynchronously interrupt it -- handle_sp_complete
     // will pick up on what we're doing and start the audio task for us.
     // If there is already an audio task running, there is nothing to do.
     // If there is no audio task available, try a gfx task instead.
@@ -232,7 +262,7 @@ void handle_vblank(void) {
             interrupt_gfx_sptask();
         } else {
             profiler_log_vblank_time();
-            if (sAudioEnabled != 0) {
+            if (sAudioEnabled) {
                 start_sptask(M_AUDTASK);
             } else {
                 pretend_audio_sptask_done();
@@ -245,6 +275,9 @@ void handle_vblank(void) {
             start_sptask(M_GFXTASK);
         }
     }
+#ifdef VERSION_SH
+    rumble_thread_update_vi();
+#endif
 
     // Notify the game loop about the vblank.
     if (gVblankHandler1 != NULL) {
@@ -273,7 +306,7 @@ void handle_sp_complete(void) {
 
         // Start the audio task, as expected by handle_vblank.
         profiler_log_vblank_time();
-        if (sAudioEnabled != 0) {
+        if (sAudioEnabled) {
             start_sptask(M_AUDTASK);
         } else {
             pretend_audio_sptask_done();
@@ -315,24 +348,24 @@ void handle_dp_complete(void) {
 
 void thread3_main(UNUSED void *arg) {
     setup_mesg_queues();
-    AllocPool();
+    alloc_pool();
     load_engine_code_segment();
 
     create_thread(&gSoundThread, 4, thread4_sound, NULL, gThread4Stack + 0x2000, 20);
     osStartThread(&gSoundThread);
 
-    if(!gNotEnoughMemory)
-    {
-        create_thread(&gGameLoopThread, 5, thread5_game_loop, NULL, gThread5Stack + 0x2000, 10);
-    }
-    else
-    {
-        create_thread(&gGameLoopThread, 5, thread5_mem_error_message_loop, NULL, gThread5Stack + 0x2000, 10);
-    }
+    // if(!gNotEnoughMemory)
+    // {
+    create_thread(&gGameLoopThread, 5, thread5_game_loop, NULL, gThread5Stack + 0x2000, 10);
+    // }
+    // else
+    // {
+    //     create_thread(&gGameLoopThread, 5, thread5_mem_error_message_loop, NULL, gThread5Stack + 0x2000, 10);
+    // }
 
     osStartThread(&gGameLoopThread);
 
-    while (1) {
+    while (TRUE) {
         OSMesg msg;
 
         osRecvMesg(&gIntrMesgQueue, &msg, OS_MESG_BLOCK);
@@ -353,7 +386,7 @@ void thread3_main(UNUSED void *arg) {
                 handle_nmi_request();
                 break;
         }
-        Dummy802461DC();
+        stub_main_2();
     }
 }
 
@@ -371,13 +404,13 @@ void set_vblank_handler(s32 index, struct VblankHandler *handler, OSMesgQueue *q
     }
 }
 
-void SendMessage(OSMesg *msg) {
+void send_sp_task_message(OSMesg *msg) {
     osWritebackDCacheAll();
     osSendMesg(&gSPTaskMesgQueue, msg, OS_MESG_NOBLOCK);
 }
 
 void dispatch_audio_sptask(struct SPTask *spTask) {
-    if (sAudioEnabled != 0 && spTask != NULL) {
+    if (sAudioEnabled && spTask != NULL) {
         osWritebackDCacheAll();
         osSendMesg(&gSPTaskMesgQueue, spTask, OS_MESG_NOBLOCK);
     }
@@ -398,11 +431,11 @@ void send_display_list(struct SPTask *spTask) {
 }
 
 void turn_on_audio(void) {
-    sAudioEnabled = 1;
+    sAudioEnabled = TRUE;
 }
 
 void turn_off_audio(void) {
-    sAudioEnabled = 0;
+    sAudioEnabled = FALSE;
     while (sCurrentAudioSPTask != NULL) {
         ;
     }
@@ -423,7 +456,7 @@ void dynres_change_vi(OSViMode *mode, int width, int height)
  * Initialize hardware, start main thread, then idle.
  */
 void thread1_idle(UNUSED void *arg) {
-#ifdef VERSION_US
+#if defined(VERSION_US) || defined(VERSION_SH)
     s32 sp24 = osTvType;
 #endif
 
@@ -440,7 +473,7 @@ void thread1_idle(UNUSED void *arg) {
     osViBlack(TRUE);
     osViSetSpecialFeatures(OS_VI_DITHER_FILTER_ON);
     osViSetSpecialFeatures(OS_VI_GAMMA_OFF);
-    osViSetSpecialFeatures(OS_VI_DIVOT_ON);
+    // osViSetSpecialFeatures(OS_VI_DIVOT_ON);
     osCreatePiManager(OS_PRIORITY_PIMGR, &gPIMesgQueue, gPIMesgBuf, ARRAY_COUNT(gPIMesgBuf));
     create_thread(&gMainThread, 3, thread3_main, NULL, gThread3Stack + 0x2000, 100);
     if (D_8032C650 == 0) {
@@ -449,18 +482,19 @@ void thread1_idle(UNUSED void *arg) {
     osSetThreadPri(NULL, 0);
 
     // halt
-    while (1) {
+    while (TRUE) {
         ;
     }
 }
 
-void Main(void) {
+void main_func(void) {
     UNUSED u8 pad[64]; // needed to pad the stack
+#ifdef TARGET_N64
     VI = osViModeTable[OS_VI_NTSC_LAN1];
     dynres_change_vi(&VI, SCREEN_WIDTH, SCREEN_HEIGHT);
-
+#endif
     osInitialize();
-    Dummy802461CC();
+    stub_main_1();
     create_thread(&gIdleThread, 1, thread1_idle, NULL, gIdleThreadStack + 0x800, 100);
     osStartThread(&gIdleThread);
 }

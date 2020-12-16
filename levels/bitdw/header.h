@@ -74,40 +74,7 @@ extern const Collision bitdw_seg7_collision_0700FD9C[];
 // script
 extern const LevelScript level_bitdw_entry[];
 
-// custom
-extern const GeoLayout world_geo[];
-extern const Vtx world_world_mesh_vtx_0[27];
-extern const Gfx world_world_mesh_tri_0[];
-extern const Vtx world_world_mesh_vtx_1[309];
-extern const Gfx world_world_mesh_tri_1[];
-extern const Vtx world_world_mesh_vtx_2[122];
-extern const Gfx world_world_mesh_tri_2[];
-extern const Vtx world_world_mesh_vtx_3[59];
-extern const Gfx world_world_mesh_tri_3[];
-extern const Vtx world_world_mesh_vtx_4[6];
-extern const Gfx world_world_mesh_tri_4[];
-extern const Vtx world_world_mesh_vtx_5[5];
-extern const Gfx world_world_mesh_tri_5[];
-extern const Vtx world_dock_mesh_vtx_0[256];
-extern const Gfx world_dock_mesh_tri_0[];
-extern const Vtx world_dock_mesh_vtx_1[20];
-extern const Gfx world_dock_mesh_tri_1[];
-extern const Vtx world_island_mesh_vtx_0[17];
-extern const Gfx world_island_mesh_tri_0[];
-extern const Vtx world_moss_mesh_vtx_0[10];
-extern const Gfx world_moss_mesh_tri_0[];
-extern const Vtx world_water_mesh_vtx_0[21];
-extern const Gfx world_water_mesh_tri_0[];
-extern const Vtx world_waterfall_mesh_vtx_0[59];
-extern const Gfx world_waterfall_mesh_tri_0[];
 
-extern const Gfx world_world_mesh[];
-extern const Gfx world_dock_mesh[];
-extern const Gfx world_island_mesh[];
-extern const Gfx world_moss_mesh[];
-extern const Gfx world_water_mesh[];
-extern const Gfx world_waterfall_mesh[];
-extern const Gfx world_material_revert_render_settings[];
-extern const Collision world_collision[];
+#include "levels/bitdw/header.inc.h"
 
 #endif
