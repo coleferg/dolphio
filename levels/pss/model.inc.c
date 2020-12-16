@@ -22,7 +22,7 @@ Lights1 pss_dl_subwaterbottom_v3_lights = gdSPDefLights1(
 	0x7F, 0x7F, 0x7F,
 	0xFE, 0xFE, 0xFE, 0x28, 0x28, 0x28);
 
-Lights1 pss_dl_background_mat_lights = gdSPDefLights1(
+Lights1 pss_dl_background_mat_layer0_lights = gdSPDefLights1(
 	0xA, 0x51, 0x7F,
 	0x15, 0xA2, 0xFE, 0x28, 0x28, 0x28);
 
@@ -2245,10 +2245,11 @@ Gfx mat_revert_pss_dl_subwaterbottom_v3[] = {
 };
 
 
-Gfx mat_pss_dl_background_mat[] = {
+Gfx mat_pss_dl_background_mat_layer0[] = {
 	gsDPPipeSync(),
 	gsDPSetCombineLERP(TEXEL0, 0, SHADE, 0, 0, 0, 0, ENVIRONMENT, TEXEL0, 0, SHADE, 0, 0, 0, 0, ENVIRONMENT),
-	gsSPClearGeometryMode(G_LIGHTING),
+	gsSPClearGeometryMode(G_ZBUFFER | G_LIGHTING),
+	gsDPSetRenderMode(GBL_c1(G_BL_CLR_IN, G_BL_A_IN, G_BL_CLR_IN, G_BL_1MA) | GBL_c2(G_BL_CLR_IN, G_BL_A_IN, G_BL_CLR_IN, G_BL_1MA), CLR_ON_CVG | CVG_DST_CLAMP | ZMODE_OPA | FORCE_BL),
 	gsSPTexture(65535, 65535, 0, 0, 1),
 	gsDPTileSync(),
 	gsDPSetTextureImage(G_IM_FMT_IA, G_IM_SIZ_16b, 32, pss_dl_Splashy_White_Water_animation_4_6_ia16),
@@ -2258,13 +2259,14 @@ Gfx mat_pss_dl_background_mat[] = {
 	gsDPPipeSync(),
 	gsDPSetTile(G_IM_FMT_IA, G_IM_SIZ_16b, 8, 0, 0, 0, G_TX_WRAP | G_TX_NOMIRROR, 5, 0, G_TX_WRAP | G_TX_NOMIRROR, 5, 0),
 	gsDPSetTileSize(0, 0, 0, 124, 124),
-	gsSPSetLights1(pss_dl_background_mat_lights),
+	gsSPSetLights1(pss_dl_background_mat_layer0_lights),
 	gsSPEndDisplayList(),
 };
 
-Gfx mat_revert_pss_dl_background_mat[] = {
+Gfx mat_revert_pss_dl_background_mat_layer0[] = {
 	gsDPPipeSync(),
-	gsSPSetGeometryMode(G_LIGHTING),
+	gsSPSetGeometryMode(G_ZBUFFER | G_LIGHTING),
+	gsDPSetRenderMode(G_RM_ZB_OPA_SURF, G_RM_NOOP2),
 	gsSPEndDisplayList(),
 };
 
@@ -2358,9 +2360,9 @@ Gfx pss_dl_a_background_mesh[] = {
 	gsSPVertex(pss_dl_a_background_mesh_vtx_cull + 0, 8, 0),
 	gsSPSetGeometryMode(G_LIGHTING),
 	gsSPCullDisplayList(0, 7),
-	gsSPDisplayList(mat_pss_dl_background_mat),
+	gsSPDisplayList(mat_pss_dl_background_mat_layer0),
 	gsSPDisplayList(pss_dl_a_background_mesh_tri_0),
-	gsSPDisplayList(mat_revert_pss_dl_background_mat),
+	gsSPDisplayList(mat_revert_pss_dl_background_mat_layer0),
 	gsSPEndDisplayList(),
 };
 
