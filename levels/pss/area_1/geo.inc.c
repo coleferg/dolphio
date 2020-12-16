@@ -3,7 +3,6 @@
 const GeoLayout pss_area_1_geo[] = {
 	GEO_NODE_START(),
 	GEO_OPEN_NODE(),
-		GEO_TRANSLATE_NODE_WITH_DL(LAYER_FORCE, 28, -7083, -37, pss_dl_levelwrapper_mesh),
 		GEO_TRANSLATE_NODE_WITH_DL(LAYER_OPAQUE, 14126, -151, 0, pss_dl_Cube_mesh),
 		GEO_TRANSLATE_NODE_WITH_DL(LAYER_OPAQUE, 7668, 2012, 0, pss_dl_Cube_001_mesh),
 		GEO_TRANSLATE_NODE(LAYER_OPAQUE, 1024, 3071, 0),
@@ -13,6 +12,7 @@ const GeoLayout pss_area_1_geo[] = {
 			GEO_TRANSLATE_NODE_WITH_DL(LAYER_TRANSPARENT, 816, -158, -5, pss_dl_SubmarineWater_mesh),
 			GEO_TRANSLATE_NODE_WITH_DL(LAYER_TRANSPARENT, 785, 83, -3, pss_dl_SubmarineWindows_mesh),
 		GEO_CLOSE_NODE(),
+		GEO_ANIMATED_PART(LAYER_FORCE, 0, 0, 0, pss_dl_a_background_mesh),
 		GEO_TRANSLATE_NODE(LAYER_OPAQUE, 12808, 200, 0),
 	GEO_CLOSE_NODE(),
 	GEO_RETURN(),

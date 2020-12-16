@@ -18,8 +18,8 @@ extern Vtx pss_dl_SubmarineWater_mesh_vtx_1[12];
 extern Gfx pss_dl_SubmarineWater_mesh_tri_1[];
 extern Vtx pss_dl_SubmarineWindows_mesh_vtx_0[8];
 extern Gfx pss_dl_SubmarineWindows_mesh_tri_0[];
-extern Vtx pss_dl_levelwrapper_mesh_vtx_0[117];
-extern Gfx pss_dl_levelwrapper_mesh_tri_0[];
+extern Vtx pss_dl_a_background_mesh_vtx_0[117];
+extern Gfx pss_dl_a_background_mesh_tri_0[];
 
 extern Gfx pss_dl_Cube_mesh[];
 extern Gfx pss_dl_Cube_001_mesh[];
@@ -27,6 +27,6 @@ extern Gfx pss_dl_SubTopWindow_mesh[];
 extern Gfx pss_dl_Submarine_mesh[];
 extern Gfx pss_dl_SubmarineWater_mesh[];
 extern Gfx pss_dl_SubmarineWindows_mesh[];
-extern Gfx pss_dl_levelwrapper_mesh[];
+extern Gfx pss_dl_a_background_mesh[];
 extern Gfx pss_dl_material_revert_render_settings[];
 
