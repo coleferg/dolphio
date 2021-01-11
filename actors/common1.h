@@ -254,4 +254,6 @@ extern const Collision wooden_signpost_seg3_collision_0302DD80[];
 
 
 #include "fruit/anim_header.h"
+
+#include "chiaro/header.h"
 #endif
