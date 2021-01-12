@@ -1,12 +1,12 @@
-Lights1 bitfs_dl_grassMaterialS_layer1_lights = gdSPDefLights1(
+Lights1 bitfs_dl_grassMaterialS_v3_layer1_area1_lights = gdSPDefLights1(
 	0x2B, 0x4B, 0x27,
 	0x57, 0x96, 0x4E, 0x28, 0x28, 0x28);
 
-Lights1 bitfs_dl_riverFloorMat_lights = gdSPDefLights1(
+Lights1 bitfs_dl_riverFloorMat_v3_lights = gdSPDefLights1(
 	0x27, 0x61, 0x62,
 	0x4E, 0xC3, 0xC4, 0x28, 0x28, 0x28);
 
-Lights1 bitfs_dl_riverMaterial_lights = gdSPDefLights1(
+Lights1 bitfs_dl_sm64_material_003_lights = gdSPDefLights1(
 	0x7F, 0x7F, 0x7F,
 	0xFE, 0xFE, 0xFE, 0x28, 0x28, 0x28);
 
@@ -14,24 +14,23 @@ Lights1 bitfs_dl_sm64_material_001_lights = gdSPDefLights1(
 	0x7F, 0x7F, 0x7F,
 	0xFE, 0xFE, 0xFE, 0x28, 0x28, 0x28);
 
-Lights1 bitfs_dl_warpFloor_layer0_lights = gdSPDefLights1(
+Lights1 bitfs_dl_warpFloor_layer0_area1_lights = gdSPDefLights1(
 	0x4C, 0x4C, 0x4C,
 	0x98, 0x98, 0x98, 0x28, 0x28, 0x28);
 
-Lights1 bitfs_dl_houseMat_lights = gdSPDefLights1(
+Lights1 bitfs_dl_houseMat_v3_lights = gdSPDefLights1(
 	0x7F, 0x7F, 0x7F,
 	0xFE, 0xFE, 0xFE, 0x28, 0x28, 0x28);
 
-Lights1 bitfs_dl_vineys_lights = gdSPDefLights1(
+Lights1 bitfs_dl_vineys_v3_lights = gdSPDefLights1(
 	0x7F, 0x7F, 0x7F,
 	0xFE, 0xFE, 0xFE, 0x28, 0x28, 0x28);
 
-Lights1 bitfs_dl_rope_lights = gdSPDefLights1(
+Lights1 bitfs_dl_rope_v3_lights = gdSPDefLights1(
 	0x7F, 0x7F, 0x7F,
 	0xFE, 0xFE, 0xFE, 0x28, 0x28, 0x28);
 
 Gfx bitfs_dl_grass6_ia16_aligner[] = {gsSPEndDisplayList()};
-
 u8 bitfs_dl_grass6_ia16[] = {
 	0x32, 0xFF, 0x33, 0xFF, 0x3B, 0xFF, 0x3A, 0xFF, 0x3C, 
 	0xFF, 0x38, 0xFF, 0x3A, 0xFF, 0x3E, 0xFF, 0x3D, 0xFF, 
@@ -263,9 +262,7 @@ u8 bitfs_dl_grass6_ia16[] = {
 	0xFF, 0x2D, 0xFF, 0x2F, 0xFF, 
 };
 
-
 Gfx bitfs_dl_Rockbed4_ia16_aligner[] = {gsSPEndDisplayList()};
-
 u8 bitfs_dl_Rockbed4_ia16[] = {
 	0x25, 0xFF, 0x32, 0xFF, 0x4F, 0xFF, 0x32, 0xFF, 0x29, 
 	0xFF, 0x24, 0xFF, 0x2D, 0xFF, 0x4D, 0xFF, 0x35, 0xFF, 
@@ -497,9 +494,7 @@ u8 bitfs_dl_Rockbed4_ia16[] = {
 	0xFF, 0x4A, 0xFF, 0x20, 0xFF, 
 };
 
-
 Gfx bitfs_dl_Cliff_4_ci8_aligner[] = {gsSPEndDisplayList()};
-
 u8 bitfs_dl_Cliff_4_ci8[] = {
 	0x0, 0x1, 0x2, 0x2, 0x1, 0x3, 0x4, 0x2, 0x1, 
 	0x2, 0x2, 0x3, 0x1, 0x1, 0x5, 0x3, 0x3, 0x3, 
@@ -617,9 +612,7 @@ u8 bitfs_dl_Cliff_4_ci8[] = {
 	0x9, 0x11, 0x8, 0x11, 0xB, 0x4, 0xB, 
 };
 
-
 Gfx bitfs_dl_Cliff_4_ci8_pal_ia16_aligner[] = {gsSPEndDisplayList()};
-
 u8 bitfs_dl_Cliff_4_ci8_pal_ia16[] = {
 	0x4B, 0xFF, 0x48, 0xFF, 0x47, 0xFF, 0x4A, 0xFF, 0x4D, 
 	0xFF, 0x49, 0xFF, 0x4C, 0xFF, 0x4F, 0xFF, 0x50, 0xFF, 
@@ -628,9 +621,7 @@ u8 bitfs_dl_Cliff_4_ci8_pal_ia16[] = {
 	0x41, 0xFF, 0x42, 0xFF, 0x55, 0xFF, 0x56, 0xFF, 
 };
 
-
 Gfx bitfs_dl_River_ci8_aligner[] = {gsSPEndDisplayList()};
-
 u8 bitfs_dl_River_ci8[] = {
 	0x0, 0x1, 0x2, 0x2, 0x2, 0x3, 0x1, 0x4, 0x2, 
 	0x2, 0x1, 0x4, 0x2, 0x4, 0x2, 0x2, 0x4, 0x4, 
@@ -748,9 +739,7 @@ u8 bitfs_dl_River_ci8[] = {
 	0x1F, 0x7, 0x1, 0x2, 0x1, 0x2, 0x4, 
 };
 
-
 Gfx bitfs_dl_River_ci8_pal_ia16_aligner[] = {gsSPEndDisplayList()};
-
 u8 bitfs_dl_River_ci8_pal_ia16[] = {
 	0xC1, 0xFF, 0xC0, 0xFF, 0xBF, 0xFF, 0xBD, 0xFF, 0xBE, 
 	0xFF, 0xBC, 0xFF, 0xBB, 0xFF, 0xC2, 0xFF, 0xB7, 0xFF, 
@@ -765,9 +754,7 @@ u8 bitfs_dl_River_ci8_pal_ia16[] = {
 	0xD4, 0xFF, 0xD2, 0xFF, 
 };
 
-
 Gfx bitfs_dl_tree3d_alpha3_i8_aligner[] = {gsSPEndDisplayList()};
-
 u8 bitfs_dl_tree3d_alpha3_i8[] = {
 	0x1D, 0xD4, 0xFF, 0x68, 0x21, 0x23, 0x32, 0x44, 0x44, 
 	0xFB, 0x54, 0x4D, 0x2E, 0x23, 0x30, 0x3C, 0xFD, 0xDF, 
@@ -1227,9 +1214,7 @@ u8 bitfs_dl_tree3d_alpha3_i8[] = {
 	0x28, 
 };
 
-
 Gfx bitfs_dl_grass6_ci8_aligner[] = {gsSPEndDisplayList()};
-
 u8 bitfs_dl_grass6_ci8[] = {
 	0x0, 0x1, 0x2, 0x3, 0x3, 0x4, 0x3, 0x3, 0x2, 
 	0x4, 0x4, 0x4, 0x4, 0x1, 0x2, 0x4, 0x1, 0x4, 
@@ -1347,9 +1332,7 @@ u8 bitfs_dl_grass6_ci8[] = {
 	0xA, 0x4, 0x4, 0x1, 0x9, 0x10, 0x10, 
 };
 
-
 Gfx bitfs_dl_grass6_ci8_pal_rgba16_aligner[] = {gsSPEndDisplayList()};
-
 u8 bitfs_dl_grass6_ci8_pal_rgba16[] = {
 	0x11, 0x83, 0x11, 0x85, 0x19, 0xC7, 0x19, 0xC5, 0x19, 
 	0x85, 0x21, 0xC7, 0x1A, 0x7, 0x11, 0xC5, 0x19, 0x87, 
@@ -1362,9 +1345,7 @@ u8 bitfs_dl_grass6_ci8_pal_rgba16[] = {
 	
 };
 
-
 Gfx bitfs_dl_tree3d_alpha3_ia8_aligner[] = {gsSPEndDisplayList()};
-
 u8 bitfs_dl_tree3d_alpha3_ia8[] = {
 	0xBF, 0xEF, 0xFF, 0xCF, 0xBF, 0xBF, 0xBF, 0xCF, 0xCF, 
 	0xEF, 0xCF, 0xCF, 0xBF, 0xBF, 0xBF, 0xCF, 0xEF, 0xEF, 
@@ -1824,9 +1805,7 @@ u8 bitfs_dl_tree3d_alpha3_ia8[] = {
 	0xBF, 
 };
 
-
 Gfx bitfs_dl_moss2_ia16_aligner[] = {gsSPEndDisplayList()};
-
 u8 bitfs_dl_moss2_ia16[] = {
 	0x1A, 0xFE, 0x1A, 0xFC, 0x1D, 0xFD, 0x15, 0xFE, 0x13, 
 	0xFE, 0x0, 0x0, 0x14, 0xFB, 0x1D, 0xD6, 0x0, 0x0, 
@@ -2058,9 +2037,7 @@ u8 bitfs_dl_moss2_ia16[] = {
 	0x0, 0x0, 0x0, 0x0, 0x0, 
 };
 
-
 Gfx bitfs_dl_rope_ia8_aligner[] = {gsSPEndDisplayList()};
-
 u8 bitfs_dl_rope_ia8[] = {
 	0x0, 0x0, 0x0, 0x5F, 0x2F, 0x4F, 0xBF, 0xBF, 0xBF, 
 	0x9F, 0x5F, 0x5F, 0x4F, 0x2F, 0x3F, 0x2F, 0x2F, 0x6F, 
@@ -2520,19 +2497,16 @@ u8 bitfs_dl_rope_ia8[] = {
 	0x0, 
 };
 
-
 Vtx bitfs_dl_SlothGeo_mesh_vtx_cull[8] = {
-	{{{-22082, -9017, -27221},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-22082, -9017, 14914},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-22082, 18606, 14914},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-22082, 18606, -27221},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{13946, -9017, -27221},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{13946, -9017, 14914},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{13946, 18606, 14914},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{13946, 18606, -27221},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
+	{{{-22082, -9017, -27221},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-22082, -9017, 14914},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-22082, 18606, 14914},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-22082, 18606, -27221},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{13946, -9017, -27221},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{13946, -9017, 14914},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{13946, 18606, 14914},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{13946, 18606, -27221},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
 };
-
-
 
 Vtx bitfs_dl_SlothGeo_mesh_vtx_0[16] = {
 	{{{-2382, 1194, -560},0, {1055, -2771},{0xEF, 0x51, 0xA0, 0xFF}}},
@@ -2553,8 +2527,6 @@ Vtx bitfs_dl_SlothGeo_mesh_vtx_0[16] = {
 	{{{-4204, 1194, 3944},0, {4685, -1615},{0x35, 0x69, 0x31, 0xFF}}},
 };
 
-
-
 Gfx bitfs_dl_SlothGeo_mesh_tri_0[] = {
 	gsSPVertex(bitfs_dl_SlothGeo_mesh_vtx_0 + 0, 16, 0),
 	gsSP2Triangles(0, 1, 2, 0, 2, 1, 3, 0),
@@ -2564,9 +2536,7 @@ Gfx bitfs_dl_SlothGeo_mesh_tri_0[] = {
 	gsSP2Triangles(10, 11, 12, 0, 12, 13, 10, 0),
 	gsSP2Triangles(13, 14, 10, 0, 14, 15, 10, 0),
 	gsSPEndDisplayList(),
-};
-
-Vtx bitfs_dl_SlothGeo_mesh_vtx_1[32] = {
+};Vtx bitfs_dl_SlothGeo_mesh_vtx_1[32] = {
 	{{{-4340, 1194, -560},0, {-367, -6370},{0x61, 0x3B, 0xC8, 0xFF}}},
 	{{{-4207, 1194, 1423},0, {-363, -2275},{0x50, 0x62, 0xB, 0xFF}}},
 	{{{-4194, 865, -82},0, {-29, -6002},{0x5E, 0x54, 0xB, 0xFF}}},
@@ -2601,8 +2571,6 @@ Vtx bitfs_dl_SlothGeo_mesh_vtx_1[32] = {
 	{{{-4053, 644, -39},0, {261, -5978},{0x22, 0x67, 0xBE, 0xFF}}},
 };
 
-
-
 Gfx bitfs_dl_SlothGeo_mesh_tri_1[] = {
 	gsSPVertex(bitfs_dl_SlothGeo_mesh_vtx_1 + 0, 32, 0),
 	gsSP2Triangles(0, 1, 2, 0, 1, 3, 2, 0),
@@ -2628,9 +2596,7 @@ Gfx bitfs_dl_SlothGeo_mesh_tri_1[] = {
 	gsSP2Triangles(20, 10, 16, 0, 16, 10, 11, 0),
 	gsSP1Triangle(31, 25, 28, 0),
 	gsSPEndDisplayList(),
-};
-
-Vtx bitfs_dl_SlothGeo_mesh_vtx_2[91] = {
+};Vtx bitfs_dl_SlothGeo_mesh_vtx_2[91] = {
 	{{{-6507, -6913, -194},0, {5508, 2788},{0x76, 0x76, 0x76, 0xFF}}},
 	{{{-4340, 1194, -560},0, {3910, 3394},{0x93, 0x8F, 0x82, 0xFF}}},
 	{{{-4495, -6913, -560},0, {5549, 3202},{0x76, 0x76, 0x76, 0xFF}}},
@@ -2724,8 +2690,6 @@ Vtx bitfs_dl_SlothGeo_mesh_vtx_2[91] = {
 	{{{-4729, 15237, -24405},0, {-3868, 1419},{0xD5, 0xCF, 0xBB, 0xFF}}},
 };
 
-
-
 Gfx bitfs_dl_SlothGeo_mesh_tri_2[] = {
 	gsSPVertex(bitfs_dl_SlothGeo_mesh_vtx_2 + 0, 32, 0),
 	gsSP2Triangles(0, 1, 2, 0, 0, 3, 1, 0),
@@ -2777,20 +2741,16 @@ Gfx bitfs_dl_SlothGeo_mesh_tri_2[] = {
 	gsSPEndDisplayList(),
 };
 
-
-
 Vtx bitfs_dl_slothriver_mesh_vtx_cull[8] = {
-	{{{-5241, -7942, -478},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-5241, -7942, 9217},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-5241, 175, 9217},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-5241, 175, -478},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{5743, -7942, -478},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{5743, -7942, 9217},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{5743, 175, 9217},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{5743, 175, -478},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
+	{{{-5241, -7942, -478},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-5241, -7942, 9217},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-5241, 175, 9217},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-5241, 175, -478},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{5743, -7942, -478},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{5743, -7942, 9217},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{5743, 175, 9217},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{5743, 175, -478},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
 };
-
-
 
 Vtx bitfs_dl_slothriver_mesh_vtx_0[17] = {
 	{{{-5241, -7942, -478},0, {-7520, 1309},{0x43, 0x98, 0xAD, 0xFF}}},
@@ -2812,8 +2772,6 @@ Vtx bitfs_dl_slothriver_mesh_vtx_0[17] = {
 	{{{5529, 175, 9217},0, {9969, 1309},{0x23, 0x85, 0x9D, 0xFF}}},
 };
 
-
-
 Gfx bitfs_dl_slothriver_mesh_tri_0[] = {
 	gsSPVertex(bitfs_dl_slothriver_mesh_vtx_0 + 0, 17, 0),
 	gsSP2Triangles(0, 1, 2, 0, 0, 3, 1, 0),
@@ -2827,20 +2785,16 @@ Gfx bitfs_dl_slothriver_mesh_tri_0[] = {
 	gsSPEndDisplayList(),
 };
 
-
-
 Vtx bitfs_dl_TreeA_mesh_vtx_cull[8] = {
-	{{{-10485, -497, -6047},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-10485, -497, 7445},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-10485, 11362, 7445},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-10485, 11362, -6047},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{6339, -497, -6047},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{6339, -497, 7445},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{6339, 11362, 7445},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{6339, 11362, -6047},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
+	{{{-10485, -497, -6047},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-10485, -497, 7445},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-10485, 11362, 7445},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-10485, 11362, -6047},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{6339, -497, -6047},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{6339, -497, 7445},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{6339, 11362, 7445},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{6339, 11362, -6047},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
 };
-
-
 
 Vtx bitfs_dl_TreeA_mesh_vtx_0[425] = {
 	{{{-90, 6282, 8},0, {-7500, -10722},{0x2F, 0x28, 0x21, 0xFF}}},
@@ -3270,8 +3224,6 @@ Vtx bitfs_dl_TreeA_mesh_vtx_0[425] = {
 	{{{-7682, 9749, -664},0, {12899, -724},{0x31, 0x2A, 0x22, 0xFF}}},
 };
 
-
-
 Gfx bitfs_dl_TreeA_mesh_tri_0[] = {
 	gsSPVertex(bitfs_dl_TreeA_mesh_vtx_0 + 0, 32, 0),
 	gsSP2Triangles(0, 1, 2, 0, 3, 4, 5, 0),
@@ -3462,20 +3414,16 @@ Gfx bitfs_dl_TreeA_mesh_tri_0[] = {
 	gsSPEndDisplayList(),
 };
 
-
-
 Vtx bitfs_dl_TreeA_001_mesh_vtx_cull[8] = {
-	{{{-5885, -502, -6669},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-5885, -502, 4581},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-5885, 13359, 4581},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-5885, 13359, -6669},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{7037, -502, -6669},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{7037, -502, 4581},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{7037, 13359, 4581},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{7037, 13359, -6669},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
+	{{{-5885, -502, -6669},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-5885, -502, 4581},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-5885, 13359, 4581},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-5885, 13359, -6669},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{7037, -502, -6669},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{7037, -502, 4581},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{7037, 13359, 4581},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{7037, 13359, -6669},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
 };
-
-
 
 Vtx bitfs_dl_TreeA_001_mesh_vtx_0[446] = {
 	{{{719, 5705, 874},0, {-4606, -14289},{0x2F, 0x28, 0x21, 0xFF}}},
@@ -3926,8 +3874,6 @@ Vtx bitfs_dl_TreeA_001_mesh_vtx_0[446] = {
 	{{{6024, 10148, 992},0, {-14851, -10140},{0x70, 0x5F, 0x4D, 0xFF}}},
 };
 
-
-
 Gfx bitfs_dl_TreeA_001_mesh_tri_0[] = {
 	gsSPVertex(bitfs_dl_TreeA_001_mesh_vtx_0 + 0, 30, 0),
 	gsSP2Triangles(0, 1, 2, 0, 3, 4, 5, 0),
@@ -4112,20 +4058,16 @@ Gfx bitfs_dl_TreeA_001_mesh_tri_0[] = {
 	gsSPEndDisplayList(),
 };
 
-
-
 Vtx bitfs_dl_TreeC_mesh_vtx_cull[8] = {
-	{{{-8512, -1105, -6155},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-8512, -1105, 4624},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-8512, 14696, 4624},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-8512, 14696, -6155},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{8227, -1105, -6155},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{8227, -1105, 4624},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{8227, 14696, 4624},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{8227, 14696, -6155},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
+	{{{-8512, -1105, -6155},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-8512, -1105, 4624},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-8512, 14696, 4624},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-8512, 14696, -6155},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{8227, -1105, -6155},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{8227, -1105, 4624},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{8227, 14696, 4624},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{8227, 14696, -6155},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
 };
-
-
 
 Vtx bitfs_dl_TreeC_mesh_vtx_0[503] = {
 	{{{3082, 13522, 187},0, {10265, -14108},{0x70, 0x5F, 0x4D, 0xFF}}},
@@ -4633,8 +4575,6 @@ Vtx bitfs_dl_TreeC_mesh_vtx_0[503] = {
 	{{{30, -736, -3305},0, {1543, -13651},{0x2F, 0x28, 0x21, 0xFF}}},
 };
 
-
-
 Gfx bitfs_dl_TreeC_mesh_tri_0[] = {
 	gsSPVertex(bitfs_dl_TreeC_mesh_vtx_0 + 0, 32, 0),
 	gsSP2Triangles(0, 1, 2, 0, 3, 4, 5, 0),
@@ -4856,20 +4796,16 @@ Gfx bitfs_dl_TreeC_mesh_tri_0[] = {
 	gsSPEndDisplayList(),
 };
 
-
-
 Vtx bitfs_dl_WarpFloor_mesh_vtx_cull[8] = {
-	{{{-14310, -4135, -14971},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-14310, -4135, 15135},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-14310, -2305, 15135},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-14310, -2305, -14971},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{14180, -4135, -14971},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{14180, -4135, 15135},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{14180, -2305, 15135},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{14180, -2305, -14971},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
+	{{{-14310, -4135, -14971},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-14310, -4135, 15135},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-14310, -2305, 15135},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-14310, -2305, -14971},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{14180, -4135, -14971},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{14180, -4135, 15135},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{14180, -2305, 15135},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{14180, -2305, -14971},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
 };
-
-
 
 Vtx bitfs_dl_WarpFloor_mesh_vtx_0[25] = {
 	{{{-13878, -3653, -6941},0, {-9237, -3750},{0x2, 0x7F, 0x0, 0xFF}}},
@@ -4899,8 +4835,6 @@ Vtx bitfs_dl_WarpFloor_mesh_vtx_0[25] = {
 	{{{-932, -3229, 569},0, {496, 454},{0x5, 0x7F, 0xF9, 0xFF}}},
 };
 
-
-
 Gfx bitfs_dl_WarpFloor_mesh_tri_0[] = {
 	gsSPVertex(bitfs_dl_WarpFloor_mesh_vtx_0 + 0, 25, 0),
 	gsSP2Triangles(0, 1, 2, 0, 0, 3, 1, 0),
@@ -4922,20 +4856,16 @@ Gfx bitfs_dl_WarpFloor_mesh_tri_0[] = {
 	gsSPEndDisplayList(),
 };
 
-
-
 Vtx bitfs_dl_house1_mesh_vtx_cull[8] = {
-	{{{-427, -937, -449},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-427, -937, 363},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-427, 208, 363},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-427, 208, -449},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{427, -937, -449},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{427, -937, 363},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{427, 208, 363},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{427, 208, -449},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
+	{{{-427, -937, -449},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-427, -937, 363},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-427, 208, 363},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-427, 208, -449},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{427, -937, -449},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{427, -937, 363},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{427, 208, 363},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{427, 208, -449},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
 };
-
-
 
 Vtx bitfs_dl_house1_mesh_vtx_0[50] = {
 	{{{427, -675, -139},0, {6157, 4421},{0x49, 0x38, 0x26, 0xFF}}},
@@ -4990,8 +4920,6 @@ Vtx bitfs_dl_house1_mesh_vtx_0[50] = {
 	{{{264, -675, 363},0, {3846, 5921},{0x4D, 0x3B, 0x28, 0xFF}}},
 };
 
-
-
 Gfx bitfs_dl_house1_mesh_tri_0[] = {
 	gsSPVertex(bitfs_dl_house1_mesh_vtx_0 + 0, 32, 0),
 	gsSP2Triangles(0, 1, 2, 0, 1, 3, 2, 0),
@@ -5017,20 +4945,16 @@ Gfx bitfs_dl_house1_mesh_tri_0[] = {
 	gsSPEndDisplayList(),
 };
 
-
-
 Vtx bitfs_dl_house1foilage_mesh_vtx_cull[8] = {
-	{{{-248, -226, -258},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-248, -226, 208},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-248, 209, 208},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-248, 209, -258},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{301, -226, -258},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{301, -226, 208},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{301, 209, 208},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{301, 209, -258},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
+	{{{-248, -226, -258},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-248, -226, 208},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-248, 209, 208},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-248, 209, -258},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{301, -226, -258},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{301, -226, 208},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{301, 209, 208},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{301, 209, -258},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
 };
-
-
 
 Vtx bitfs_dl_house1foilage_mesh_vtx_0[14] = {
 	{{{301, -226, -80},0, {1175, 1329},{0x42, 0x4E, 0x38, 0xFF}}},
@@ -5049,8 +4973,6 @@ Vtx bitfs_dl_house1foilage_mesh_vtx_0[14] = {
 	{{{-155, -226, 208},0, {32, 1248},{0x42, 0x4E, 0x38, 0xFF}}},
 };
 
-
-
 Gfx bitfs_dl_house1foilage_mesh_tri_0[] = {
 	gsSPVertex(bitfs_dl_house1foilage_mesh_vtx_0 + 0, 14, 0),
 	gsSP2Triangles(0, 1, 2, 0, 3, 4, 5, 0),
@@ -5059,20 +4981,16 @@ Gfx bitfs_dl_house1foilage_mesh_tri_0[] = {
 	gsSPEndDisplayList(),
 };
 
-
-
 Vtx bitfs_dl_house1foilage_001_mesh_vtx_cull[8] = {
-	{{{-565, -69, -863},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-565, -69, 1500},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-565, 3393, 1500},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{-565, 3393, -863},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{340, -69, -863},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{340, -69, 1500},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{340, 3393, 1500},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
-	{{{340, 3393, -863},0, {-16, -16},{0x0, 0x0, 0x0, 0xFF}}},
+	{{{-565, -69, -863},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-565, -69, 1500},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-565, 3393, 1500},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{-565, 3393, -863},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{340, -69, -863},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{340, -69, 1500},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{340, 3393, 1500},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
+	{{{340, 3393, -863},0, {-16, -16},{0x0, 0x0, 0x0, 0x0}}},
 };
-
-
 
 Vtx bitfs_dl_house1foilage_001_mesh_vtx_0[14] = {
 	{{{13, 2348, -45},0, {1055, 18312},{0xCE, 0xB7, 0x8E, 0xFF}}},
@@ -5091,8 +5009,6 @@ Vtx bitfs_dl_house1foilage_001_mesh_vtx_0[14] = {
 	{{{-13, 2348, 39},0, {-55, 12414},{0x8F, 0x80, 0x63, 0xFF}}},
 };
 
-
-
 Gfx bitfs_dl_house1foilage_001_mesh_tri_0[] = {
 	gsSPVertex(bitfs_dl_house1foilage_001_mesh_vtx_0 + 0, 14, 0),
 	gsSP2Triangles(0, 1, 2, 0, 1, 0, 0, 0),
@@ -5105,9 +5021,7 @@ Gfx bitfs_dl_house1foilage_001_mesh_tri_0[] = {
 	gsSPEndDisplayList(),
 };
 
-
-
-Gfx mat_bitfs_dl_grassMaterialS_layer1[] = {
+Gfx mat_bitfs_dl_grassMaterialS_v3_layer1_area1[] = {
 	gsDPPipeSync(),
 	gsDPSetCombineLERP(SHADE, 0, TEXEL0, 0, 0, 0, 0, ENVIRONMENT, 0, 0, 0, COMBINED, 0, 0, 0, COMBINED),
 	gsDPSetFogColor(35, 30, 39, 154),
@@ -5124,13 +5038,11 @@ Gfx mat_bitfs_dl_grassMaterialS_layer1[] = {
 	gsDPPipeSync(),
 	gsDPSetTile(G_IM_FMT_IA, G_IM_SIZ_16b, 8, 0, 0, 0, G_TX_WRAP | G_TX_NOMIRROR, 5, 0, G_TX_WRAP | G_TX_NOMIRROR, 5, 0),
 	gsDPSetTileSize(0, 0, 0, 124, 124),
-	gsSPSetLights1(bitfs_dl_grassMaterialS_layer1_lights),
+	gsSPSetLights1(bitfs_dl_grassMaterialS_v3_layer1_area1_lights),
 	gsSPEndDisplayList(),
 };
 
-
-
-Gfx mat_revert_bitfs_dl_grassMaterialS_layer1[] = {
+Gfx mat_revert_bitfs_dl_grassMaterialS_v3_layer1_area1[] = {
 	gsDPPipeSync(),
 	gsSPClearGeometryMode(G_CULL_BACK | G_FOG),
 	gsDPSetCycleType(G_CYC_1CYCLE),
@@ -5139,9 +5051,7 @@ Gfx mat_revert_bitfs_dl_grassMaterialS_layer1[] = {
 };
 
 
-
-
-Gfx mat_bitfs_dl_riverFloorMat[] = {
+Gfx mat_bitfs_dl_riverFloorMat_v3[] = {
 	gsDPPipeSync(),
 	gsDPSetCombineLERP(TEXEL0, 0, SHADE, 0, 0, 0, 0, ENVIRONMENT, TEXEL0, 0, SHADE, 0, 0, 0, 0, ENVIRONMENT),
 	gsSPSetGeometryMode(G_CULL_BACK),
@@ -5154,22 +5064,18 @@ Gfx mat_bitfs_dl_riverFloorMat[] = {
 	gsDPPipeSync(),
 	gsDPSetTile(G_IM_FMT_IA, G_IM_SIZ_16b, 8, 0, 0, 0, G_TX_WRAP | G_TX_NOMIRROR, 5, 0, G_TX_WRAP | G_TX_NOMIRROR, 5, 0),
 	gsDPSetTileSize(0, 0, 0, 124, 124),
-	gsSPSetLights1(bitfs_dl_riverFloorMat_lights),
+	gsSPSetLights1(bitfs_dl_riverFloorMat_v3_lights),
 	gsSPEndDisplayList(),
 };
 
-
-
-Gfx mat_revert_bitfs_dl_riverFloorMat[] = {
+Gfx mat_revert_bitfs_dl_riverFloorMat_v3[] = {
 	gsDPPipeSync(),
 	gsSPClearGeometryMode(G_CULL_BACK),
 	gsSPEndDisplayList(),
 };
 
 
-
-
-Gfx mat_bitfs_dl_cliffSideMaterial_layer1[] = {
+Gfx mat_bitfs_dl_cliffSideMaterial_v3_layer1_area1[] = {
 	gsDPPipeSync(),
 	gsDPSetCombineLERP(TEXEL0, 0, SHADE, 0, 0, 0, 0, ENVIRONMENT, 0, 0, 0, COMBINED, 0, 0, 0, COMBINED),
 	gsDPSetFogColor(35, 30, 39, 154),
@@ -5197,9 +5103,7 @@ Gfx mat_bitfs_dl_cliffSideMaterial_layer1[] = {
 	gsSPEndDisplayList(),
 };
 
-
-
-Gfx mat_revert_bitfs_dl_cliffSideMaterial_layer1[] = {
+Gfx mat_revert_bitfs_dl_cliffSideMaterial_v3_layer1_area1[] = {
 	gsDPPipeSync(),
 	gsSPClearGeometryMode(G_CULL_BACK | G_FOG),
 	gsSPSetGeometryMode(G_LIGHTING),
@@ -5210,9 +5114,7 @@ Gfx mat_revert_bitfs_dl_cliffSideMaterial_layer1[] = {
 };
 
 
-
-
-Gfx mat_bitfs_dl_riverMaterial[] = {
+Gfx mat_bitfs_dl_sm64_material_003[] = {
 	gsDPPipeSync(),
 	gsDPSetCombineLERP(TEXEL0, 0, SHADE, 0, 0, 0, 0, ENVIRONMENT, TEXEL0, 0, SHADE, 0, 0, 0, 0, ENVIRONMENT),
 	gsSPSetGeometryMode(G_CULL_BACK),
@@ -5234,21 +5136,17 @@ Gfx mat_bitfs_dl_riverMaterial[] = {
 	gsDPSetTile(G_IM_FMT_CI, G_IM_SIZ_8b, 4, 0, 0, 0, G_TX_WRAP | G_TX_NOMIRROR, 5, 0, G_TX_WRAP | G_TX_NOMIRROR, 5, 0),
 	gsDPSetTileSize(0, 0, 0, 124, 124),
 	gsDPSetEnvColor(187, 187, 187, 217),
-	gsSPSetLights1(bitfs_dl_riverMaterial_lights),
+	gsSPSetLights1(bitfs_dl_sm64_material_003_lights),
 	gsSPEndDisplayList(),
 };
 
-
-
-Gfx mat_revert_bitfs_dl_riverMaterial[] = {
+Gfx mat_revert_bitfs_dl_sm64_material_003[] = {
 	gsDPPipeSync(),
 	gsSPClearGeometryMode(G_CULL_BACK),
 	gsSPSetGeometryMode(G_LIGHTING),
 	gsDPSetTextureLUT(G_TT_NONE),
 	gsSPEndDisplayList(),
 };
-
-
 
 
 Gfx mat_bitfs_dl_sm64_material_001[] = {
@@ -5269,8 +5167,6 @@ Gfx mat_bitfs_dl_sm64_material_001[] = {
 	gsSPEndDisplayList(),
 };
 
-
-
 Gfx mat_revert_bitfs_dl_sm64_material_001[] = {
 	gsDPPipeSync(),
 	gsSPClearGeometryMode(G_CULL_BACK),
@@ -5279,9 +5175,7 @@ Gfx mat_revert_bitfs_dl_sm64_material_001[] = {
 };
 
 
-
-
-Gfx mat_bitfs_dl_warpFloor_layer0[] = {
+Gfx mat_bitfs_dl_warpFloor_layer0_area1[] = {
 	gsDPPipeSync(),
 	gsDPSetCombineLERP(TEXEL0, 0, SHADE, 0, 0, 0, 0, ENVIRONMENT, 0, 0, 0, COMBINED, 0, 0, 0, COMBINED),
 	gsDPSetFogColor(35, 30, 39, 154),
@@ -5305,13 +5199,11 @@ Gfx mat_bitfs_dl_warpFloor_layer0[] = {
 	gsDPPipeSync(),
 	gsDPSetTile(G_IM_FMT_CI, G_IM_SIZ_8b, 4, 0, 0, 0, G_TX_WRAP | G_TX_NOMIRROR, 5, 0, G_TX_WRAP | G_TX_NOMIRROR, 5, 0),
 	gsDPSetTileSize(0, 0, 0, 124, 124),
-	gsSPSetLights1(bitfs_dl_warpFloor_layer0_lights),
+	gsSPSetLights1(bitfs_dl_warpFloor_layer0_area1_lights),
 	gsSPEndDisplayList(),
 };
 
-
-
-Gfx mat_revert_bitfs_dl_warpFloor_layer0[] = {
+Gfx mat_revert_bitfs_dl_warpFloor_layer0_area1[] = {
 	gsDPPipeSync(),
 	gsSPClearGeometryMode(G_CULL_BACK | G_FOG),
 	gsDPSetCycleType(G_CYC_1CYCLE),
@@ -5321,9 +5213,7 @@ Gfx mat_revert_bitfs_dl_warpFloor_layer0[] = {
 };
 
 
-
-
-Gfx mat_bitfs_dl_houseMat[] = {
+Gfx mat_bitfs_dl_houseMat_v3[] = {
 	gsDPPipeSync(),
 	gsDPSetCombineLERP(TEXEL0, 0, SHADE, 0, 0, 0, 0, 1, TEXEL0, 0, SHADE, 0, 0, 0, 0, 1),
 	gsSPSetGeometryMode(G_CULL_BACK),
@@ -5337,13 +5227,11 @@ Gfx mat_bitfs_dl_houseMat[] = {
 	gsDPPipeSync(),
 	gsDPSetTile(G_IM_FMT_IA, G_IM_SIZ_8b, 8, 0, 0, 0, G_TX_WRAP | G_TX_NOMIRROR, 6, 0, G_TX_WRAP | G_TX_NOMIRROR, 6, 0),
 	gsDPSetTileSize(0, 0, 0, 252, 252),
-	gsSPSetLights1(bitfs_dl_houseMat_lights),
+	gsSPSetLights1(bitfs_dl_houseMat_v3_lights),
 	gsSPEndDisplayList(),
 };
 
-
-
-Gfx mat_revert_bitfs_dl_houseMat[] = {
+Gfx mat_revert_bitfs_dl_houseMat_v3[] = {
 	gsDPPipeSync(),
 	gsSPClearGeometryMode(G_CULL_BACK),
 	gsSPSetGeometryMode(G_LIGHTING),
@@ -5351,9 +5239,7 @@ Gfx mat_revert_bitfs_dl_houseMat[] = {
 };
 
 
-
-
-Gfx mat_bitfs_dl_vineys[] = {
+Gfx mat_bitfs_dl_vineys_v3[] = {
 	gsDPPipeSync(),
 	gsDPSetCombineLERP(TEXEL0, 0, SHADE, 0, 0, 0, 0, TEXEL0, TEXEL0, 0, SHADE, 0, 0, 0, 0, TEXEL0),
 	gsSPSetGeometryMode(G_CULL_BACK),
@@ -5367,13 +5253,11 @@ Gfx mat_bitfs_dl_vineys[] = {
 	gsDPPipeSync(),
 	gsDPSetTile(G_IM_FMT_IA, G_IM_SIZ_16b, 8, 0, 0, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0, G_TX_WRAP | G_TX_NOMIRROR, 5, 0),
 	gsDPSetTileSize(0, 0, 0, 124, 124),
-	gsSPSetLights1(bitfs_dl_vineys_lights),
+	gsSPSetLights1(bitfs_dl_vineys_v3_lights),
 	gsSPEndDisplayList(),
 };
 
-
-
-Gfx mat_revert_bitfs_dl_vineys[] = {
+Gfx mat_revert_bitfs_dl_vineys_v3[] = {
 	gsDPPipeSync(),
 	gsSPClearGeometryMode(G_CULL_BACK),
 	gsSPSetGeometryMode(G_LIGHTING),
@@ -5381,9 +5265,7 @@ Gfx mat_revert_bitfs_dl_vineys[] = {
 };
 
 
-
-
-Gfx mat_bitfs_dl_rope[] = {
+Gfx mat_bitfs_dl_rope_v3[] = {
 	gsDPPipeSync(),
 	gsDPSetCombineLERP(SHADE, 0, TEXEL0, 0, 0, 0, 0, TEXEL0, SHADE, 0, TEXEL0, 0, 0, 0, 0, TEXEL0),
 	gsSPClearGeometryMode(G_LIGHTING),
@@ -5396,19 +5278,15 @@ Gfx mat_bitfs_dl_rope[] = {
 	gsDPPipeSync(),
 	gsDPSetTile(G_IM_FMT_IA, G_IM_SIZ_8b, 4, 0, 0, 0, G_TX_WRAP | G_TX_NOMIRROR, 7, 0, G_TX_CLAMP | G_TX_NOMIRROR, 5, 0),
 	gsDPSetTileSize(0, 0, 0, 124, 508),
-	gsSPSetLights1(bitfs_dl_rope_lights),
+	gsSPSetLights1(bitfs_dl_rope_v3_lights),
 	gsSPEndDisplayList(),
 };
 
-
-
-Gfx mat_revert_bitfs_dl_rope[] = {
+Gfx mat_revert_bitfs_dl_rope_v3[] = {
 	gsDPPipeSync(),
 	gsSPSetGeometryMode(G_LIGHTING),
 	gsSPEndDisplayList(),
 };
-
-
 
 
 Gfx bitfs_dl_SlothGeo_mesh[] = {
@@ -5416,19 +5294,17 @@ Gfx bitfs_dl_SlothGeo_mesh[] = {
 	gsSPVertex(bitfs_dl_SlothGeo_mesh_vtx_cull + 0, 8, 0),
 	gsSPSetGeometryMode(G_LIGHTING),
 	gsSPCullDisplayList(0, 7),
-	gsSPDisplayList(mat_bitfs_dl_grassMaterialS_layer1),
+	gsSPDisplayList(mat_bitfs_dl_grassMaterialS_v3_layer1_area1),
 	gsSPDisplayList(bitfs_dl_SlothGeo_mesh_tri_0),
-	gsSPDisplayList(mat_revert_bitfs_dl_grassMaterialS_layer1),
-	gsSPDisplayList(mat_bitfs_dl_riverFloorMat),
+	gsSPDisplayList(mat_revert_bitfs_dl_grassMaterialS_v3_layer1_area1),
+	gsSPDisplayList(mat_bitfs_dl_riverFloorMat_v3),
 	gsSPDisplayList(bitfs_dl_SlothGeo_mesh_tri_1),
-	gsSPDisplayList(mat_revert_bitfs_dl_riverFloorMat),
-	gsSPDisplayList(mat_bitfs_dl_cliffSideMaterial_layer1),
+	gsSPDisplayList(mat_revert_bitfs_dl_riverFloorMat_v3),
+	gsSPDisplayList(mat_bitfs_dl_cliffSideMaterial_v3_layer1_area1),
 	gsSPDisplayList(bitfs_dl_SlothGeo_mesh_tri_2),
-	gsSPDisplayList(mat_revert_bitfs_dl_cliffSideMaterial_layer1),
+	gsSPDisplayList(mat_revert_bitfs_dl_cliffSideMaterial_v3_layer1_area1),
 	gsSPEndDisplayList(),
 };
-
-
 
 
 
@@ -5437,13 +5313,11 @@ Gfx bitfs_dl_slothriver_mesh[] = {
 	gsSPVertex(bitfs_dl_slothriver_mesh_vtx_cull + 0, 8, 0),
 	gsSPSetGeometryMode(G_LIGHTING),
 	gsSPCullDisplayList(0, 7),
-	gsSPDisplayList(mat_bitfs_dl_riverMaterial),
+	gsSPDisplayList(mat_bitfs_dl_sm64_material_003),
 	gsSPDisplayList(bitfs_dl_slothriver_mesh_tri_0),
-	gsSPDisplayList(mat_revert_bitfs_dl_riverMaterial),
+	gsSPDisplayList(mat_revert_bitfs_dl_sm64_material_003),
 	gsSPEndDisplayList(),
 };
-
-
 
 
 
@@ -5460,8 +5334,6 @@ Gfx bitfs_dl_TreeA_mesh[] = {
 
 
 
-
-
 Gfx bitfs_dl_TreeA_001_mesh[] = {
 	gsSPClearGeometryMode(G_LIGHTING),
 	gsSPVertex(bitfs_dl_TreeA_001_mesh_vtx_cull + 0, 8, 0),
@@ -5472,8 +5344,6 @@ Gfx bitfs_dl_TreeA_001_mesh[] = {
 	gsSPDisplayList(mat_revert_bitfs_dl_sm64_material_001),
 	gsSPEndDisplayList(),
 };
-
-
 
 
 
@@ -5490,20 +5360,16 @@ Gfx bitfs_dl_TreeC_mesh[] = {
 
 
 
-
-
 Gfx bitfs_dl_WarpFloor_mesh[] = {
 	gsSPClearGeometryMode(G_LIGHTING),
 	gsSPVertex(bitfs_dl_WarpFloor_mesh_vtx_cull + 0, 8, 0),
 	gsSPSetGeometryMode(G_LIGHTING),
 	gsSPCullDisplayList(0, 7),
-	gsSPDisplayList(mat_bitfs_dl_warpFloor_layer0),
+	gsSPDisplayList(mat_bitfs_dl_warpFloor_layer0_area1),
 	gsSPDisplayList(bitfs_dl_WarpFloor_mesh_tri_0),
-	gsSPDisplayList(mat_revert_bitfs_dl_warpFloor_layer0),
+	gsSPDisplayList(mat_revert_bitfs_dl_warpFloor_layer0_area1),
 	gsSPEndDisplayList(),
 };
-
-
 
 
 
@@ -5512,13 +5378,11 @@ Gfx bitfs_dl_house1_mesh[] = {
 	gsSPVertex(bitfs_dl_house1_mesh_vtx_cull + 0, 8, 0),
 	gsSPSetGeometryMode(G_LIGHTING),
 	gsSPCullDisplayList(0, 7),
-	gsSPDisplayList(mat_bitfs_dl_houseMat),
+	gsSPDisplayList(mat_bitfs_dl_houseMat_v3),
 	gsSPDisplayList(bitfs_dl_house1_mesh_tri_0),
-	gsSPDisplayList(mat_revert_bitfs_dl_houseMat),
+	gsSPDisplayList(mat_revert_bitfs_dl_houseMat_v3),
 	gsSPEndDisplayList(),
 };
-
-
 
 
 
@@ -5527,13 +5391,11 @@ Gfx bitfs_dl_house1foilage_mesh[] = {
 	gsSPVertex(bitfs_dl_house1foilage_mesh_vtx_cull + 0, 8, 0),
 	gsSPSetGeometryMode(G_LIGHTING),
 	gsSPCullDisplayList(0, 7),
-	gsSPDisplayList(mat_bitfs_dl_vineys),
+	gsSPDisplayList(mat_bitfs_dl_vineys_v3),
 	gsSPDisplayList(bitfs_dl_house1foilage_mesh_tri_0),
-	gsSPDisplayList(mat_revert_bitfs_dl_vineys),
+	gsSPDisplayList(mat_revert_bitfs_dl_vineys_v3),
 	gsSPEndDisplayList(),
 };
-
-
 
 
 
@@ -5542,13 +5404,11 @@ Gfx bitfs_dl_house1foilage_001_mesh[] = {
 	gsSPVertex(bitfs_dl_house1foilage_001_mesh_vtx_cull + 0, 8, 0),
 	gsSPSetGeometryMode(G_LIGHTING),
 	gsSPCullDisplayList(0, 7),
-	gsSPDisplayList(mat_bitfs_dl_rope),
+	gsSPDisplayList(mat_bitfs_dl_rope_v3),
 	gsSPDisplayList(bitfs_dl_house1foilage_001_mesh_tri_0),
-	gsSPDisplayList(mat_revert_bitfs_dl_rope),
+	gsSPDisplayList(mat_revert_bitfs_dl_rope_v3),
 	gsSPEndDisplayList(),
 };
-
-
 
 
 
@@ -5562,5 +5422,3 @@ Gfx bitfs_dl_material_revert_render_settings[] = {
 	gsDPSetAlphaCompare(G_AC_NONE),
 	gsSPEndDisplayList(),
 };
-
-

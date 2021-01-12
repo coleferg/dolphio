@@ -37,7 +37,7 @@ const LevelScript level_bitfs_entry[] = {
 		MARIO_POS(0x01, -118, 60, 4340, 13959),
 		OBJECT(MODEL_NONE, 21, 4650, 12486, 0, -180, 0, 0x000B0000, bhvInstantActiveWarp),
 		TERRAIN(bitfs_area_1_collision),
-		MACRO_OBJECTS(bitfs_area_1_Area_macro_objs),
+		MACRO_OBJECTS(bitfs_area_1_macro_objs),
 		SET_BACKGROUND_MUSIC(0x00, SEQ_LEVEL_SPOOKY),
 		TERRAIN_TYPE(TERRAIN_GRASS),
 	END_AREA(),

@@ -4,6 +4,7 @@
 #include <windows.h>
 #endif
 #include "sm64.h"
+#include "PR/gbi.h"
 #include "gfx_dimensions.h"
 #include "audio/external.h"
 #include "buffers/buffers.h"
@@ -347,6 +348,95 @@ void config_gfx_pool(void) {
 #endif
 }
 
+#ifdef DRUNK_FILTER
+u16 get_fb_px(u32 idx) {
+    switch (sCurrFBNum)
+    {
+        case 0:
+            return gFrameBuffer0[idx];
+        case 1:
+            return gFrameBuffer1[idx];
+        case 2:
+            return gFrameBuffer2[idx];
+    }
+}
+
+void set_fb_px(u32 idx, u16 px) {
+    switch (sCurrFBNum)
+    {
+        case 0:
+            gFrameBuffer0[idx] = px;
+            return;
+        case 1:
+            gFrameBuffer1[idx] = px;
+            return;
+        case 2:
+            gFrameBuffer2[idx] = px;
+            return;
+    }
+}
+
+#define UNPACK_5551_R(px) ((((px >> 11) & 0x1F) * 255 + 15) / 31)
+#define UNPACK_5551_G(px) ((((px >> 6) & 0x1F) * 255 + 15) / 31)
+#define UNPACK_5551_B(px) ((((px >> 1) & 0x1F) * 255 + 15) / 31)
+#define UNPACK_5551_A(px) ((px & 0x0001) * 255)
+
+#define START_W ((SCREEN_WIDTH * (SCREEN_HEIGHT / 4)) + (SCREEN_WIDTH / 4))
+#define MODULO_LIMIT ((SCREEN_WIDTH / 4) * 3)
+#define DIVIDED_WIDTH (SCREEN_WIDTH / 2)
+// #define NUM_PIXELS (SCREEN_WIDTH * SCREEN_HEIGHT)
+#define NUM_PIXELS (((SCREEN_WIDTH * SCREEN_HEIGHT) / 4) * 3)
+
+void store_in_space_fb(void) {
+    u32 i;
+    for (i = START_W; i < NUM_PIXELS ; i++) {
+        if (i % SCREEN_WIDTH > MODULO_LIMIT) {
+            i += DIVIDED_WIDTH;
+            continue;
+        }
+        gFrameBuffer3[i] = get_fb_px(i);
+	}
+}
+
+void avg_last_and_cur_fb(void) {
+    u32 i;
+    u16 r, g, b, a;
+    for (i = START_W; i < NUM_PIXELS; i++) {
+        u16 curPx;
+        u16 lastPx;
+        if (i % SCREEN_WIDTH > MODULO_LIMIT) {
+            i += DIVIDED_WIDTH;
+            continue;
+        }
+        curPx = get_fb_px(i);
+        lastPx = gFrameBuffer3[i];
+
+		r = (UNPACK_5551_R(curPx) + UNPACK_5551_R(lastPx)) / 2; 
+		g = (UNPACK_5551_G(curPx) + UNPACK_5551_G(lastPx)) / 2;
+		b = (UNPACK_5551_B(curPx) + UNPACK_5551_B(lastPx)) / 2;
+		a = (UNPACK_5551_A(curPx) + UNPACK_5551_A(lastPx)) / 2;
+
+        set_fb_px(i, GPACK_RGBA5551(r, g, b, a));
+	}
+}
+
+void mess_with_fb(void) {
+    avg_last_and_cur_fb();
+    // switch (sCurrFBNum)
+    // {
+    //     case 0:
+    //         gFrameBuffer0[320 * 120 + 160] = GPACK_RGBA5551(255, 0, 100, 1);
+    //         break;
+    //     case 1:
+    //         gFrameBuffer1[320 * 120 + 160] = GPACK_RGBA5551(255, 0, 100, 1);
+    //         break;
+    //     case 2:
+    //         gFrameBuffer2[320 * 120 + 160] = GPACK_RGBA5551(255, 0, 100, 1);
+    //         break;
+    // }
+}
+#endif
+
 /** Handles vsync. */
 void display_and_vsync(void) {
     profiler_log_thread5_time(BEFORE_DISPLAY_LISTS);
@@ -359,6 +449,13 @@ void display_and_vsync(void) {
     profiler_log_thread5_time(AFTER_DISPLAY_LISTS);
 
     osRecvMesg(&gGameVblankQueue, &D_80339BEC, OS_MESG_BLOCK);
+
+#ifdef DRUNK_FILTER
+    if (gGlobalTimer > 0) {
+        mess_with_fb();
+    }
+    if (gGlobalTimer % 4 == 0) store_in_space_fb();
+#endif
 
     osViSwapBuffer((void *) PHYSICAL_TO_VIRTUAL(gPhysicalFrameBuffers[sCurrFBNum]));
     profiler_log_thread5_time(THREAD5_END);

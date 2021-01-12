@@ -26,19 +26,19 @@ COMPILER ?= ido
 
 # Automatic settings only for ports
 ifeq ($(TARGET_N64),0)
-
-  NON_MATCHING := 1
-  GRUCODE := f3dex2e
-  TARGET_WINDOWS := 0
   ifeq ($(TARGET_WEB),0)
     ifeq ($(OS),Windows_NT)
+      GRUCODE := f3dex2e
       TARGET_WINDOWS := 1
     else
       # TODO: Detect Mac OS X, BSD, etc. For now, assume Linux
-      TARGET_LINUX := 1
+      # TARGET_LINUX := 1
+      TARGET_N64 := 1
     endif
   endif
+endif
 
+ifeq ($(TARGET_WINDOWS),1)
   ifeq ($(TARGET_WINDOWS),1)
     ENABLE_DX12 ?= 1
     # On Windows, default to DirectX 12

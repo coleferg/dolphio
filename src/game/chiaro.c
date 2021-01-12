@@ -9,6 +9,9 @@
 #include "print.h"
 #include "actors/common1.h"
 
+f32 sFontScale = 1.0f;
+s32 sIncScale = TRUE;
+
 Lights1 these_lights = gdSPDefLights1(
 	0x9, 0x7F, 0x68,
 	0x12, 0xFE, 0xD1, 0x28, 0x28, 0x28);
@@ -162,36 +165,25 @@ s32 get_str_len(char* str) {
 	return length;
 }
 
+#define START_X ((f32) SCREEN_WIDTH / 4.0f)
+#define START_Y ((f32) SCREEN_HEIGHT - 20.0f)
+#define LINE_HEIGHT 25.0f
+
 void chiaro_display_char(char c, s32 strIndex, u32 width, s32 newLine, f32 lastLineLen) {
     Mtx *matrix = (Mtx *) alloc_display_list(sizeof(Mtx));
+	f32 startX = START_X + lastLineLen;
+	f32 startY = START_Y - (LINE_HEIGHT * ((f32) newLine));
 
     if (matrix == NULL) {
         return;
     }
 
-	// guScale(matrix, 16.0f, 16.0f, 1.0f);
-	if (strIndex == 0) {
-		guTranslate(
-			matrix,
-			((f32) SCREEN_WIDTH / 4.0f),
-			((f32) SCREEN_HEIGHT - 20.0f),
-			0.0f
-		);
-	} else if (newLine) {
-		guTranslate(
-			matrix,
-			0.0f - lastLineLen,
-			-25.0f,
-			0.0f
-		);
-	} else {
-		guTranslate(
-			matrix,
-			(f32) (width - 4),
-			0.0f,
-			0.0f
-		);
-	}
+	guTranslate(
+		matrix,
+		startX - (START_X * (1.0f / sFontScale)),
+		startY,
+		0.0f
+	);
 
 	gSPMatrix(gDisplayListHead++, VIRTUAL_TO_PHYSICAL(matrix++), G_MTX_MODELVIEW | G_MTX_MUL | G_MTX_PUSH);
 	gDPSetScissor(gDisplayListHead++, G_SC_NON_INTERLACE, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -215,12 +207,27 @@ void chiaro_display_chiaro_mesh(void) {
 	char c = 0;
 	s32 strIndex = 0;
 	u32 width = 0;
-	s32 newLine = FALSE;
+	s32 newLine = 0;
 	f32 lastLineLen = 0.0f;
+	// sFontScale = 2.0f;
+	if (sIncScale)
+	{
+		if (sFontScale >= 4.0f) sIncScale = FALSE;
+		else sFontScale += 0.1f;
+	}
+	else
+	{
+		if (sFontScale <= 0.25) sIncScale = TRUE;
+		else sFontScale -= 0.1f;
+	}
+	
 	// u32 *(*widths)[];
 	// widths = segmented_to_virtual(chiaro_widths);
 
 	c = str[strIndex];
+	create_dl_scale_matrix(MENU_MTX_NOPUSH, 1.0f / sFontScale, 1.0f / sFontScale, 1.0f);
+
+
 
 	while (c != 0) {
 		int index = ((int) c) - 33;
@@ -228,29 +235,25 @@ void chiaro_display_chiaro_mesh(void) {
 		{
 		case ' ':
 			width += 0x9;
-			// lastLineLen += (f32) 1.0f;
-			newLine = FALSE;
+			lastLineLen += (f32) 9.0f;
+			// newLine = FALSE;
 			strIndex++;
 			c = str[strIndex];
 			break;
 		
 		case '\n':
 			width = 0;
-			newLine = TRUE;
+			newLine++;
 			strIndex++;
 			c = str[strIndex];
+			lastLineLen = 0.0f;
 			break;
 		
 		default:
 			chiaro_display_char(c, strIndex, width, newLine, lastLineLen);
-			if (newLine) {
-				newLine = FALSE;
-				lastLineLen = 0.0f;
-			}
-			if (width) {
-				lastLineLen += (f32) width - 4.0f;
-			}
+
 			width = chiaro_widths2[index];
+			lastLineLen += (f32) width - 4.0f;
 			strIndex++;
 			c = str[strIndex];
 			break;

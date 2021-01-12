@@ -1,7 +1,7 @@
 extern const GeoLayout bitfs_area_1_geo[];
 extern const GeoLayout bitfs_area_1[];
 extern const Collision bitfs_area_1_collision[];
-extern const MacroObject bitfs_area_1_Area_macro_objs[];
+extern const MacroObject bitfs_area_1_macro_objs[];
 extern Vtx bitfs_dl_SlothGeo_mesh_vtx_0[16];
 extern Gfx bitfs_dl_SlothGeo_mesh_tri_0[];
 extern Vtx bitfs_dl_SlothGeo_mesh_vtx_1[32];

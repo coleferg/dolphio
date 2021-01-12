@@ -14,6 +14,7 @@
 #include "save_file.h"
 #include "print.h"
 #include "engine/surface_load.h"
+#include "chiaro.h"
 
 /* @file hud.c
  * This file implements HUD rendering and power meter animations.
@@ -450,6 +451,7 @@ void render_hud(void) {
 #else
         create_dl_ortho_matrix();
 #endif
+        chiaro_display_chiaro_mesh();
 
         // if (gCurrentArea != NULL && gCurrentArea->camera->mode == CAMERA_MODE_INSIDE_CANNON) {
         //     render_hud_cannon_reticle();
