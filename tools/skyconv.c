@@ -13,6 +13,8 @@
 #include "n64graphics.h"
 #include "utils.h"
 
+#define SKYCONV_ENCODING ENCODING_U8
+
 typedef struct {
     rgba *px;
     bool useless;
@@ -267,9 +269,7 @@ static void print_raw_data(FILE *cFile, TextureTile *tile) {
     ImageProps props = IMAGE_PROPERTIES[type][true];
     uint8_t *raw = malloc(props.tileWidth * props.tileHeight * 2);
     int size = rgba2raw(raw, tile->px, props.tileWidth, props.tileHeight, 16);
-    for (int i = 0; i < size; ++i) {
-        fprintf(cFile, "0x%hhX,", raw[i]);
-    }
+    fprint_write_output(cFile, SKYCONV_ENCODING, raw, size);
     free(raw);
 }
 
@@ -293,7 +293,7 @@ static void write_skybox_c() { /* write c data to disc */
         fprintf(stderr, "err: Could not open %s\n", fBuffer);
     }
 
-    fprintf(cFile, "#include \"sm64.h\"\n\n#include \"make_const_nonconst.h\"\n\n");
+    fprintf(cFile, "#include \"types.h\"\n\n#include \"make_const_nonconst.h\"\n\n");
 
     for (int i = 0; i < props.numRows * props.numCols; i++) {
         if (!tiles[i].useless) {

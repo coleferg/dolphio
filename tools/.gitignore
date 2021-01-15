@@ -1,7 +1,9 @@
 /aifc_decode
 /aiff_extract_codebook
 /armips
+/bfsize
 /extract_data_for_mio
+/filesizer
 /mio0
 /n64cksum
 /n64graphics
@@ -15,3 +17,4 @@
 !/ido5.3_compiler/usr/lib/*.so
 !/ido5.3_compiler/usr/lib/*.so.1
 !/ido5.3_compiler/**/*.o
+!/*.so

@@ -11,6 +11,7 @@
 #define INCLUDED_FROM_MEMORY_C
 
 #include "buffers/buffers.h"
+#include "slidec.h"
 #include "decompress.h"
 #include "game_init.h"
 #include "main.h"

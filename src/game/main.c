@@ -464,7 +464,7 @@ void thread1_idle(UNUSED void *arg) {
 
     osCreateViManager(OS_PRIORITY_VIMGR);
 #ifdef VERSION_US
-    if (sp24 == TV_TYPE_NTSC) {
+    if (sp24 == OS_TV_NTSC) {
         osViSetMode(&VI);
     } else {
         osViSetMode(&VI);

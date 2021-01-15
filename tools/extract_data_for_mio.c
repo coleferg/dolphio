@@ -17,8 +17,6 @@
 
 #define ELF_ST_TYPE(x) (((unsigned int) x) & 0xf)
 
-// #define DEBUG
-
 typedef uint32_t Elf32_Addr;
 typedef uint32_t Elf32_Off;
 
@@ -234,7 +232,7 @@ int main(int argc, char *argv[]) {
 
     for (uint32_t i = 0; i < symtab_size / sizeof(Elf32_Sym); i++) {
         Elf32_Sym *symbol = (Elf32_Sym *)(file + symtab_offset + i * sizeof(Elf32_Sym));
-#ifdef DEBUG
+#if DEBUG
         const char *name = "(null)";
         if (symbol->st_name != 0U) {
             name = (const char*)file + strtab_offset + u32be(symbol->st_name);
