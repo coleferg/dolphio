@@ -81,5 +81,5 @@ void func_80278A78(struct MarioAnimation *a, void *b, struct Animation *target);
 s32 load_patchable_table(struct MarioAnimation *a, u32 b);
 
 
-extern uintptr_t sSegmentROMTable[32];
+extern uintptr_t sSegmentTable[32];
 #endif

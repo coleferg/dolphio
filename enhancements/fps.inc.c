@@ -30,8 +30,8 @@ u16 gFPS = 0;
 u8 gRenderFPS = FALSE;
 
 void calculate_frameTime_from_OSTime(OSTime diff) {
-    gFrameTime += diff * SECONDS_PER_CYCLE;
-    gFrames++;
+    // gFrameTime += diff * SECONDS_PER_CYCLE;
+    // gFrames++;
 }
 
 void render_fps(void) {
@@ -40,20 +40,20 @@ void render_fps(void) {
         gRenderFPS ^= 1;
     }
 
-    if (gRenderFPS) {
-        OSTime newTime = osGetTime();
+    // if (gRenderFPS) {
+    //     OSTime newTime = osGetTime();
 
-        calculate_frameTime_from_OSTime(newTime - gLastOSTime);
+    //     calculate_frameTime_from_OSTime(newTime - gLastOSTime);
 
-        // If frame time is longer or equal to a second, update FPS counter.
-        if (gFrameTime >= 1.0f) {
-            gFPS = gFrames;
-            gFrames = 0;
-            gFrameTime -= 1.0f;
-        }
+    //     // If frame time is longer or equal to a second, update FPS counter.
+    //     if (gFrameTime >= 1.0f) {
+    //         gFPS = gFrames;
+    //         gFrames = 0;
+    //         gFrameTime -= 1.0f;
+    //     }
 
-        print_text_fmt_int(FPS_COUNTER_X_POS, FPS_COUNTER_Y_POS, "FPS %d", gFPS);
+    //     print_text_fmt_int(FPS_COUNTER_X_POS, FPS_COUNTER_Y_POS, "FPS %d", gFPS);
 
-        gLastOSTime = newTime;
-    }
+    //     gLastOSTime = newTime;
+    // }
 }

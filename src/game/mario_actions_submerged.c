@@ -18,6 +18,18 @@
 #include "print.h"
 #include "thread6.h"
 
+#ifndef MAX
+#define MAX(a, b)				((a) > (b) ? (a) : (b))
+#endif
+
+#ifndef MIN
+#define MIN(a, b)				((a) < (b) ? (a) : (b))
+#endif
+
+#ifndef MIN_MAX
+#define MIN_MAX(a, min, max)		(MAX(MIN(a, max), min))
+#endif
+
 #define MIN_SWIM_STRENGTH 240
 #define MIN_SWIM_SPEED 16.0f
 

@@ -12,13 +12,18 @@
 
 #include "buffers/buffers.h"
 #include "slidec.h"
-#include "decompress.h"
 #include "game_init.h"
 #include "main.h"
 #include "memory.h"
 #include "segment_symbols.h"
 #include "segments.h"
-#include "platform_info.h"
+#ifdef GZIP
+#include "gzip/gzip.h"
+#endif
+#ifdef UNF
+#include "usb/debug.h"
+#endif
+
 
 // round up to the next multiple
 #define ALIGN4(val) (((val) + 0x3) & ~0x3)
@@ -96,9 +101,7 @@ extern struct MainPoolBlock *sPoolListHeadR;
  */
 struct MemoryPool *gEffectsMemoryPool;
 
-
 uintptr_t sSegmentTable[32];
-uintptr_t sSegmentROMTable[32];
 u32 sPoolFreeSpace;
 u8 *sPoolStart;
 u8 *sPoolEnd;
@@ -143,7 +146,7 @@ void *segmented_to_virtual(const void *addr) {
     return (void *) addr;
 }
 
-void *virtual_to_segmented(UNUSED u32 segment, const void *addr) {
+void *virtual_to_segmented(u32 segment, const void *addr) {
     return (void *) addr;
 }
 
@@ -378,7 +381,7 @@ static void dma_read(u8 *dest, u8 *srcStart, u8 *srcEnd) {
  * Perform a DMA read from ROM, allocating space in the memory pool to write to.
  * Return the destination address.
  */
-static void *dynamic_dma_read(u8 *srcStart, u8 *srcEnd, UNUSED u32 side) {
+static void *dynamic_dma_read(u8 *srcStart, u8 *srcEnd, u32 side) {
     void *dest;
     u32 size = ALIGN16(srcEnd - srcStart);
 
@@ -402,7 +405,7 @@ void *load_segment(s32 segment, u8 *srcStart, u8 *srcEnd, u32 side) {
     void *addr = dynamic_dma_read(srcStart, srcEnd, side);
 
     if (addr != NULL) {
-        set_segment_base_addr(segment, addr); sSegmentROMTable[segment] = (uintptr_t) srcStart;
+        set_segment_base_addr(segment, addr);
     }
     return addr;
 }
@@ -432,6 +435,17 @@ void *load_to_fixed_pool_addr(u8 *destAddr, u8 *srcStart, u8 *srcEnd) {
     return dest;
 }
 
+#ifdef GZIP
+u32 ExpandGZip(void *src, void *dest, u32 size)
+{
+	u32 len;
+
+	len = expand_gzip((char *)src, (char *)dest, size);
+
+	return ((u32)dest + len + 7) & ~7;
+}
+#endif
+
 /**
  * Decompress the block of ROM data from srcStart to srcEnd and return a
  * pointer to an allocated buffer holding the decompressed data. Set the
@@ -440,18 +454,32 @@ void *load_to_fixed_pool_addr(u8 *destAddr, u8 *srcStart, u8 *srcEnd) {
 void *load_segment_decompress(s32 segment, u8 *srcStart, u8 *srcEnd) {
     void *dest = NULL;
 
+#ifdef GZIP
+    u32 compSize = (srcEnd - 4 - srcStart);
+#else
     u32 compSize = ALIGN16(srcEnd - srcStart);
+#endif
+
     u8 *compressed = main_pool_alloc(compSize, MEMORY_POOL_RIGHT);
 
+#ifdef GZIP
+    // Decompressed size from end of gzip
+    u32 *size = (u32 *) (compressed + compSize);
+#else
     // Decompressed size from mio0 header
     u32 *size = (u32 *) (compressed + 4);
+#endif
 
     if (compressed != NULL) {
         dma_read(compressed, srcStart, srcEnd);
         dest = main_pool_alloc(*size, MEMORY_POOL_LEFT);
         if (dest != NULL) {
-            decompress(compressed, dest);
-            set_segment_base_addr(segment, dest); sSegmentROMTable[segment] = (uintptr_t) srcStart;
+#ifdef GZIP
+            ExpandGZip(compressed, dest, compSize);
+#else
+            slidstart(compressed, dest);
+#endif
+            set_segment_base_addr(segment, dest);
             main_pool_free(compressed);
         } else {
         }
@@ -462,14 +490,22 @@ void *load_segment_decompress(s32 segment, u8 *srcStart, u8 *srcEnd) {
 
 void *load_segment_decompress_heap(u32 segment, u8 *srcStart, u8 *srcEnd) {
     UNUSED void *dest = NULL;
+
+#ifdef GZIP
+    u32 compSize = (srcEnd - 4 - srcStart);
+#else
     u32 compSize = ALIGN16(srcEnd - srcStart);
+#endif
     u8 *compressed = main_pool_alloc(compSize, MEMORY_POOL_RIGHT);
-    UNUSED u32 *pUncSize = (u32 *) (compressed + 4);
 
     if (compressed != NULL) {
         dma_read(compressed, srcStart, srcEnd);
-        decompress(compressed, gDecompressionHeap);
-        set_segment_base_addr(segment, gDecompressionHeap); sSegmentROMTable[segment] = (uintptr_t) srcStart;
+#ifdef GZIP
+        ExpandGZip(gDecompressionHeap, compressed, compSize);
+#else
+        slidstart(compressed, gDecompressionHeap);
+#endif
+        set_segment_base_addr(segment, gDecompressionHeap);
         main_pool_free(compressed);
     } else {
     }
@@ -482,10 +518,16 @@ void load_engine_code_segment(void) {
     UNUSED u32 alignedSize = ALIGN16(_engineSegmentRomEnd - _engineSegmentRomStart);
 
     bzero(startAddr, totalSize);
+#ifdef UNF
+    debug_printf("DMA-ing engine segment...");
+#endif
     osWritebackDCacheAll();
     dma_read(startAddr, _engineSegmentRomStart, _engineSegmentRomEnd);
     osInvalICache(startAddr, totalSize);
     osInvalDCache(startAddr, totalSize);
+#ifdef UNF
+    debug_printf("\rDMA-ing engine segment...Done!\n");
+#endif
 }
 #endif
 
@@ -783,6 +825,7 @@ void func_80278A78(struct MarioAnimation *a, void *b, struct Animation *target) 
     a->targetAnim = target;
 }
 
+// TODO: (Scrub C)
 s32 load_patchable_table(struct MarioAnimation *a, u32 index) {
     s32 ret = FALSE;
     struct MarioAnimDmaRelatedThing *sp20 = a->animDmaTable;

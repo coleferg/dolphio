@@ -1,4 +1,4 @@
-#include <PR/ultratypes.h>
+#include <ultra64.h>
 
 #include "sm64.h"
 #include "area.h"
@@ -81,23 +81,23 @@ struct GraphNodeObject gMirrorMario;  // copy of Mario's geo node for drawing mi
 /**
  * Geo node script that draws Mario's head on the title screen.
  */
-Gfx *geo_draw_mario_head_goddard(s32 callContext, struct GraphNode *node, Mat4 *c) {
-    Gfx *gfx = NULL;
-    s16 sfx = 0;
-    struct GraphNodeGenerated *asGenerated = (struct GraphNodeGenerated *) node;
-    UNUSED Mat4 *transform = c;
+// Gfx *geo_draw_mario_head_goddard(s32 callContext, struct GraphNode *node, Mat4 *c) {
+//     Gfx *gfx = NULL;
+//     s16 sfx = 0;
+//     struct GraphNodeGenerated *asGenerated = (struct GraphNodeGenerated *) node;
+//     UNUSED Mat4 *transform = c;
 
-    if (callContext == GEO_CONTEXT_RENDER) {
-        if (gPlayer1Controller->controllerData != NULL && !gWarpTransition.isActive) {
-            gd_copy_p1_contpad(gPlayer1Controller->controllerData);
-        }
-        gfx = (Gfx *) PHYSICAL_TO_VIRTUAL(gdm_gettestdl(asGenerated->parameter));
-        D_8032C6A0 = gd_vblank;
-        sfx = gd_sfx_to_play();
-        play_menu_sounds(sfx);
-    }
-    return gfx;
-}
+//     if (callContext == GEO_CONTEXT_RENDER) {
+//         if (gPlayer1Controller->controllerData != NULL && !gWarpTransition.isActive) {
+//             gd_copy_p1_contpad(gPlayer1Controller->controllerData);
+//         }
+//         gfx = (Gfx *) PHYSICAL_TO_VIRTUAL(gdm_gettestdl(asGenerated->parameter));
+//         D_8032C6A0 = gd_vblank;
+//         sfx = gd_sfx_to_play();
+//         play_menu_sounds(sfx);
+//     }
+//     return gfx;
+// }
 
 static void toad_message_faded(void) {
     if (gCurrentObject->oDistanceToMario > 700.0f) {

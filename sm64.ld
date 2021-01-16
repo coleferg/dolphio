@@ -130,6 +130,7 @@ SECTIONS
 #ifdef YAY0
       BUILD_DIR/asm/slidec.o(.text);
 #endif
+      BUILD_DIR/asm/crash.o(.text);
 
       */libultra_rom.a:*.o(.text);
       */libgcc.a:_umoddi3.o(.text);

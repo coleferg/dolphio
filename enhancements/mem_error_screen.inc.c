@@ -60,7 +60,7 @@
     const LevelScript level_intro_entry_error_screen[] {
         INIT_LEVEL(),
         FIXED_LOAD(_goddardSegmentStart, _goddardSegmentRomStart, _goddardSegmentRomEnd),
-        LOAD_MIO0(0x07, _intro_segment_7SegmentRomStart, _intro_segment_7SegmentRomEnd),
+        LOAD_YAY0(0x07, _intro_segment_7SegmentRomStart, _intro_segment_7SegmentRomEnd),
         ALLOC_LEVEL_POOL(),
 
         AREA(1, intro_geo_error_screen),

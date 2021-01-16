@@ -1,4 +1,5 @@
-#include <PR/ultratypes.h>
+#include <ultra64.h>
+#include "PR/gbi.h"
 
 #include "sm64.h"
 #include "actors/common0.h"
@@ -52,6 +53,18 @@
 #define POS_OP_RESTORE_POSITION 2
 
 #define o gCurrentObject
+
+#ifndef MAX
+#define MAX(a, b)				((a) > (b) ? (a) : (b))
+#endif
+
+#ifndef MIN
+#define MIN(a, b)				((a) < (b) ? (a) : (b))
+#endif
+
+#ifndef MIN_MAX
+#define MIN_MAX(a, min, max)		(MAX(MIN(a, max), min))
+#endif
 
 /* BSS (declared to force order) */
 extern s32 sNumActiveFirePiranhaPlants;

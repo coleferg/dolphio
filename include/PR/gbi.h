@@ -87,6 +87,18 @@
  *
  */
 
+#ifndef MAX
+#define MAX(a, b)				((a) > (b) ? (a) : (b))
+#endif
+
+#ifndef MIN
+#define MIN(a, b)				((a) < (b) ? (a) : (b))
+#endif
+
+#ifndef MIN_MAX
+#define MIN_MAX(a, min, max)		(MAX(MIN(a, max), min))
+#endif
+
 #ifdef F3DEX_GBI_2E
 # ifndef F3DEX_GBI_2
 #  define F3DEX_GBI_2

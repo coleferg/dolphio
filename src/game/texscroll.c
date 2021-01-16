@@ -6,6 +6,7 @@
 #include "game/area.h"
 #include "level_table.h"
 #include "texscroll.h"
+#include "print.h"
 
 #ifdef TARGET_N64
 #define SCROLL_CONDITION(condition) condition
@@ -49,6 +50,11 @@ void scroll_textures() {
                 scroll_textures_bits();
             }
             break;
+        case LEVEL_PSS:
+            if (gCurrAreaIndex == 1) {
+                scroll_textures_pss();
+            }
+            break;
     }
 
 #if FALSE
@@ -57,32 +63,33 @@ void scroll_textures() {
 
 	
 	
-	if(SCROLL_CONDITION(sSegmentROMTable[0x7] == (uintptr_t)_bitfs_segment_7SegmentRomStart)) {
+	if(SCROLL_CONDITION(sSegmentTable[0x7] == (uintptr_t)_bitfs_segment_7SegmentRomStart)) {
 		scroll_textures_bitfs();
 	}
 
-	if(SCROLL_CONDITION(sSegmentROMTable[0x7] == (uintptr_t)_bitdw_segment_7SegmentRomStart)) {
+	if(SCROLL_CONDITION(sSegmentTable[0x7] == (uintptr_t)_bitdw_segment_7SegmentRomStart)) {
 		scroll_textures_bitdw();
 	}
 	
-	if(SCROLL_CONDITION(sSegmentROMTable[0x7] == (uintptr_t)_castle_grounds_segment_7SegmentRomStart)) {
+	if(SCROLL_CONDITION(sSegmentTable[0x7] == (uintptr_t)_castle_grounds_segment_7SegmentRomStart)) {
 		scroll_textures_castle_grounds();
 	}
 
-	if(SCROLL_CONDITION(sSegmentROMTable[0x7] == (uintptr_t)_bowser_1_segment_7SegmentRomStart)) {
+	if(SCROLL_CONDITION(sSegmentTable[0x7] == (uintptr_t)_bowser_1_segment_7SegmentRomStart)) {
 		scroll_textures_bowser_1();
 	}
 
-	if(SCROLL_CONDITION(sSegmentROMTable[0x7] == (uintptr_t)_bits_segment_7SegmentRomStart)) {
+	if(SCROLL_CONDITION(sSegmentTable[0x7] == (uintptr_t)_bits_segment_7SegmentRomStart)) {
 		scroll_textures_bits();
 	}
-#endif
-	if(SCROLL_CONDITION(sSegmentROMTable[0x4] == (uintptr_t)_group0_mio0SegmentRomStart)) {
-		scroll_textures_group0();
-	}
 
-	if(SCROLL_CONDITION(sSegmentROMTable[0x7] == (uintptr_t)_pss_segment_7SegmentRomStart)) {
+	if(SCROLL_CONDITION(sSegmentTable[0x7] == (uintptr_t)_pss_segment_7SegmentRomStart)) {
 		scroll_textures_pss();
 	}
-
+#endif
+	if(SCROLL_CONDITION(sSegmentTable[0x4] == (uintptr_t)_group0_yay0SegmentRomStart)) {
+		scroll_textures_group0();
+	}
+    print_text_fmt_int(30, 50, "%#010x", sSegmentTable[0x4]);
+    print_text_fmt_int(30, 30, "%#010x", (uintptr_t)_group0_yay0SegmentRomStart);
 }
