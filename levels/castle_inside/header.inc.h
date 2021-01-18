@@ -1,0 +1,13 @@
+extern const GeoLayout castle_inside_area_1_geo[];
+extern const GeoLayout castle_inside_area_1[];
+extern const Collision castle_inside_area_1_collision[];
+extern const MacroObject castle_inside_area_1_macro_objs[];
+extern Lights1 castle_inside_dl_sm64_material_lights;
+extern u8 castle_inside_dl_Leaves_3_i8[];
+extern Vtx castle_inside_dl_Ground_mesh_vtx_cull[8];
+extern Vtx castle_inside_dl_Ground_mesh_vtx_0[11];
+extern Gfx castle_inside_dl_Ground_mesh_tri_0[];
+extern Gfx mat_castle_inside_dl_sm64_material[];
+extern Gfx mat_revert_castle_inside_dl_sm64_material[];
+extern Gfx castle_inside_dl_Ground_mesh[];
+extern Gfx castle_inside_dl_material_revert_render_settings[];
