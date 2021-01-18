@@ -74,3 +74,5 @@ sm64config.txt
 !/assets/**/*custom*/**/*.bin
 
 tools/krikzz**
+
+!/game-assets/**/*.blend1
