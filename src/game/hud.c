@@ -451,7 +451,7 @@ void render_hud(void) {
 #else
         create_dl_ortho_matrix();
 #endif
-        chiaro_display_chiaro_mesh();
+        // chiaro_display_chiaro_mesh();
 
         // if (gCurrentArea != NULL && gCurrentArea->camera->mode == CAMERA_MODE_INSIDE_CANNON) {
         //     render_hud_cannon_reticle();
@@ -477,6 +477,7 @@ void render_hud(void) {
             render_hud_power_meter();
             render_hud_camera_status();
         }
+        // chiaro_display_chiaro_mesh();
 
         if (hudDisplayFlags & HUD_DISPLAY_FLAG_TIMER) {
             render_hud_timer();
