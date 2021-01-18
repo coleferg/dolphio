@@ -86,10 +86,10 @@ void scroll_textures() {
 	if(SCROLL_CONDITION(sSegmentTable[0x7] == (uintptr_t)_pss_segment_7SegmentRomStart)) {
 		scroll_textures_pss();
 	}
-#endif
 	if(SCROLL_CONDITION(sSegmentTable[0x4] == (uintptr_t)_group0_yay0SegmentRomStart)) {
-		scroll_textures_group0();
-	}
-    print_text_fmt_int(30, 50, "%#010x", sSegmentTable[0x4]);
-    print_text_fmt_int(30, 30, "%#010x", (uintptr_t)_group0_yay0SegmentRomStart);
+        scroll_textures_group0();
+    }
+#endif
+    // TODO: Detect if specific objects are loaded before scrolling
+    scroll_textures_group0();
 }
