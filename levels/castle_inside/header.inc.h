@@ -16,7 +16,7 @@ extern Vtx castle_inside_dl_Ground_mesh_vtx_0[291];
 extern Gfx castle_inside_dl_Ground_mesh_tri_0[];
 extern Vtx castle_inside_dl_Ground_mesh_vtx_1[133];
 extern Gfx castle_inside_dl_Ground_mesh_tri_1[];
-extern Vtx castle_inside_dl_Ground_mesh_vtx_2[62];
+extern Vtx castle_inside_dl_Ground_mesh_vtx_2[82];
 extern Gfx castle_inside_dl_Ground_mesh_tri_2[];
 extern Vtx castle_inside_dl_Ground_mesh_vtx_3[27];
 extern Gfx castle_inside_dl_Ground_mesh_tri_3[];
